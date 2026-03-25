@@ -3,32 +3,96 @@ import { formatCurrency } from "../utils/finance";
 import ProgressionChart from "./ProgressionChart";
 import Summary from "./Summary";
 
+function getContextualTips({ result, values }) {
+  const tips = [];
+  const apportPct = values.downPayment / values.purchasePrice;
+
+  if (apportPct < 0.1) {
+    tips.push({ type: "warn", text: "Votre apport est inférieur à 10 %. Les banques exigent souvent au moins 10 % pour accorder un prêt — et préfèrent 20 % pour les meilleures conditions." });
+  }
+  if (values.comparisonYears <= 5) {
+    tips.push({ type: "warn", text: `Sur ${values.comparisonYears} ans, les frais d'achat (~8–10 %) ont à peine le temps de s'amortir. C'est souvent pourquoi la location gagne sur les horizons courts.` });
+  }
+  if (!result.isBuyingBetter && values.comparisonYears < 12) {
+    tips.push({ type: "info", text: `Testez un horizon de 15–20 ans : l'achat gagne souvent sur le long terme une fois les frais initiaux absorbés.` });
+  }
+  if (result.isBuyingBetter && result.advantage > 60000) {
+    tips.push({ type: "ok", text: `L'achat est nettement gagnant. Le bien s'apprécie suffisamment pour compenser les frais d'entrée et l'effort mensuel plus élevé.` });
+  }
+  if (values.monthlySavings > 0) {
+    tips.push({ type: "info", text: `Votre épargne mensuelle de ${formatCurrency(values.monthlySavings)} fait une vraie différence. Sur ${values.comparisonYears} ans, c'est ${formatCurrency(values.monthlySavings * values.comparisonYears * 12)} placés — hors rendement.` });
+  }
+  return tips.slice(0, 2); // max 2 tips
+}
+
+function buildInsights({ result, values, monthlyDiff, breakevenYear }) {
+  return [
+    {
+      icon: "💸",
+      text: monthlyDiff > 0
+        ? `Mensualité propriétaire : ${formatCurrency(result.ownerMonthlyTotal)}/mois vs ${formatCurrency(values.monthlyRent)}/mois de loyer. ${formatCurrency(monthlyDiff)}/mois de plus — épargne forcée via le remboursement du capital.`
+        : `La mensualité (${formatCurrency(result.ownerMonthlyTotal)}/mois) est inférieure au loyer (${formatCurrency(values.monthlyRent)}/mois). Avantage immédiat pour l'achat : ${formatCurrency(-monthlyDiff)}/mois d'économie.`,
+    },
+    {
+      icon: "📅",
+      text: breakevenYear
+        ? `L'achat devient plus rentable à partir de ${breakevenYear} an${breakevenYear > 1 ? "s" : ""}. En dessous, la location garde l'avantage malgré la constitution de patrimoine.`
+        : `Sur ${values.comparisonYears} ans, la location garde l'avantage. L'achat pourrait prendre l'avantage sur un horizon plus long.`,
+    },
+    {
+      icon: "🏠",
+      text: `Dans ${values.comparisonYears} ans, le bien vaudrait environ ${formatCurrency(result.propertyValueAtEnd)} avec une hausse de ${values.appreciationRate} %/an. Frais de revente estimés : ${formatCurrency(result.saleCosts)}.`,
+    },
+    {
+      icon: result.isBuyingBetter ? "📈" : "🔑",
+      text: result.isBuyingBetter
+        ? "L'achat constitue un patrimoine immobilier tangible et protège contre la hausse des loyers — au prix d'un engagement long terme."
+        : "La location offre plus de flexibilité et un capital liquide. Idéal si votre situation professionnelle ou personnelle peut évoluer.",
+    },
+  ];
+}
+
 export default function StepResult({ result, values, onEdit }) {
   const [showDetails, setShowDetails] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const {
     isBuyingBetter, recommendation, advantage,
     ownerMonthlyTotal, ownerNetWorth, renterPortfolio,
-    propertyValueAtEnd, notaryFees, yearlyData,
+    notaryFees, yearlyData, minPropertyValue,
   } = result;
 
   const monthlyDiff = ownerMonthlyTotal - values.monthlyRent;
   const renterLumpSum = values.downPayment + notaryFees;
+  const breakevenYear = yearlyData?.find((d) => d.ownerNetWorth >= d.renterPortfolio)?.year ?? null;
 
-  const breakevenYear = yearlyData?.find(
-    (d) => d.ownerNetWorth >= d.renterPortfolio
-  )?.year ?? null;
-
+  const tips = getContextualTips({ result, values });
   const insights = buildInsights({ result, values, monthlyDiff, breakevenYear });
 
-  return (
-    <div className="result-page">
+  const handleShare = async () => {
+    const text =
+      `Simulation Louer ou Acheter — ${values.comparisonYears} ans\n\n` +
+      `🏠 Acheter  : ${formatCurrency(ownerNetWorth)} de patrimoine net\n` +
+      `📈 Louer    : ${formatCurrency(renterPortfolio)} de capital accumulé\n\n` +
+      `Verdict : ${recommendation} (avantage de ${formatCurrency(Math.abs(advantage))})\n` +
+      `Mensualité : ${formatCurrency(ownerMonthlyTotal)}/mois vs loyer ${formatCurrency(values.monthlyRent)}/mois`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2200);
+    } catch {
+      /* fallback: ignore */
+    }
+  };
 
-      {/* ══ 1 — SCOREBOARD (at a glance) ═══════════════════════ */}
-      <section className="scoreboard">
-        <div className={`score-card ${isBuyingBetter ? "sc-winner" : "sc-loser"} sc-buy`}>
+  return (
+    <div className="result-page" role="main" aria-label="Résultats de la simulation">
+
+      {/* ══ 1 — SCOREBOARD ══════════════════════════════════ */}
+      <section className="scoreboard" aria-label="Comparaison des deux scénarios">
+        <article className={`score-card ${isBuyingBetter ? "sc-winner" : "sc-loser"} sc-buy`} aria-label="Scénario achat">
           {isBuyingBetter && <span className="sc-badge">✓ Meilleure option</span>}
-          <span className="sc-icon">🏠</span>
+          <span className="sc-icon" aria-hidden="true">🏠</span>
           <span className="sc-label">Acheter</span>
           <div className="sc-amount">{formatCurrency(ownerNetWorth)}</div>
           <p className="sc-amount-label">
@@ -39,23 +103,24 @@ export default function StepResult({ result, values, onEdit }) {
             <span>/mois</span>
           </div>
           <p className="sc-monthly-label">mensualité + charges</p>
-        </div>
+        </article>
 
-        <div className="score-vs">
+        <div className="score-vs" aria-hidden="true">
           <span>vs</span>
           <div className={`advantage-pill ${isBuyingBetter ? "ap-buy" : "ap-rent"}`}>
-            {formatCurrency(Math.abs(advantage))} de différence
+            {formatCurrency(Math.abs(advantage))}
+            <br />de différence
           </div>
           {breakevenYear && (
             <span className="breakeven-note">
-              Achat + rentable dès {breakevenYear} an{breakevenYear > 1 ? "s" : ""}
+              Achat + rentable<br />dès {breakevenYear} an{breakevenYear > 1 ? "s" : ""}
             </span>
           )}
         </div>
 
-        <div className={`score-card ${!isBuyingBetter ? "sc-winner" : "sc-loser"} sc-rent`}>
+        <article className={`score-card ${!isBuyingBetter ? "sc-winner" : "sc-loser"} sc-rent`} aria-label="Scénario location">
           {!isBuyingBetter && <span className="sc-badge">✓ Meilleure option</span>}
-          <span className="sc-icon">📈</span>
+          <span className="sc-icon" aria-hidden="true">📈</span>
           <span className="sc-label">Louer</span>
           <div className="sc-amount">{formatCurrency(renterPortfolio)}</div>
           <p className="sc-amount-label">
@@ -66,92 +131,128 @@ export default function StepResult({ result, values, onEdit }) {
             <span>/mois</span>
           </div>
           <p className="sc-monthly-label">loyer mensuel</p>
-        </div>
+        </article>
       </section>
 
-      {/* ══ 2 — VERDICT SENTENCE ══════════════════════════════ */}
-      <div className={`verdict-sentence ${isBuyingBetter ? "vs-buy" : "vs-rent"}`}>
+      {/* ══ 2 — VERDICT ════════════════════════════════════ */}
+      <div className={`verdict-sentence ${isBuyingBetter ? "vs-buy" : "vs-rent"}`} role="status">
         <strong>{recommendation}</strong> est la meilleure option sur {values.comparisonYears} ans —{" "}
         {isBuyingBetter
-          ? `votre patrimoine serait ${formatCurrency(advantage)} plus élevé qu'en restant locataire.`
+          ? `votre patrimoine net serait ${formatCurrency(advantage)} plus élevé qu'en restant locataire.`
           : `votre capital serait ${formatCurrency(Math.abs(advantage))} plus élevé qu'en achetant.`}
       </div>
 
-      {/* ══ 3 — RENTER OPPORTUNITY CALLOUT ════════════════════ */}
+      {/* ══ 3 — CONTEXTUAL TIPS ════════════════════════════ */}
+      {tips.length > 0 && (
+        <div className="tips-list" role="note" aria-label="Conseils">
+          {tips.map((tip, i) => (
+            <div key={i} className={`tip-item tip-${tip.type}`}>
+              <span className="tip-icon" aria-hidden="true">
+                {tip.type === "warn" ? "⚠️" : tip.type === "ok" ? "✅" : "💡"}
+              </span>
+              <span>{tip.text}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* ══ 4 — RENTER OPPORTUNITY ═════════════════════════ */}
       <div className="opportunity-card">
         <div className="opp-left">
-          <span className="opp-icon">💡</span>
+          <span className="opp-icon" aria-hidden="true">💡</span>
           <div>
-            <p className="opp-title">L'opportunité locataire</p>
+            <p className="opp-title">L'opportunité du locataire</p>
             <p className="opp-text">
-              En plaçant votre apport de{" "}
-              <strong>{formatCurrency(renterLumpSum)}</strong> (apport + frais de notaire) à{" "}
-              {values.investmentReturn} %/an
-              {monthlyDiff > 0
-                ? ` et en investissant ${formatCurrency(monthlyDiff)}/mois de différence`
-                : ""}
-              , vous vous constituez un capital de{" "}
-              <strong>{formatCurrency(renterPortfolio)}</strong> en{" "}
-              {values.comparisonYears} ans — sans vous engager sur {values.mortgageYears} ans.
+              En plaçant <strong>{formatCurrency(renterLumpSum)}</strong> aujourd'hui
+              (apport + frais non dépensés) à {values.investmentReturn}&nbsp;%/an
+              {values.monthlySavings > 0 ? `, en investissant ${formatCurrency(values.monthlySavings)}/mois` : ""}
+              {monthlyDiff > 0 ? ` et ${formatCurrency(monthlyDiff)}/mois de différence de charges` : ""}
+              , le locataire accumule <strong>{formatCurrency(renterPortfolio)}</strong> en{" "}
+              {values.comparisonYears} ans — sans s'engager sur {values.mortgageYears} ans.
             </p>
           </div>
         </div>
         {monthlyDiff > 0 && (
-          <div className="opp-right">
-            <span className="opp-saving-label">Vous épargneriez</span>
+          <div className="opp-right" aria-label={`${formatCurrency(monthlyDiff)} par mois épargnés en restant locataire`}>
+            <span className="opp-saving-label">Épargné / mois</span>
             <strong className="opp-saving-amount">{formatCurrency(monthlyDiff)}</strong>
-            <span className="opp-saving-unit">/ mois en restant locataire</span>
           </div>
         )}
       </div>
 
-      {/* ══ 4 — DETAILS (expandable) ══════════════════════════ */}
+      {/* ══ 5 — MIN PROPERTY VALUE ═════════════════════════ */}
+      <div className="min-value-card">
+        <span className="min-value-icon" aria-hidden="true">🎯</span>
+        <div>
+          <p className="min-value-title">Prix de revente nécessaire pour égaliser</p>
+          <p className="min-value-text">
+            Pour que l'achat soit aussi rentable que la location sur {values.comparisonYears} ans,
+            le bien doit se revendre à au moins{" "}
+            <strong className="min-value-number">{formatCurrency(minPropertyValue)}</strong>.
+            {minPropertyValue > result.propertyValueAtEnd
+              ? ` Avec ${values.appreciationRate} %/an, il vaudrait ${formatCurrency(result.propertyValueAtEnd)} — ${formatCurrency(minPropertyValue - result.propertyValueAtEnd)} de moins que nécessaire.`
+              : ` Avec ${values.appreciationRate} %/an, il vaudrait ${formatCurrency(result.propertyValueAtEnd)} — le seuil est atteint.`}
+          </p>
+        </div>
+      </div>
+
+      {/* ══ 6 — SHARE + EDIT ═══════════════════════════════ */}
+      <div className="result-actions">
+        <button
+          className="btn-share"
+          onClick={handleShare}
+          type="button"
+          aria-label="Copier le résumé dans le presse-papiers"
+        >
+          {copied ? "✓ Copié !" : "⎘ Copier les résultats"}
+        </button>
+      </div>
+
+      {/* ══ 7 — DETAILS (expandable) ═══════════════════════ */}
       <button
         className={`details-toggle ${showDetails ? "dt-open" : ""}`}
         onClick={() => setShowDetails(!showDetails)}
         type="button"
+        aria-expanded={showDetails}
+        aria-controls="details-content"
       >
         {showDetails ? "▲ Masquer le détail" : "▼ Voir l'évolution et le détail complet"}
       </button>
 
       {showDetails && (
-        <div className="details-section">
-          {/* Chart */}
+        <div id="details-content" className="details-section">
           <div className="panel prog-section">
             <p className="section-kicker">Évolution année par année</p>
-            <h3>Comment les deux patrimoines évoluent</h3>
+            <h2 className="panel-h2">Comment les deux patrimoines évoluent</h2>
             <p className="prog-desc">
-              Courbe bleue = valeur nette du bien (après remboursement du prêt et
-              frais de revente). Courbe rose = capital du locataire (apport placé +
-              épargne mensuelle accumulée).
+              Courbe bleue = patrimoine net du propriétaire (valeur du bien − capital
+              restant dû − frais de revente). Courbe rose = capital du locataire
+              (apport placé + épargne mensuelle + surplus accumulés).
             </p>
             <ProgressionChart yearlyData={yearlyData} />
           </div>
 
-          {/* Insights */}
           <div className="panel insights-panel">
             <p className="section-kicker">Points clés</p>
-            <h3>Ce qu'il faut retenir</h3>
+            <h2 className="panel-h2">Ce qu'il faut retenir</h2>
             <ul className="insights-list">
               {insights.map((it, i) => (
                 <li key={i} className="insight-item">
-                  <span className="insight-icon">{it.icon}</span>
+                  <span className="insight-icon" aria-hidden="true">{it.icon}</span>
                   <span>{it.text}</span>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Summary + note */}
           <div className="details-grid">
             <Summary result={result} />
             <div className="panel note-card">
               <p className="section-kicker">Important</p>
               <p className="note-text">
                 Ces chiffres sont des <strong>estimations pédagogiques</strong>.
-                Ils ne tiennent pas compte des impôts, de votre situation
-                personnelle ni des fluctuations du marché. Consultez un
-                conseiller avant de décider.
+                Ils ne tiennent pas compte des impôts, de votre situation personnelle
+                ni des fluctuations du marché. Consultez un conseiller avant de décider.
               </p>
             </div>
           </div>
@@ -165,32 +266,4 @@ export default function StepResult({ result, values, onEdit }) {
       </div>
     </div>
   );
-}
-
-function buildInsights({ result, values, monthlyDiff, breakevenYear }) {
-  const { isBuyingBetter, propertyValueAtEnd, ownerMonthlyTotal } = result;
-  return [
-    {
-      icon: "💸",
-      text: monthlyDiff > 0
-        ? `En achetant, vous paieriez ${formatCurrency(monthlyDiff)} de plus par mois qu'en louant. Cette somme constitue de l'épargne forcée via le remboursement du capital.`
-        : `En achetant, vous paieriez ${formatCurrency(-monthlyDiff)} de moins par mois qu'en louant — avantage immédiat pour l'achat.`,
-    },
-    {
-      icon: "📅",
-      text: breakevenYear
-        ? `L'achat devient plus rentable à partir de ${breakevenYear} an${breakevenYear > 1 ? "s" : ""}. En dessous, la location garde l'avantage.`
-        : `Sur ${values.comparisonYears} ans, la location garde l'avantage. Un horizon plus long pourrait inverser la tendance.`,
-    },
-    {
-      icon: "🏠",
-      text: `Dans ${values.comparisonYears} ans, le bien vaudrait environ ${formatCurrency(propertyValueAtEnd)} avec une hausse de ${values.appreciationRate} %/an.`,
-    },
-    {
-      icon: isBuyingBetter ? "📈" : "🔑",
-      text: isBuyingBetter
-        ? `L'achat constitue un patrimoine immobilier et protège contre la hausse des loyers — au prix d'un engagement à long terme.`
-        : `En restant locataire, vous gardez la flexibilité de déménager et un capital liquide plus important.`,
-    },
-  ];
 }
