@@ -13,7 +13,11 @@ export default function BlogArticle() {
     if (meta) meta.setAttribute("content", article.description);
     return () => {
       document.title = "Louer ou Acheter — Simulateur immobilier gratuit";
-      if (meta) meta.setAttribute("content", "Comparez louer et acheter en 2 minutes. Simulation chiffrée : mensualité, patrimoine, point d'équilibre. Gratuit, sans inscription.");
+      if (meta)
+        meta.setAttribute(
+          "content",
+          "Comparez louer et acheter en 2 minutes. Simulation chiffrée : mensualité, patrimoine, point d'équilibre. Gratuit, sans inscription."
+        );
     };
   }, [article]);
 
@@ -22,7 +26,9 @@ export default function BlogArticle() {
       <div className="page">
         <header className="top-bar">
           <Link to="/" className="brand-btn">
-            <span className="brand-text">Louer <span className="brand-accent">ou</span> Acheter</span>
+            <span className="brand-text">
+              Louer <span className="brand-accent">ou</span> Acheter
+            </span>
           </Link>
         </header>
         <main style={{ padding: "80px 24px", textAlign: "center" }}>
@@ -52,15 +58,15 @@ export default function BlogArticle() {
         {/* Breadcrumb */}
         <nav className="article-breadcrumb" aria-label="Fil d'Ariane">
           <Link to="/">Accueil</Link>
-          <span aria-hidden="true"> / </span>
+          <span aria-hidden="true">/</span>
           <Link to="/blog">Blog</Link>
-          <span aria-hidden="true"> / </span>
+          <span aria-hidden="true">/</span>
           <span>{article.tag}</span>
         </nav>
 
         {/* Hero */}
         <header className="article-hero">
-          <span className="article-tag">{article.tag}</span>
+          <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
           <h1 className="article-h1">{article.title}</h1>
           <div className="article-meta">
             <span>{article.date}</span>
@@ -88,14 +94,14 @@ export default function BlogArticle() {
           </div>
         </div>
 
-        {/* Related articles */}
+        {/* Related */}
         {related.length > 0 && (
           <section className="article-related">
             <h2 className="article-related-title">À lire aussi</h2>
             <div className="related-grid">
               {related.map((rel) => (
                 <Link key={rel.slug} to={`/blog/${rel.slug}`} className="related-card">
-                  <span className="article-tag">{rel.tag}</span>
+                  <span className={`article-tag ${rel.tagClass}`}>{rel.tag}</span>
                   <p className="related-card-title">{rel.title}</p>
                   <span className="article-read-more">Lire →</span>
                 </Link>

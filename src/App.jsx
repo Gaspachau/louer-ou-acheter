@@ -1,6 +1,6 @@
 import "./App.css";
-import { useMemo, useState } from "react";
-import { Routes, Route, Link } from "react-router-dom";
+import { useEffect, useMemo, useState } from "react";
+import { Routes, Route, Link, useNavigate, useSearchParams } from "react-router-dom";
 import StepLanding from "./components/StepLanding";
 import StepRent from "./components/StepRent";
 import StepBuy from "./components/StepBuy";
@@ -84,8 +84,27 @@ export const PRESETS = [
 const STEP_LABELS = ["Location", "Achat", "Résultat"];
 
 function Simulator() {
-  const [step, setStep] = useState(0);
-  const [values, setValues] = useState(DEFAULTS);
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Persist values across blog navigation
+  const [values, setValues] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem("sim_values");
+      return saved ? JSON.parse(saved) : DEFAULTS;
+    } catch {
+      return DEFAULTS;
+    }
+  });
+
+  useEffect(() => {
+    try { sessionStorage.setItem("sim_values", JSON.stringify(values)); } catch {}
+  }, [values]);
+
+  const step = Math.max(0, Math.min(3, parseInt(searchParams.get("step") ?? "0", 10) || 0));
+
+  // Each setStep call pushes a history entry → browser back/forward works correctly
+  const setStep = (n) => navigate(n === 0 ? "/" : `/?step=${n}`);
 
   const set = (key) => (val) => setValues((v) => ({ ...v, [key]: val }));
 
@@ -111,8 +130,9 @@ function Simulator() {
         </button>
 
         <div className="topbar-right">
-          <Link to="/blog" className="topbar-blog-link">Blog</Link>
-
+          <Link to="/blog" className="topbar-blog-link">
+            Blog
+          </Link>
           {step > 0 && (
             <nav className="stepper" aria-label="Progression">
               {STEP_LABELS.map((label, i) => {
@@ -154,7 +174,7 @@ function Simulator() {
             values={values}
             set={set}
             onNext={() => setStep(3)}
-            onBack={() => setStep(1)}
+            onBack={() => navigate(-1)}
           />
         )}
         {step === 3 && (
