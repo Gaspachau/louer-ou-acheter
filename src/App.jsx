@@ -2,6 +2,7 @@ import "./App.css";
 import { useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
 import TopBar from "./components/TopBar";
+import Footer from "./components/Footer";
 import StepLanding from "./components/StepLanding";
 import StepRent from "./components/StepRent";
 import StepBuy from "./components/StepBuy";
@@ -118,6 +119,7 @@ function Simulator() {
         {step === 2 && <StepBuy values={values} set={set} onNext={() => setStep(3)} onBack={() => navigate(-1)} />}
         {step === 3 && <StepResult result={result} values={values} onEdit={() => setStep(1)} />}
       </main>
+      {step === 0 && <Footer />}
     </div>
   );
 }

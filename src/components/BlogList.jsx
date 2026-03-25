@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
+import Footer from "./Footer";
 
 export default function BlogList() {
   const [featured, ...rest] = ARTICLES;
@@ -82,6 +83,7 @@ export default function BlogList() {
           <Link to="/" className="btn-primary blog-cta-btn">Lancer le simulateur →</Link>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

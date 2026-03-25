@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
+import Footer from "./Footer";
 
 const SIMS = [
   {
@@ -131,6 +132,7 @@ export default function SimulateurHub() {
           <Link to="/blog" className="btn-primary blog-cta-btn">Lire le blog →</Link>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

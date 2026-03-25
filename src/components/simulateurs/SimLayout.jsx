@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import TopBar from "../TopBar";
+import Footer from "../Footer";
 
 export default function SimLayout({ children, title, description, icon, backLabel = "← Tous les simulateurs" }) {
   return (
@@ -18,6 +19,7 @@ export default function SimLayout({ children, title, description, icon, backLabe
         </div>
         {children}
       </main>
+      <Footer />
     </div>
   );
 }

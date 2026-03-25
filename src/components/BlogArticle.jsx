@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
 import ReadingProgress from "./ReadingProgress";
+import Footer from "./Footer";
 
 export default function BlogArticle() {
   const { slug } = useParams();
@@ -88,6 +89,7 @@ export default function BlogArticle() {
           </section>
         )}
       </main>
+      <Footer />
     </div>
   );
 }
