@@ -1,9 +1,12 @@
 import "./App.css";
 import { useMemo, useState } from "react";
+import { Routes, Route, Link } from "react-router-dom";
 import StepLanding from "./components/StepLanding";
 import StepRent from "./components/StepRent";
 import StepBuy from "./components/StepBuy";
 import StepResult from "./components/StepResult";
+import BlogList from "./components/BlogList";
+import BlogArticle from "./components/BlogArticle";
 import { computeComparison } from "./utils/finance";
 
 const DEFAULTS = {
@@ -80,7 +83,7 @@ export const PRESETS = [
 
 const STEP_LABELS = ["Location", "Achat", "Résultat"];
 
-function App() {
+function Simulator() {
   const [step, setStep] = useState(0);
   const [values, setValues] = useState(DEFAULTS);
 
@@ -107,34 +110,38 @@ function App() {
           </span>
         </button>
 
-        {step > 0 && (
-          <nav className="stepper" aria-label="Progression">
-            {STEP_LABELS.map((label, i) => {
-              const s = i + 1;
-              const done = step > s;
-              const active = step === s;
-              return (
-                <span key={s} className="stepper-item">
-                  <button
-                    className={`stepper-dot ${active ? "stepper-dot-active" : ""} ${done ? "stepper-dot-done" : ""}`}
-                    onClick={() => done && setStep(s)}
-                    disabled={!done}
-                    aria-label={`${done ? "Retour à l'é" : "É"}tape ${s} : ${label}${active ? " (actuelle)" : done ? " (terminée)" : ""}`}
-                    aria-current={active ? "step" : undefined}
-                  >
-                    {done ? "✓" : s}
-                  </button>
-                  <span className={`stepper-label ${active ? "stepper-label-active" : ""}`} aria-hidden="true">
-                    {label}
+        <div className="topbar-right">
+          <Link to="/blog" className="topbar-blog-link">Blog</Link>
+
+          {step > 0 && (
+            <nav className="stepper" aria-label="Progression">
+              {STEP_LABELS.map((label, i) => {
+                const s = i + 1;
+                const done = step > s;
+                const active = step === s;
+                return (
+                  <span key={s} className="stepper-item">
+                    <button
+                      className={`stepper-dot ${active ? "stepper-dot-active" : ""} ${done ? "stepper-dot-done" : ""}`}
+                      onClick={() => done && setStep(s)}
+                      disabled={!done}
+                      aria-label={`${done ? "Retour à l'é" : "É"}tape ${s} : ${label}${active ? " (actuelle)" : done ? " (terminée)" : ""}`}
+                      aria-current={active ? "step" : undefined}
+                    >
+                      {done ? "✓" : s}
+                    </button>
+                    <span className={`stepper-label ${active ? "stepper-label-active" : ""}`} aria-hidden="true">
+                      {label}
+                    </span>
+                    {i < 2 && (
+                      <span className={`stepper-line ${done ? "stepper-line-done" : ""}`} aria-hidden="true" />
+                    )}
                   </span>
-                  {i < 2 && (
-                    <span className={`stepper-line ${done ? "stepper-line-done" : ""}`} aria-hidden="true" />
-                  )}
-                </span>
-              );
-            })}
-          </nav>
-        )}
+                );
+              })}
+            </nav>
+          )}
+        </div>
       </header>
 
       <main id="main-content">
@@ -158,4 +165,12 @@ function App() {
   );
 }
 
-export default App;
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<Simulator />} />
+      <Route path="/blog" element={<BlogList />} />
+      <Route path="/blog/:slug" element={<BlogArticle />} />
+    </Routes>
+  );
+}
