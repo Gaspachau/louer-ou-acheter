@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { PRESETS } from "../App";
+import { ARTICLES } from "../data/articles";
 
 const TRUST_ITEMS = [
   {
@@ -76,12 +77,20 @@ const HOW_STEPS = [
 ];
 
 const SIMS_LP = [
-  { href: "/simulateurs/epargne", icon: "💰", title: "Simulateur d'épargne", desc: "Objectif financier en X mois", tag: "Épargne", tagClass: "tag-green" },
-  { href: "/simulateurs/pret-immobilier", icon: "🏦", title: "Prêt immobilier", desc: "Mensualité & tableau d'amortissement", tag: "Crédit", tagClass: "tag-purple" },
-  { href: "/simulateurs/pret-conso", icon: "💳", title: "Prêt conso", desc: "Crédit auto, travaux ou perso", tag: "Crédit", tagClass: "tag-purple" },
-  { href: "/simulateurs/niveau-de-vie", icon: "📊", title: "Niveau de vie", desc: "Revenu disponible après charges", tag: "Budget", tagClass: "tag-amber" },
-  { href: "/simulateurs/endettement", icon: "📉", title: "Capacité d'emprunt", desc: "Taux d'endettement & montant max", tag: "Crédit", tagClass: "tag-teal" },
+  { href: "/simulateurs/epargne",       icon: "💰", title: "Simulateur d'épargne",  desc: "Objectif financier en X mois",               tag: "Épargne", tagClass: "tag-green" },
+  { href: "/simulateurs/pret-immobilier",icon: "🏦", title: "Prêt immobilier",       desc: "Mensualité & tableau d'amortissement",       tag: "Crédit",  tagClass: "tag-purple" },
+  { href: "/simulateurs/pret-conso",     icon: "💳", title: "Prêt conso",            desc: "Crédit auto, travaux ou perso",              tag: "Crédit",  tagClass: "tag-purple" },
+  { href: "/simulateurs/niveau-de-vie",  icon: "📊", title: "Niveau de vie",         desc: "Revenu disponible après charges",            tag: "Budget",  tagClass: "tag-amber" },
+  { href: "/simulateurs/endettement",    icon: "📉", title: "Capacité d'emprunt",    desc: "Taux d'endettement & montant max",           tag: "Crédit",  tagClass: "tag-teal" },
 ];
+
+const BLOG_GRADIENTS = {
+  "tag-blue":   "linear-gradient(135deg,#1a56db,#0ea5e9)",
+  "tag-green":  "linear-gradient(135deg,#059669,#10b981)",
+  "tag-purple": "linear-gradient(135deg,#7c3aed,#a855f7)",
+  "tag-amber":  "linear-gradient(135deg,#d97706,#f59e0b)",
+  "tag-teal":   "linear-gradient(135deg,#0d9488,#14b8a6)",
+};
 
 export default function StepLanding({ onStart, onPreset }) {
   useEffect(() => {
@@ -137,9 +146,9 @@ export default function StepLanding({ onStart, onPreset }) {
 
           <div className="lp-mockup" aria-hidden="true">
             <div className="lp-mockup-header">
-              <span className="lp-mockup-dot" />
-              <span className="lp-mockup-dot" />
-              <span className="lp-mockup-dot" />
+              <span className="lp-mockup-dot lp-dot-red" />
+              <span className="lp-mockup-dot lp-dot-yellow" />
+              <span className="lp-mockup-dot lp-dot-green" />
               <span className="lp-mockup-title">Résultat de simulation</span>
             </div>
             <div className="lp-mockup-body">
@@ -278,6 +287,40 @@ export default function StepLanding({ onStart, onPreset }) {
         </div>
         <Link to="/simulateurs" className="lp-sims-all">
           Voir tous les simulateurs →
+        </Link>
+      </section>
+
+      {/* ── BLOG PREVIEW ─────────────────────────────────────── */}
+      <section className="lp-section lp-blog-section" aria-label="Derniers articles">
+        <div className="lp-section-header">
+          <h2 className="lp-section-title">Le blog immobilier</h2>
+          <p className="lp-section-sub">Analyses du marché et conseils pratiques</p>
+        </div>
+        <div className="lp-blog-grid">
+          {ARTICLES.slice(0, 3).map((article) => (
+            <Link key={article.slug} to={`/blog/${article.slug}`} className="lp-blog-card">
+              <div
+                className="lp-blog-card-cover"
+                style={{ background: BLOG_GRADIENTS[article.tagClass] || BLOG_GRADIENTS["tag-blue"] }}
+                aria-hidden="true"
+              />
+              <div className="lp-blog-card-body">
+                <div className="lp-blog-card-top">
+                  <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
+                  <span className="article-read-time">{article.readTime}</span>
+                </div>
+                <h3 className="lp-blog-card-title">{article.title}</h3>
+                <p className="lp-blog-card-intro">{article.intro}</p>
+                <div className="lp-blog-card-footer">
+                  <span className="article-date">{article.date}</span>
+                  <span className="lp-blog-card-cta">Lire →</span>
+                </div>
+              </div>
+            </Link>
+          ))}
+        </div>
+        <Link to="/blog" className="lp-sims-all">
+          Voir tous les articles →
         </Link>
       </section>
 

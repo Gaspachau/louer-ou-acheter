@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
 import DonutChart from "../DonutChart";
@@ -26,12 +27,52 @@ function AmortRow({ month, payment, principal, interest, balance }) {
   );
 }
 
+const fmtK = (v) => v >= 1000 ? `${Math.round(v / 1000)}k` : Math.round(v);
+const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      <p className="chart-tooltip-label">Année {label}</p>
+      {payload.map((p) => (
+        <div key={p.dataKey} className="chart-tooltip-row">
+          <span style={{ color: p.stroke || p.fill }}>{p.name}</span>
+          <span>{fmtCur(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SimPretImmo() {
   const [v, setV] = useState({ principal: 200000, annualRate: 3.8, years: 20 });
   const [showTable, setShowTable] = useState(false);
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
   const res = useMemo(() => calcPret(v), [v]);
+
+  const chartData = useMemo(() => {
+    if (!res) return [];
+    const r = v.annualRate / 100 / 12;
+    let bal = v.principal;
+    const data = [{ year: 0, "Capital restant": Math.round(bal), "Capital remboursé": 0 }];
+    let capPaid = 0;
+    for (let yr = 1; yr <= v.years; yr++) {
+      for (let m = 0; m < 12; m++) {
+        const interest = bal * r;
+        const cap = res.monthly - interest;
+        capPaid += cap;
+        bal -= cap;
+      }
+      data.push({
+        year: yr,
+        "Capital restant": Math.round(Math.max(0, bal)),
+        "Capital remboursé": Math.round(capPaid),
+      });
+    }
+    return data;
+  }, [v, res]);
 
   const amortTable = useMemo(() => {
     if (!res || !showTable) return [];
@@ -49,7 +90,7 @@ export default function SimPretImmo() {
 
   const donutSegments = res
     ? [
-        { value: v.principal, color: "#2563eb", label: "Capital" },
+        { value: v.principal, color: "#1a56db", label: "Capital" },
         { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
       ]
     : [];
@@ -102,6 +143,32 @@ export default function SimPretImmo() {
                   <span className="sim-stat-card-value">{v.years} ans</span>
                 </div>
               </div>
+
+              {chartData.length > 1 && (
+                <div className="sim-chart-wrap">
+                  <p className="sim-chart-title">Évolution du capital sur {v.years} ans</p>
+                  <ResponsiveContainer width="100%" height={160}>
+                    <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
+                      <defs>
+                        <linearGradient id="gradImmoRemaining" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/>
+                          <stop offset="95%" stopColor="#ec4899" stopOpacity={0.02}/>
+                        </linearGradient>
+                        <linearGradient id="gradImmoPaid" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#1a56db" stopOpacity={0.22}/>
+                          <stop offset="95%" stopColor="#1a56db" stopOpacity={0.02}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
+                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
+                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={38}/>
+                      <Tooltip content={<ChartTooltip />}/>
+                      <Area type="monotone" dataKey="Capital remboursé" stroke="#1a56db" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
+                      <Area type="monotone" dataKey="Capital restant" stroke="#ec4899" strokeWidth={2} fill="url(#gradImmoRemaining)" dot={false} activeDot={{ r: 4 }}/>
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              )}
 
               <div className="sim-donut-section">
                 <DonutChart

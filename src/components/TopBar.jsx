@@ -1,20 +1,37 @@
+import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 
 export default function TopBar({ onBrandClick, rightContent }) {
   const { pathname } = useLocation();
+  const [scrolled, setScrolled] = useState(false);
+
   const isSim  = pathname.startsWith("/simulateurs");
   const isBlog = pathname === "/blog" || pathname.startsWith("/blog/");
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 12);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const brand = (
+    <span className="brand-text">
+      Louer <span className="brand-accent">ou</span> Acheter
+    </span>
+  );
+
   return (
-    <header className="top-bar" role="banner">
+    <header className={`top-bar${scrolled ? " top-bar-scrolled" : ""}`} role="banner">
       {/* Brand */}
       {onBrandClick ? (
         <button className="brand-btn" onClick={onBrandClick} type="button" aria-label="Retour à l'accueil">
-          <span className="brand-text">Louer <span className="brand-accent">ou</span> Acheter</span>
+          <span className="brand-logo-dot" aria-hidden="true" />
+          {brand}
         </button>
       ) : (
         <Link to="/" className="brand-btn" aria-label="Accueil">
-          <span className="brand-text">Louer <span className="brand-accent">ou</span> Acheter</span>
+          <span className="brand-logo-dot" aria-hidden="true" />
+          {brand}
         </Link>
       )}
 

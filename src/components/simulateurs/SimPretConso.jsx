@@ -1,14 +1,15 @@
 import { useMemo, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
 import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
 const LOAN_TYPES = [
-  { id: "auto", label: "Véhicule", icon: "🚗" },
-  { id: "travaux", label: "Travaux", icon: "🔨" },
+  { id: "auto",     label: "Véhicule", icon: "🚗" },
+  { id: "travaux",  label: "Travaux",  icon: "🔨" },
   { id: "vacances", label: "Vacances", icon: "✈️" },
-  { id: "autre", label: "Autre", icon: "💳" },
+  { id: "autre",    label: "Autre",    icon: "💳" },
 ];
 
 function calcPretConso({ principal, annualRate, months }) {
@@ -21,6 +22,22 @@ function calcPretConso({ principal, annualRate, months }) {
   return { monthly, totalCost, totalInterest };
 }
 
+const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+
+function ChartTooltip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      {payload.map((p) => (
+        <div key={p.dataKey} className="chart-tooltip-row">
+          <span style={{ color: p.fill }}>{p.name}</span>
+          <span>{fmtCur(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function SimPretConso() {
   const [v, setV] = useState({ principal: 10000, annualRate: 5.5, months: 48, type: "auto" });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
@@ -28,9 +45,16 @@ export default function SimPretConso() {
   const res = useMemo(() => calcPretConso(v), [v]);
   const costPct = res ? Math.round((res.totalInterest / res.totalCost) * 100) : 0;
 
+  const barData = res
+    ? [
+        { name: "Capital",   value: v.principal,            fill: "#1a56db" },
+        { name: "Intérêts",  value: Math.max(0, res.totalInterest), fill: "#ec4899" },
+      ]
+    : [];
+
   const donutSegments = res
     ? [
-        { value: v.principal, color: "#2563eb", label: "Capital" },
+        { value: v.principal, color: "#1a56db", label: "Capital" },
         { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
       ]
     : [];
@@ -105,6 +129,22 @@ export default function SimPretConso() {
                   <span>Les intérêts représentent <strong>{costPct} %</strong> du total remboursé. Réduire la durée diminuerait significativement ce coût.</span>
                 </div>
               )}
+
+              <div className="sim-chart-wrap">
+                <p className="sim-chart-title">Décomposition du remboursement total</p>
+                <ResponsiveContainer width="100%" height={110}>
+                  <BarChart data={barData} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 4 }}>
+                    <XAxis type="number" hide />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: "#64748b" }} axisLine={false} tickLine={false} width={64}/>
+                    <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={28}>
+                      {barData.map((entry, i) => (
+                        <Cell key={i} fill={entry.fill}/>
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
               <div className="sim-donut-section">
                 <DonutChart
