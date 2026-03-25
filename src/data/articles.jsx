@@ -21,55 +21,89 @@ export const ARTICLES = [
 
         <h2>Le calcul pour un T2 parisien type</h2>
         <p>Prenons un appartement de 45 m² dans le 11e arrondissement, affiché à <strong>420 000 €</strong>.</p>
-        <p><strong>Si vous achetez :</strong></p>
-        <ul>
-          <li>Apport recommandé (20 %) : 84 000 €</li>
-          <li>Frais de notaire (~8 %) : 33 600 €</li>
-          <li>Mensualité crédit sur 25 ans à 3,8 % : ~1 740 €/mois</li>
-          <li>Charges (taxe foncière + entretien + assurance) : ~270 €/mois</li>
-          <li><strong>Coût mensuel total : ~2 010 €/mois</strong></li>
-        </ul>
-        <p><strong>Si vous louez :</strong></p>
-        <ul>
-          <li>Loyer pour un T2 équivalent dans le 11e : 1 500–1 700 €/mois</li>
-          <li>Votre apport de 117 600 € placé à 5 %/an travaille pour vous dès le premier jour</li>
-        </ul>
-        <p>
-          La différence mensuelle est d'environ <strong>300 à 500 €/mois</strong> en faveur de la location,
-          que vous pouvez investir par ailleurs.
-        </p>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">2 010 €</span>
+            <span className="kf-label">Coût mensuel propriétaire</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">1 600 €</span>
+            <span className="kf-label">Loyer équivalent</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">~410 €</span>
+            <span className="kf-label">Différence mensuelle</span>
+          </div>
+        </div>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Scénario</th><th>Détail</th><th>Montant</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>Achat</strong> — Apport (20 %)</td><td>Immobilisé dès le départ</td><td>84 000 €</td></tr>
+              <tr><td><strong>Achat</strong> — Frais de notaire</td><td>Non finançables</td><td>33 600 €</td></tr>
+              <tr><td><strong>Achat</strong> — Mensualité crédit</td><td>25 ans à 3,8 %</td><td>~1 740 €/mois</td></tr>
+              <tr><td><strong>Achat</strong> — Charges annexes</td><td>Taxe + entretien + assurance</td><td>~270 €/mois</td></tr>
+              <tr><td><strong>Location</strong> — Loyer T2 11e</td><td>Bien équivalent</td><td>1 500–1 700 €/mois</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>Quand l'achat devient-il rentable à Paris ?</h2>
         <p>
           Les frais d'entrée (notaire + frais d'agence) représentent 10 à 12 % du prix. Pour les amortir,
-          il faut du temps. À Paris, <strong>l'achat devient généralement plus rentable à partir de 12 à 18 ans</strong>{" "}
-          de détention, selon le rendement de vos placements alternatifs.
+          il faut du temps.
         </p>
+
+        <div className="callout callout-warn">
+          <span className="callout-icon">⏱</span>
+          <div className="callout-body">
+            À Paris, <strong>l'achat devient généralement plus rentable à partir de 12 à 18 ans</strong> de détention.
+            Si vous comptez rester moins de 10 ans, la location est presque toujours préférable financièrement.
+          </div>
+        </div>
+
         <p>
-          Si vous comptez rester moins de 10 ans dans le bien, la location est presque toujours préférable
-          financièrement — surtout si vous investissez votre épargne par ailleurs (ETF, assurance-vie…).
+          Si vous investissez votre épargne par ailleurs (ETF, assurance-vie…), la location peut même être
+          gagnante sur un horizon bien plus long selon le rendement obtenu.
         </p>
 
         <h2>Ce qui peut faire pencher la balance</h2>
-        <p><strong>En faveur de l'achat :</strong></p>
-        <ul>
-          <li>Stabilité : vous ne subissez plus les hausses de loyer (+2 à 3 %/an à Paris)</li>
-          <li>Constitution de patrimoine : chaque mensualité rembourse du capital</li>
-          <li>Liberté d'aménager, de rénover ou de louer le bien</li>
-        </ul>
-        <p><strong>En faveur de la location :</strong></p>
-        <ul>
-          <li>Flexibilité totale : changer de quartier ou de ville sans contrainte de revente</li>
-          <li>Capital disponible pour d'autres investissements plus liquides</li>
-          <li>Pas de charges de copropriété ni de travaux imprévus</li>
-        </ul>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Pour l'achat</th><th>Pour la location</th></tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Stabilité — plus de hausses de loyer</td>
+                <td>Flexibilité totale de mobilité</td>
+              </tr>
+              <tr>
+                <td>Constitution de patrimoine progressif</td>
+                <td>Capital disponible pour d'autres placements</td>
+              </tr>
+              <tr>
+                <td>Liberté d'aménager et rénover</td>
+                <td>Pas de charges imprévues ni de travaux</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="article-divider" />
 
         <h2>Notre verdict pour Paris en 2026</h2>
-        <p>
-          L'achat à Paris reste pertinent si vous disposez d'un <strong>apport solide (au moins 20 %)</strong>,
-          que votre horizon est d'<strong>au moins 12 à 15 ans</strong> et que votre situation est stable.
+
+        <blockquote className="pull-quote">
+          L'achat à Paris reste pertinent si vous disposez d'un apport solide (au moins 20 %),
+          que votre horizon est d'au moins 12 à 15 ans et que votre situation est stable.
           Sinon, louer et investir la différence est souvent la stratégie la plus efficace.
-        </p>
+        </blockquote>
       </>
     ),
   },
@@ -93,30 +127,43 @@ export const ARTICLES = [
         </p>
 
         <h2>La règle des 35 % d'endettement</h2>
-        <p>
-          Le HCSF impose aux banques un <strong>taux d'endettement maximum de 35 %</strong> charges comprises.
-          Votre mensualité totale ne peut pas dépasser 35 % de vos revenus nets mensuels.
-        </p>
-        <p>Formule : <strong>Revenu net minimum = Mensualité ÷ 0,35</strong></p>
-        <p>
-          Exemple : pour une mensualité de 1 200 €/mois, il vous faut au minimum{" "}
-          <strong>3 430 €/mois de revenus nets</strong>.
-        </p>
+
+        <div className="callout callout-info">
+          <span className="callout-icon">📐</span>
+          <div className="callout-body">
+            Le HCSF impose un <strong>taux d'endettement maximum de 35 %</strong> charges comprises.
+            <br />
+            Formule : <strong>Revenu net minimum = Mensualité ÷ 0,35</strong>
+            <br />
+            Exemple : pour 1 200 €/mois de mensualité → revenu minimum <strong>3 430 €/mois nets</strong>.
+          </div>
+        </div>
 
         <h2>Les revenus nécessaires selon le type de bien</h2>
-        <p>
-          Estimations basées sur un apport de 20 %, un taux de 3,8 % et une durée de 25 ans :
-        </p>
-        <ul>
-          <li><strong>Studio en province (90 000 €)</strong> — mensualité ~390 € → revenu min. 1 115 €/mois</li>
-          <li><strong>T2 en ville moyenne (180 000 €)</strong> — mensualité ~780 € → revenu min. 2 230 €/mois</li>
-          <li><strong>T3 en grande ville (280 000 €)</strong> — mensualité ~1 215 € → revenu min. 3 470 €/mois</li>
-          <li><strong>T3 à Lyon ou Bordeaux (380 000 €)</strong> — mensualité ~1 650 € → revenu min. 4 715 €/mois</li>
-          <li><strong>T2 à Paris (450 000 €)</strong> — mensualité ~1 950 € → revenu min. 5 575 €/mois</li>
-        </ul>
-        <p>
-          <strong>Emprunter à deux</strong> additionne les revenus et change radicalement l'accès à la propriété.
-        </p>
+        <p>Estimations basées sur un apport de 20 %, un taux de 3,8 % et une durée de 25 ans :</p>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Type de bien</th><th>Prix</th><th>Mensualité</th><th>Revenu min.</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Studio en province</td><td>90 000 €</td><td>~390 €</td><td>1 115 €/mois</td></tr>
+              <tr><td>T2 en ville moyenne</td><td>180 000 €</td><td>~780 €</td><td>2 230 €/mois</td></tr>
+              <tr><td>T3 en grande ville</td><td>280 000 €</td><td>~1 215 €</td><td>3 470 €/mois</td></tr>
+              <tr><td>T3 à Lyon / Bordeaux</td><td>380 000 €</td><td>~1 650 €</td><td>4 715 €/mois</td></tr>
+              <tr><td>T2 à Paris</td><td>450 000 €</td><td>~1 950 €</td><td>5 575 €/mois</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div className="callout callout-ok">
+          <span className="callout-icon">👥</span>
+          <div className="callout-body">
+            <strong>Emprunter à deux additionne les revenus</strong> et change radicalement l'accès à la propriété.
+            Un couple gagnant 2 × 2 500 € nets peut emprunter pour un T3 en grande ville.
+          </div>
+        </div>
 
         <h2>L'apport : souvent l'obstacle n°1</h2>
         <p>
@@ -127,12 +174,25 @@ export const ARTICLES = [
         </p>
 
         <h2>L'impact de la durée du prêt</h2>
-        <p>Pour 200 000 € empruntés :</p>
-        <ul>
-          <li><strong>Sur 20 ans à 3,7 %</strong> : 1 180 €/mois — intérêts totaux : ~83 000 €</li>
-          <li><strong>Sur 25 ans à 3,8 %</strong> : 1 030 €/mois — intérêts totaux : ~108 000 €</li>
-        </ul>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">1 180 €</span>
+            <span className="kf-label">Sur 20 ans à 3,7 % (200 k€)</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">1 030 €</span>
+            <span className="kf-label">Sur 25 ans à 3,8 % (200 k€)</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">+30 %</span>
+            <span className="kf-label">Coût total sur 25 vs 20 ans</span>
+          </div>
+        </div>
+
         <p>La mensualité est 13 % plus basse sur 25 ans, mais le coût total augmente de 30 %.</p>
+
+        <div className="article-divider" />
 
         <h2>Si votre salaire semble insuffisant</h2>
         <ul>
@@ -165,26 +225,39 @@ export const ARTICLES = [
         </p>
 
         <h2>Erreur n°1 : oublier les frais de notaire</h2>
-        <p>
-          Les frais de notaire représentent <strong>7 à 8 % dans l'ancien</strong> et 2 à 3 % dans le neuf.
-          Pour un bien à 300 000 €, c'est entre 21 000 et 24 000 € à débourser le jour de la signature —
-          en plus de votre apport, et <strong>non finançables par le crédit</strong>.
-        </p>
-        <p><strong>Règle pratique :</strong> votre "vrai" apport = apport annoncé − frais de notaire.</p>
+
+        <div className="callout callout-warn">
+          <span className="callout-icon">⚠️</span>
+          <div className="callout-body">
+            Les frais de notaire représentent <strong>7 à 8 % dans l'ancien</strong> et 2 à 3 % dans le neuf.
+            Pour un bien à 300 000 €, c'est <strong>21 000 à 24 000 €</strong> à débourser le jour de la
+            signature — en plus de votre apport, et <strong>non finançables par le crédit</strong>.
+            <br />
+            <strong>Règle pratique :</strong> votre "vrai" apport = apport annoncé − frais de notaire.
+          </div>
+        </div>
 
         <h2>Erreur n°2 : sous-estimer les charges mensuelles</h2>
-        <p>
-          La mensualité du crédit est rarement votre seule dépense. Il faut y ajouter :
-        </p>
-        <ul>
-          <li><strong>Taxe foncière</strong> : 1 000 à 3 000 €/an selon la commune</li>
-          <li><strong>Charges de copropriété</strong> : 100 à 400 €/mois</li>
-          <li><strong>Entretien et réparations</strong> : ~1 % du prix du bien par an</li>
-          <li><strong>Assurance habitation</strong> : 200 à 600 €/an</li>
-        </ul>
+        <p>La mensualité du crédit est rarement votre seule dépense. Il faut y ajouter :</p>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">1 500 €</span>
+            <span className="kf-label">Taxe foncière/an (médiane)</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">200 €</span>
+            <span className="kf-label">Charges copro/mois (moy.)</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">~1 %</span>
+            <span className="kf-label">Du prix du bien en entretien/an</span>
+          </div>
+        </div>
+
         <p>
           Un appartement à 300 000 € peut coûter <strong>300 à 500 €/mois de plus</strong> que la seule
-          mensualité crédit — un poste souvent ignoré.
+          mensualité crédit — un poste souvent ignoré dans les simulations.
         </p>
 
         <h2>Erreur n°3 : acheter avec un horizon trop court</h2>
@@ -195,17 +268,25 @@ export const ARTICLES = [
         </p>
 
         <h2>Erreur n°4 : vider toute son épargne dans l'apport</h2>
-        <p>
-          Se retrouver sans épargne de précaution juste après l'achat est risqué. Chaudière en panne,
-          toiture à refaire, perte d'emploi... <strong>Conservez 3 à 6 mois de charges</strong> en
-          épargne liquide, quitte à emprunter un peu plus.
-        </p>
+
+        <div className="callout callout-warn">
+          <span className="callout-icon">🛡️</span>
+          <div className="callout-body">
+            Se retrouver sans épargne de précaution juste après l'achat est risqué. Chaudière en panne,
+            toiture à refaire, perte d'emploi… <strong>Conservez 3 à 6 mois de charges</strong> en
+            épargne liquide, quitte à emprunter un peu plus.
+          </div>
+        </div>
 
         <h2>Erreur n°5 : ne pas comparer avec la location</h2>
+
+        <blockquote className="pull-quote">
+          « Louer c'est jeter l'argent par les fenêtres » est l'idée reçue la plus dangereuse en immobilier.
+          Dans certains scénarios, un locataire qui investit son apport peut accumuler plus de patrimoine
+          qu'un propriétaire sur 10 ans.
+        </blockquote>
+
         <p>
-          « Louer c'est jeter l'argent par les fenêtres » est l'idée reçue la plus dangereuse en
-          immobilier. Dans certains scénarios, un locataire qui investit son apport peut{" "}
-          <strong>accumuler plus de patrimoine qu'un propriétaire</strong> sur 10 ans.
           Calculez avant de décider — c'est ce à quoi sert notre simulateur.
         </p>
       </>
@@ -237,32 +318,53 @@ export const ARTICLES = [
           C'est le plancher incompressible. Pour un bien à 200 000 €, il vous faut au moins{" "}
           <strong>16 000 € rien que pour les frais</strong> — sans disposer du moindre euro d'apport réel.
         </p>
-        <p>
-          Avec seulement ce minimum, vous empruntez 100 % du prix du bien. Peu de banques acceptent
-          ce profil en 2026, sauf dossier exceptionnel (CDI, revenus élevés, forte épargne résiduelle).
-        </p>
+
+        <div className="callout callout-warn">
+          <span className="callout-icon">⚠️</span>
+          <div className="callout-body">
+            Avec seulement les frais de notaire comme apport, vous empruntez 100 % du prix du bien.
+            Peu de banques acceptent ce profil en 2026, sauf dossier exceptionnel (CDI, revenus élevés,
+            forte épargne résiduelle).
+          </div>
+        </div>
 
         <h2>L'apport idéal : 20 % du prix</h2>
         <p>
           La cible recommandée est <strong>20 %</strong> : 10 % couvrent les frais de notaire,
-          10 % constituent un apport réel dans l'opération. Cela améliore le taux obtenu, rassure
-          la banque et réduit la mensualité.
+          10 % constituent un apport réel. Cela améliore le taux obtenu et réduit la mensualité.
         </p>
-        <ul>
-          <li><strong>Bien à 150 000 €</strong> → apport idéal : 30 000 € (dont ~12 000 € de frais)</li>
-          <li><strong>Bien à 250 000 €</strong> → apport idéal : 50 000 € (dont ~20 000 € de frais)</li>
-          <li><strong>Bien à 400 000 €</strong> → apport idéal : 80 000 € (dont ~32 000 € de frais)</li>
-        </ul>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Prix du bien</th><th>Apport idéal (20 %)</th><th>dont frais notaire</th><th>Apport réel</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>150 000 €</td><td>30 000 €</td><td>~12 000 €</td><td>~18 000 €</td></tr>
+              <tr><td>250 000 €</td><td>50 000 €</td><td>~20 000 €</td><td>~30 000 €</td></tr>
+              <tr><td>400 000 €</td><td>80 000 €</td><td>~32 000 €</td><td>~48 000 €</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>Combien de temps pour constituer cet apport ?</h2>
-        <p>
-          Tout dépend de votre capacité d'épargne mensuelle. En mettant de côté 500 €/mois :
-        </p>
-        <ul>
-          <li>Objectif 30 000 € → environ 5 ans</li>
-          <li>Objectif 50 000 € → environ 8 ans</li>
-          <li>Objectif 80 000 € → environ 13 ans</li>
-        </ul>
+        <p>En mettant de côté 500 €/mois :</p>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">~5 ans</span>
+            <span className="kf-label">Pour atteindre 30 000 €</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">~8 ans</span>
+            <span className="kf-label">Pour atteindre 50 000 €</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">~13 ans</span>
+            <span className="kf-label">Pour atteindre 80 000 €</span>
+          </div>
+        </div>
+
         <p>
           Ces délais se raccourcissent si vous placez votre épargne sur des supports rémunérés plutôt
           que de laisser l'argent dormir sur un compte courant.
@@ -284,12 +386,16 @@ export const ARTICLES = [
           </li>
         </ul>
 
-        <h2>L'erreur à éviter : tout mettre dans l'apport</h2>
-        <p>
-          Vider tous vos livrets pour maximiser l'apport peut sembler rationnel. C'est pourtant une erreur
-          fréquente. <strong>Conservez au minimum 3 à 6 mois de dépenses</strong> en épargne liquide,
-          indépendamment de l'apport immobilier. Les imprévus ne préviennent pas.
-        </p>
+        <div className="article-divider" />
+
+        <div className="callout callout-tip">
+          <span className="callout-icon">💡</span>
+          <div className="callout-body">
+            <strong>L'erreur à éviter :</strong> vider tous vos livrets pour maximiser l'apport.
+            Conservez au minimum <strong>3 à 6 mois de dépenses</strong> en épargne liquide,
+            indépendamment de l'apport immobilier. Les imprévus ne préviennent pas.
+          </div>
+        </div>
       </>
     ),
   },
@@ -321,36 +427,43 @@ export const ARTICLES = [
           <li><strong>Liquidité du marché</strong> : facilité à revendre en cas de besoin</li>
         </ul>
 
+        <h2>Panorama des grandes métropoles en 2026</h2>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Ville</th><th>Prix moyen /m²</th><th>Tendance</th><th>Attrait</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Toulouse</td><td>3 200–4 500 €</td><td>Stable ↗</td><td>⭐⭐⭐⭐⭐</td></tr>
+              <tr><td>Nantes</td><td>3 000–4 200 €</td><td>Stabilisé</td><td>⭐⭐⭐⭐</td></tr>
+              <tr><td>Strasbourg</td><td>3 000–4 000 €</td><td>Stable</td><td>⭐⭐⭐⭐</td></tr>
+              <tr><td>Lille</td><td>2 500–3 500 €</td><td>Stable ↗</td><td>⭐⭐⭐⭐⭐</td></tr>
+              <tr><td>Bordeaux</td><td>3 500–4 500 €</td><td>Corrigé ↘</td><td>⭐⭐⭐⭐</td></tr>
+              <tr><td>Rennes</td><td>~3 200 €</td><td>Tendu</td><td>⭐⭐⭐⭐</td></tr>
+              <tr><td>Orléans</td><td>&lt; 2 500 €</td><td>Émergent</td><td>⭐⭐⭐⭐</td></tr>
+            </tbody>
+          </table>
+        </div>
+
         <h2>Toulouse : le bon équilibre prix/dynamisme</h2>
         <p>
           Troisième ville de France par la croissance démographique, Toulouse profite du dynamisme
           de l'aéronautique et du spatial (Airbus, Thales). Les prix restent accessibles hors hypercentre
-          : <strong>3 200–4 500 €/m²</strong> pour un appartement dans les quartiers périphériques.
-          La pression locative est forte, ce qui sécurise un investissement locatif.
-        </p>
-
-        <h2>Nantes : marché stabilisé après la correction</h2>
-        <p>
-          Après une bulle de 2018 à 2022, Nantes a corrigé de 12 % en moyenne. En 2026, le marché
-          est plus sain. Les prix oscillent entre <strong>3 000 et 4 200 €/m²</strong> selon les quartiers.
-          La ville attire régulièrement des classements "cadre de vie" favorables, porteurs de
-          valeur à long terme.
-        </p>
-
-        <h2>Strasbourg : stabilité et demande institutionnelle</h2>
-        <p>
-          La présence des institutions européennes (Parlement européen, Conseil de l'Europe) crée
-          une demande locative structurelle. Prix : <strong>3 000–4 000 €/m²</strong> en moyenne.
-          Marché moins spéculatif que d'autres grandes villes, avec des fondamentaux solides.
+          à <strong>3 200–4 500 €/m²</strong>. La pression locative est forte, ce qui sécurise un
+          investissement locatif.
         </p>
 
         <h2>Lille : les prix les plus bas des grandes métropoles</h2>
-        <p>
-          À <strong>2 500–3 500 €/m²</strong>, Lille est la grande ville la moins chère de France
-          au prorata des revenus locaux. La connexion TGV Paris (60 min), Bruxelles (35 min) et
-          Londres (90 min via Eurostar) lui confère un attrait unique. Marché tendu en location,
-          idéal pour l'investissement.
-        </p>
+
+        <div className="callout callout-ok">
+          <span className="callout-icon">🏆</span>
+          <div className="callout-body">
+            À <strong>2 500–3 500 €/m²</strong>, Lille est la grande ville la moins chère de France
+            au prorata des revenus locaux. La connexion TGV vers Paris (60 min), Bruxelles (35 min) et
+            Londres (90 min via Eurostar) lui confère un attrait unique pour l'investissement.
+          </div>
+        </div>
 
         <h2>Bordeaux : après la surchauffe, les bonnes affaires reviennent</h2>
         <p>
@@ -360,12 +473,31 @@ export const ARTICLES = [
           d'entrée plus raisonnable.
         </p>
 
+        <h2>Strasbourg : stabilité et demande institutionnelle</h2>
+        <p>
+          La présence des institutions européennes (Parlement, Conseil de l'Europe) crée une demande
+          locative structurelle. Prix : <strong>3 000–4 000 €/m²</strong>. Marché moins spéculatif,
+          fondamentaux solides.
+        </p>
+
+        <div className="article-divider" />
+
         <h2>Villes émergentes à surveiller</h2>
-        <ul>
-          <li><strong>Rennes</strong> : forte dynamique étudiante, prix ~3 200 €/m², marché locatif tendu</li>
-          <li><strong>Orléans</strong> : 45 min de Paris en TER, prix sous 2 500 €/m², idéal pour les télétravailleurs</li>
-          <li><strong>Rouen</strong> : 1h15 de Paris, prix ~2 200–3 000 €/m², marché encore sous-évalué</li>
-        </ul>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">&lt; 2 500 €</span>
+            <span className="kf-label">Orléans — 45 min de Paris</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">~3 200 €</span>
+            <span className="kf-label">Rennes — marché locatif tendu</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">2 200–3 000 €</span>
+            <span className="kf-label">Rouen — encore sous-évalué</span>
+          </div>
+        </div>
       </>
     ),
   },
@@ -390,43 +522,60 @@ export const ARTICLES = [
         </p>
 
         <h2>Les taux actuels par durée (mars 2026)</h2>
-        <ul>
-          <li><strong>Sur 15 ans</strong> : 3,1–3,4 % (profils excellents : dès 2,9 %)</li>
-          <li><strong>Sur 20 ans</strong> : 3,4–3,7 %</li>
-          <li><strong>Sur 25 ans</strong> : 3,6–4,0 %</li>
-        </ul>
-        <p>
-          Ces fourchettes s'entendent pour des profils standard en CDI avec 20 % d'apport.
-          Un excellent dossier (apport 30 %+, hauts revenus, épargne résiduelle conséquente) peut
-          décrocher 0,3 à 0,5 point de moins.
-        </p>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">3,1–3,4 %</span>
+            <span className="kf-label">Sur 15 ans</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">3,4–3,7 %</span>
+            <span className="kf-label">Sur 20 ans</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">3,6–4,0 %</span>
+            <span className="kf-label">Sur 25 ans</span>
+          </div>
+        </div>
+
+        <div className="callout callout-info">
+          <span className="callout-icon">ℹ️</span>
+          <div className="callout-body">
+            Ces fourchettes s'entendent pour des profils standard en CDI avec 20 % d'apport.
+            Un excellent dossier (apport 30 %+, hauts revenus) peut décrocher <strong>0,3 à 0,5 point de moins</strong>.
+          </div>
+        </div>
 
         <h2>Contexte : pourquoi les taux ont-ils autant bougé ?</h2>
         <p>
           La Banque Centrale Européenne (BCE) a relevé ses taux directeurs 10 fois entre juillet 2022
-          et septembre 2023 pour lutter contre l'inflation. Les banques commerciales ont répercuté
-          ces hausses sur les crédits immobiliers. Depuis mi-2024, la BCE baisse ses taux progressivement,
-          ce qui permet aux taux immobiliers de refluer.
+          et septembre 2023 pour lutter contre l'inflation. Depuis mi-2024, la BCE baisse ses taux
+          progressivement, ce qui permet aux taux immobiliers de refluer.
         </p>
 
-        <h2>Prévisions pour 2026-2027</h2>
-        <p>
-          La majorité des économistes s'accorde sur une poursuite graduelle de la baisse : les taux
-          sur 20 ans pourraient revenir autour de <strong>3,0–3,3 % fin 2026</strong>, voire approcher
-          2,8 % en 2027 si l'inflation reste maîtrisée. Mais rien n'est garanti — l'environnement
-          géopolitique et économique peut rebattre les cartes rapidement.
-        </p>
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Période</th><th>Taux moyen 20 ans</th><th>Contexte</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>2021</td><td>~1,1 %</td><td>Taux historiquement bas</td></tr>
+              <tr><td>2023 (pic)</td><td>~4,5 %</td><td>Hausse BCE anti-inflation</td></tr>
+              <tr><td>2026 (actuel)</td><td>3,4–3,7 %</td><td>Normalisation progressive</td></tr>
+              <tr><td>2027 (prévision)</td><td>~2,8–3,3 %</td><td>Si inflation maîtrisée</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>Faut-il attendre une nouvelle baisse pour acheter ?</h2>
-        <p>
-          Attendre 6 mois pour gagner 0,3 point de taux représente environ 15 €/mois d'économie
-          sur 200 000 € empruntés. Si le marché immobilier progresse de 2 % pendant ce temps,
-          votre bien cible coûte 4 000 à 8 000 € de plus. Le gain est rarement au rendez-vous.
-        </p>
-        <p>
-          <strong>La règle : si votre projet, votre dossier et votre horizon sont bons, emprunter
-          maintenant est presque toujours mieux qu'attendre.</strong>
-        </p>
+
+        <blockquote className="pull-quote">
+          Attendre 6 mois pour gagner 0,3 point de taux représente ~15 €/mois d'économie sur 200 000 € empruntés.
+          Si le marché progresse de 2 % pendant ce temps, votre bien cible coûte 4 000 à 8 000 € de plus.
+          Le gain est rarement au rendez-vous.
+        </blockquote>
+
+        <div className="article-divider" />
 
         <h2>Comment obtenir le meilleur taux</h2>
         <ul>
@@ -458,6 +607,15 @@ export const ARTICLES = [
           C'est l'une des aides les plus concrètes disponibles — à condition de remplir les critères.
         </p>
 
+        <div className="callout callout-ok">
+          <span className="callout-icon">🎯</span>
+          <div className="callout-body">
+            Exemple concret : pour un appartement neuf à 280 000 € en zone B1 (Nantes, Bordeaux…),
+            le PTZ peut couvrir jusqu'à <strong>84 000 € sans intérêt</strong>, soit une économie de{" "}
+            <strong>20 000 à 35 000 €</strong> d'intérêts selon la durée.
+          </div>
+        </div>
+
         <h2>Qui peut en bénéficier ?</h2>
         <ul>
           <li>
@@ -465,46 +623,46 @@ export const ARTICLES = [
             au cours des 2 dernières années (exceptions pour invalidité ou catastrophe naturelle)
           </li>
           <li>
-            <strong>Revenus sous plafond</strong> : les plafonds varient selon la zone géographique et
-            la composition du foyer (de 37 000 € à 92 000 € de revenus annuels)
+            <strong>Revenus sous plafond</strong> : de 37 000 € à 92 000 € de revenus annuels selon
+            la zone et la composition du foyer
           </li>
           <li>
-            <strong>Résidence principale</strong> : le bien doit être occupé comme résidence principale
-            dans les 12 mois suivant l'achat ou la fin des travaux
+            <strong>Résidence principale</strong> : le bien doit être occupé dans les 12 mois suivant
+            l'achat ou la fin des travaux
           </li>
         </ul>
 
-        <h2>Types de biens éligibles en 2026</h2>
-        <p>
-          Le PTZ 2026 a été élargi. Il couvre désormais :
-        </p>
-        <ul>
-          <li><strong>Le neuf</strong> dans toutes les zones (A, B1, B2, C)</li>
-          <li>
-            <strong>L'ancien avec travaux</strong> en zones B2 et C : le montant des travaux doit
-            représenter au moins 25 % du coût total de l'opération
-          </li>
-          <li><strong>Le logement social vendu à ses occupants</strong></li>
-        </ul>
+        <h2>Types de biens éligibles et montants accordés</h2>
 
-        <h2>Les montants accordés</h2>
-        <p>
-          Le PTZ couvre jusqu'à <strong>40 % du coût de l'opération en zone A et A bis</strong>{" "}
-          (Paris, grande couronne, Côte d'Azur…) et jusqu'à <strong>20 % en zones B2 et C</strong>.
-        </p>
-        <p>
-          Exemple concret : pour un appartement neuf à 280 000 € en zone B1 (Nantes, Bordeaux…),
-          le PTZ peut couvrir jusqu'à 84 000 € sans intérêt, soit une économie de{" "}
-          <strong>20 000 à 35 000 € d'intérêts</strong> selon la durée.
-        </p>
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Type de bien</th><th>Zone</th><th>% PTZ max</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Neuf</td><td>Toutes zones</td><td>Jusqu'à 40 % (zone A/Abis)</td></tr>
+              <tr><td>Ancien avec travaux (≥25 % du coût)</td><td>B2 et C</td><td>Jusqu'à 20 %</td></tr>
+              <tr><td>Logement social vendu à l'occupant</td><td>Toutes zones</td><td>Variable</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>Comment le combiner avec votre crédit classique</h2>
         <p>
           Le PTZ est un <strong>prêt complémentaire</strong>, pas principal. Il se rembourse sur 20 à
           25 ans avec une période de différé (vous ne remboursez rien pendant 5 à 15 ans selon vos revenus).
-          Pendant la période de différé, vous ne remboursez que votre crédit classique — ce qui rend la
-          mensualité totale plus légère au démarrage.
         </p>
+
+        <div className="callout callout-tip">
+          <span className="callout-icon">💡</span>
+          <div className="callout-body">
+            Pendant la période de différé, vous ne remboursez que votre crédit classique.
+            La <strong>mensualité totale est plus légère au démarrage</strong>, ce qui aide les
+            primo-accédants à démarrer sans pression excessive.
+          </div>
+        </div>
+
+        <div className="article-divider" />
 
         <h2>Démarches pour l'obtenir</h2>
         <ul>
@@ -536,13 +694,11 @@ export const ARTICLES = [
         </p>
 
         <h2>Que couvrent les charges de copropriété ?</h2>
-        <p>
-          On distingue deux types de charges :
-        </p>
+        <p>On distingue deux types de charges :</p>
         <ul>
           <li>
             <strong>Charges courantes</strong> : entretien des parties communes, gardien, assurances
-            immeuble, ascenseur, espaces verts, eau froide des parties communes...
+            immeuble, ascenseur, espaces verts, eau froide des parties communes…
           </li>
           <li>
             <strong>Charges exceptionnelles</strong> : travaux votés en assemblée générale (ravalement,
@@ -551,31 +707,52 @@ export const ARTICLES = [
         </ul>
 
         <h2>Quel montant selon le type d'immeuble ?</h2>
-        <ul>
-          <li><strong>Petit immeuble sans gardien, sans ascenseur</strong> : 1,5 à 2,5 €/m²/mois → 75 à 125 €/mois pour 50 m²</li>
-          <li><strong>Immeuble standard avec ascenseur</strong> : 3 à 5 €/m²/mois → 150 à 250 €/mois</li>
-          <li><strong>Immeuble avec gardien</strong> : 4 à 7 €/m²/mois → 200 à 350 €/mois</li>
-          <li><strong>Résidence avec piscine, conciergerie</strong> : 8 à 15 €/m²/mois → 400 à 750 €/mois</li>
-        </ul>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Type d'immeuble</th><th>€/m²/mois</th><th>Pour 50 m²</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Petit immeuble, sans gardien ni ascenseur</td><td>1,5–2,5 €</td><td>75–125 €/mois</td></tr>
+              <tr><td>Immeuble standard avec ascenseur</td><td>3–5 €</td><td>150–250 €/mois</td></tr>
+              <tr><td>Immeuble avec gardien</td><td>4–7 €</td><td>200–350 €/mois</td></tr>
+              <tr><td>Résidence avec piscine / conciergerie</td><td>8–15 €</td><td>400–750 €/mois</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>Les documents à demander avant de signer</h2>
-        <p>
-          Ces documents sont obligatoirement remis par le vendeur avant la signature :
-        </p>
-        <ul>
-          <li><strong>Les 3 derniers appels de fonds</strong> : vous voyez le montant réel des charges courantes</li>
-          <li><strong>Les PV des 3 dernières assemblées générales</strong> : travaux votés, litiges en cours, impayés</li>
-          <li><strong>Le carnet d'entretien de l'immeuble</strong> : historique des travaux réalisés</li>
-          <li><strong>L'état du fonds de travaux</strong> : la loi ALUR oblige depuis 2017 à cotiser 5 % minimum des charges</li>
-        </ul>
+
+        <div className="callout callout-info">
+          <span className="callout-icon">📋</span>
+          <div className="callout-body">
+            Ces documents sont obligatoirement remis par le vendeur avant la signature :
+            <ul style={{marginTop: "8px", marginBottom: 0}}>
+              <li><strong>Les 3 derniers appels de fonds</strong> : montant réel des charges courantes</li>
+              <li><strong>Les PV des 3 dernières AG</strong> : travaux votés, litiges, impayés</li>
+              <li><strong>Le carnet d'entretien</strong> : historique des travaux réalisés</li>
+              <li><strong>L'état du fonds de travaux</strong> : obligation ALUR de 5 % minimum</li>
+            </ul>
+          </div>
+        </div>
+
+        <div className="article-divider" />
 
         <h2>Les signaux d'alarme</h2>
-        <ul>
-          <li>Fonds de travaux inexistant ou très faible : de gros travaux non financés arrivent</li>
-          <li>Nombreux copropriétaires en situation d'impayés : la copropriété est fragilisée</li>
-          <li>Travaux votés mais non encore facturés : vous en serez redevable à l'achat</li>
-          <li>Mise en demeure ou procédure judiciaire en cours contre un prestataire</li>
-        </ul>
+
+        <div className="callout callout-warn">
+          <span className="callout-icon">🚨</span>
+          <div className="callout-body">
+            <ul style={{margin: 0, paddingLeft: "1.2em"}}>
+              <li>Fonds de travaux inexistant ou très faible → de gros travaux arrivent</li>
+              <li>Nombreux copropriétaires en impayés → copropriété fragilisée</li>
+              <li>Travaux votés mais non facturés → vous en serez redevable</li>
+              <li>Procédure judiciaire en cours contre un prestataire</li>
+            </ul>
+          </div>
+        </div>
+
         <p>
           Un syndic professionnel et des comptes équilibrés sont de bons indicateurs d'une copropriété
           bien gérée. N'hésitez pas à demander le diagnostic technique global (DTG) s'il existe.
@@ -604,35 +781,51 @@ export const ARTICLES = [
         </p>
 
         <h2>Impact du DPE sur les prix</h2>
-        <p>
-          La différence de valeur entre classes énergétiques est désormais significative :
-        </p>
-        <ul>
-          <li><strong>Classe A ou B</strong> : prime de 5 à 10 % par rapport à un bien équivalent en classe D</li>
-          <li><strong>Classe C ou D</strong> : valeur de référence du marché</li>
-          <li><strong>Classe E</strong> : légère décote (~5 %) ; anticiper des travaux à moyen terme</li>
-          <li><strong>Classe F ou G</strong> : décote de 10 à 25 % selon la localisation et la gravité</li>
-        </ul>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Classe DPE</th><th>Impact sur la valeur</th><th>Situation en 2026</th></tr>
+            </thead>
+            <tbody>
+              <tr><td><strong>A ou B</strong></td><td>Prime +5 à +10 %</td><td>Très recherché</td></tr>
+              <tr><td><strong>C ou D</strong></td><td>Valeur de référence</td><td>Neutre</td></tr>
+              <tr><td><strong>E</strong></td><td>Décote ~5 %</td><td>Travaux à anticiper</td></tr>
+              <tr><td><strong>F ou G</strong></td><td>Décote 10 à 25 %</td><td>Interdit à la location</td></tr>
+            </tbody>
+          </table>
+        </div>
 
         <h2>La réglementation qui change tout</h2>
-        <ul>
-          <li><strong>Depuis janvier 2023</strong> : les logements G+ (consommation {">"}450 kWh/m²/an) sont interdits à la location</li>
-          <li><strong>Depuis janvier 2025</strong> : tous les logements classés G sont interdits à la location</li>
-          <li><strong>Janvier 2028</strong> : les logements F seront à leur tour interdits à la location</li>
-        </ul>
-        <p>
-          Ces interdictions impactent directement la valeur des biens concernés et la capacité
-          à les louer ou les revendre.
-        </p>
+
+        <div className="callout callout-warn">
+          <span className="callout-icon">📅</span>
+          <div className="callout-body">
+            <strong>Calendrier des interdictions de location :</strong>
+            <ul style={{margin: "8px 0 0", paddingLeft: "1.2em"}}>
+              <li><strong>Depuis janvier 2025</strong> : tous les logements G sont interdits à la location</li>
+              <li><strong>Janvier 2028</strong> : les logements F seront interdits à leur tour</li>
+            </ul>
+            Ces interdictions impactent directement la valeur des biens concernés.
+          </div>
+        </div>
 
         <h2>Coût des travaux de rénovation énergétique</h2>
-        <ul>
-          <li><strong>Isolation des combles perdus</strong> : 2 000 à 5 000 €</li>
-          <li><strong>Isolation des murs par l'extérieur</strong> : 15 000 à 30 000 €</li>
-          <li><strong>Pompe à chaleur air/eau</strong> : 8 000 à 15 000 €</li>
-          <li><strong>Fenêtres double vitrage</strong> : 3 000 à 8 000 €</li>
-          <li><strong>Rénovation globale F vers C</strong> : 20 000 à 60 000 € selon la surface</li>
-        </ul>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">2–5 k€</span>
+            <span className="kf-label">Isolation combles perdus</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">8–15 k€</span>
+            <span className="kf-label">Pompe à chaleur air/eau</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">20–60 k€</span>
+            <span className="kf-label">Rénovation globale F→C</span>
+          </div>
+        </div>
 
         <h2>Les aides disponibles en 2026</h2>
         <ul>
@@ -649,17 +842,24 @@ export const ARTICLES = [
           </li>
         </ul>
 
+        <div className="article-divider" />
+
         <h2>La stratégie achat-rénovation</h2>
-        <p>
+
+        <blockquote className="pull-quote">
           Acheter un logement classé F ou G à prix décoté, puis rénover avec les aides disponibles,
-          peut s'avérer très rentable. La clé : bien négocier la décote (elle doit couvrir le coût
-          net des travaux après aides) et vérifier que la structure du bâtiment est saine.
-        </p>
-        <p>
-          Avant tout achat d'un bien énergivore, faites réaliser un audit énergétique complet
-          (~800 à 1 500 €) par un professionnel certifié. Il chiffrera précisément les travaux
-          nécessaires et les gains attendus.
-        </p>
+          peut s'avérer très rentable — à condition de bien négocier la décote et de vérifier
+          que la structure du bâtiment est saine.
+        </blockquote>
+
+        <div className="callout callout-tip">
+          <span className="callout-icon">💡</span>
+          <div className="callout-body">
+            Avant tout achat d'un bien énergivore, faites réaliser un <strong>audit énergétique complet
+            (~800 à 1 500 €)</strong> par un professionnel certifié. Il chiffrera précisément les travaux
+            nécessaires et les gains attendus.
+          </div>
+        </div>
       </>
     ),
   },
@@ -695,46 +895,71 @@ export const ARTICLES = [
           </li>
           <li>
             <strong>Apport trop faible</strong> : attendre pour constituer 20 % vous donne accès à de
-            meilleures conditions de prêt et évite les frais de dossier défavorables
+            meilleures conditions de prêt
           </li>
           <li>
-            <strong>Marché local surévalué</strong> : si les prix locaux sont manifestement déconnectés
-            des fondamentaux (loyers, revenus), une correction peut rendre l'attente payante
+            <strong>Marché local surévalué</strong> : si les prix sont déconnectés des fondamentaux,
+            une correction peut rendre l'attente payante
           </li>
         </ul>
 
         <h2>L'argument de l'apport : épargner pendant qu'on loue</h2>
-        <p>
-          En épargnant 600 €/mois pendant 4 ans, vous constituez <strong>28 800 €</strong> — de quoi
-          passer de 10 % à 20 % d'apport sur un bien à 250 000 €. Cette différence peut améliorer
-          votre taux de 0,3 à 0,5 % et vous économiser plusieurs milliers d'euros d'intérêts.
-        </p>
+
+        <div className="callout callout-ok">
+          <span className="callout-icon">📈</span>
+          <div className="callout-body">
+            En épargnant 600 €/mois pendant 4 ans, vous constituez <strong>28 800 €</strong> — de quoi
+            passer de 10 % à 20 % d'apport sur un bien à 250 000 €. Cette différence peut améliorer
+            votre taux de <strong>0,3 à 0,5 %</strong> et vous économiser plusieurs milliers d'euros d'intérêts.
+          </div>
+        </div>
 
         <h2>Le risque qu'on oublie : la hausse des prix et des loyers</h2>
-        <p>
-          Si les prix immobiliers progressent de 2 %/an pendant votre période d'attente, votre bien
-          cible à 250 000 € coûte <strong>260 200 € deux ans plus tard</strong>. Et pendant ce temps,
-          votre loyer augmente lui aussi (+1,5 à 2 %/an en moyenne).
-        </p>
+
+        <div className="key-figures">
+          <div className="key-figure">
+            <span className="kf-value">+2 %/an</span>
+            <span className="kf-label">Hausse immobilière moyenne</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">+10 200 €</span>
+            <span className="kf-label">Surcoût sur 250 k€ en 2 ans</span>
+          </div>
+          <div className="key-figure">
+            <span className="kf-value">+1,5 %/an</span>
+            <span className="kf-label">Hausse des loyers en moyenne</span>
+          </div>
+        </div>
+
         <p>
           Pour que l'attente soit vraiment gagnante, vos placements doivent surperformer la hausse
           immobilière nette. C'est possible (ETF, assurance-vie) — mais pas automatique.
         </p>
 
         <h2>La vraie question : que faites-vous de la différence ?</h2>
-        <p>
+
+        <blockquote className="pull-quote">
           Si vous louez pour 900 €/mois alors que la mensualité propriétaire serait de 1 400 €/mois,
-          vous avez <strong>500 €/mois à investir</strong>. En 10 ans à 5 %/an, c'est environ{" "}
-          <strong>75 000 € de capital constitué</strong>. C'est la logique du « louer et investir »
-          — valable si vous avez la discipline de le faire réellement.
-        </p>
+          vous avez 500 €/mois à investir. En 10 ans à 5 %/an, c'est environ 75 000 € de capital constitué.
+          Valable — si vous avez la discipline de le faire réellement.
+        </blockquote>
+
+        <div className="article-divider" />
 
         <h2>Notre conclusion</h2>
-        <ul>
-          <li><strong>À plus de 5 ans d'acheter</strong> : louer et investir activement est souvent optimal</li>
-          <li><strong>À 2-3 ans</strong> : constituer l'apport en sécurité (livret A, PEL) plutôt qu'en cherchant du rendement</li>
-          <li><strong>Si vous êtes prêt maintenant</strong> : ne pas attendre le "bon moment" qui n'arrive jamais vraiment</li>
-        </ul>
+
+        <div className="compare-table-wrap">
+          <table className="compare-table">
+            <thead>
+              <tr><th>Horizon</th><th>Stratégie recommandée</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Plus de 5 ans avant d'acheter</td><td>Louer et investir activement (ETF, AV)</td></tr>
+              <tr><td>2–3 ans avant d'acheter</td><td>Épargner en sécurité (Livret A, PEL)</td></tr>
+              <tr><td>Vous êtes prêt maintenant</td><td>Ne pas attendre le "bon moment" qui n'arrive jamais</td></tr>
+            </tbody>
+          </table>
+        </div>
       </>
     ),
   },

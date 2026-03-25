@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
+import TopBar from "./TopBar";
 
 export default function BlogArticle() {
   const { slug } = useParams();
@@ -13,24 +14,14 @@ export default function BlogArticle() {
     if (meta) meta.setAttribute("content", article.description);
     return () => {
       document.title = "Louer ou Acheter — Simulateur immobilier gratuit";
-      if (meta)
-        meta.setAttribute(
-          "content",
-          "Comparez louer et acheter en 2 minutes. Simulation chiffrée : mensualité, patrimoine, point d'équilibre. Gratuit, sans inscription."
-        );
+      if (meta) meta.setAttribute("content", "Comparez louer et acheter en 2 minutes. Simulation chiffrée : mensualité, patrimoine, point d'équilibre. Gratuit, sans inscription.");
     };
   }, [article]);
 
   if (!article) {
     return (
       <div className="page">
-        <header className="top-bar">
-          <Link to="/" className="brand-btn">
-            <span className="brand-text">
-              Louer <span className="brand-accent">ou</span> Acheter
-            </span>
-          </Link>
-        </header>
+        <TopBar />
         <main style={{ padding: "80px 24px", textAlign: "center" }}>
           <p>Article introuvable.</p>
           <Link to="/blog">← Retour au blog</Link>
@@ -45,17 +36,8 @@ export default function BlogArticle() {
 
   return (
     <div className="page">
-      <header className="top-bar" role="banner">
-        <Link to="/" className="brand-btn" aria-label="Retour au simulateur">
-          <span className="brand-text">
-            Louer <span className="brand-accent">ou</span> Acheter
-          </span>
-        </Link>
-        <Link to="/blog" className="topbar-sim-link">← Blog</Link>
-      </header>
-
+      <TopBar />
       <main className="article-page">
-        {/* Breadcrumb */}
         <nav className="article-breadcrumb" aria-label="Fil d'Ariane">
           <Link to="/">Accueil</Link>
           <span aria-hidden="true">/</span>
@@ -64,7 +46,6 @@ export default function BlogArticle() {
           <span>{article.tag}</span>
         </nav>
 
-        {/* Hero */}
         <header className="article-hero">
           <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
           <h1 className="article-h1">{article.title}</h1>
@@ -75,12 +56,10 @@ export default function BlogArticle() {
           </div>
         </header>
 
-        {/* Body */}
         <div className="article-body">
           <Content />
         </div>
 
-        {/* CTA */}
         <div className="article-cta">
           <div className="article-cta-inner">
             <p className="article-cta-title">Calculez votre situation en 2 minutes</p>
@@ -88,13 +67,10 @@ export default function BlogArticle() {
               Entrez votre loyer, le bien visé et l'horizon de détention — le simulateur
               compare les deux patrimoines chiffres à l'appui.
             </p>
-            <Link to="/" className="btn-primary">
-              Lancer le simulateur gratuit →
-            </Link>
+            <Link to="/" className="btn-primary">Lancer le simulateur gratuit →</Link>
           </div>
         </div>
 
-        {/* Related */}
         {related.length > 0 && (
           <section className="article-related">
             <h2 className="article-related-title">À lire aussi</h2>

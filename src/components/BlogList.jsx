@@ -1,22 +1,14 @@
 import { Link } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
+import TopBar from "./TopBar";
 
 export default function BlogList() {
   const [featured, ...rest] = ARTICLES;
 
   return (
     <div className="page">
-      <header className="top-bar" role="banner">
-        <Link to="/" className="brand-btn" aria-label="Retour au simulateur">
-          <span className="brand-text">
-            Louer <span className="brand-accent">ou</span> Acheter
-          </span>
-        </Link>
-        <Link to="/" className="topbar-sim-link">← Simulateur</Link>
-      </header>
-
+      <TopBar />
       <main className="blog-page">
-        {/* Hero */}
         <div className="blog-hero">
           <div className="blog-hero-text">
             <span className="blog-kicker">Conseils &amp; analyses</span>
@@ -44,7 +36,6 @@ export default function BlogList() {
           </div>
         </div>
 
-        {/* Featured article */}
         <Link to={`/blog/${featured.slug}`} className="featured-card" aria-label={featured.title}>
           <div className="featured-card-body">
             <div className="featured-card-top">
@@ -63,17 +54,11 @@ export default function BlogList() {
           </div>
         </Link>
 
-        {/* Grid */}
         <div className="articles-section">
           <h2 className="articles-section-title">Tous les articles</h2>
           <div className="articles-grid">
             {rest.map((article) => (
-              <Link
-                key={article.slug}
-                to={`/blog/${article.slug}`}
-                className="article-card"
-                aria-label={article.title}
-              >
+              <Link key={article.slug} to={`/blog/${article.slug}`} className="article-card" aria-label={article.title}>
                 <div className="article-card-top">
                   <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
                   <span className="article-read-time">{article.readTime}</span>
@@ -89,17 +74,12 @@ export default function BlogList() {
           </div>
         </div>
 
-        {/* CTA */}
         <div className="blog-cta-banner">
           <div className="blog-cta-inner">
             <p className="blog-cta-title">Passez à la pratique</p>
-            <p className="blog-cta-sub">
-              Comparez louer et acheter dans votre situation personnelle en 2 minutes.
-            </p>
+            <p className="blog-cta-sub">Comparez louer et acheter dans votre situation personnelle en 2 minutes.</p>
           </div>
-          <Link to="/" className="btn-primary blog-cta-btn">
-            Lancer le simulateur gratuit →
-          </Link>
+          <Link to="/" className="btn-primary blog-cta-btn">Lancer le simulateur →</Link>
         </div>
       </main>
     </div>
