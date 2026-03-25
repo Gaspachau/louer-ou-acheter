@@ -15,6 +15,24 @@ function StepLanding({ onStart, onPreset }) {
           visez, et de combien de temps vous comptez rester. Ce simulateur compare les
           deux scénarios chiffres à l'appui.
         </p>
+
+        {/* Stats strip */}
+        <div className="landing-stats-strip" aria-label="Points clés">
+          <div className="landing-stat">
+            <span className="landing-stat-num">2 min</span>
+            <span className="landing-stat-label">pour simuler</span>
+          </div>
+          <div className="landing-stat-divider" />
+          <div className="landing-stat">
+            <span className="landing-stat-num">100%</span>
+            <span className="landing-stat-label">gratuit</span>
+          </div>
+          <div className="landing-stat-divider" />
+          <div className="landing-stat">
+            <span className="landing-stat-num">6</span>
+            <span className="landing-stat-label">simulateurs</span>
+          </div>
+        </div>
       </div>
 
       {/* Preset scenarios */}

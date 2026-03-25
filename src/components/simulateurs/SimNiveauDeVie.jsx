@@ -1,15 +1,16 @@
 import { useMemo, useState } from "react";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
 const CHARGE_FIELDS = [
-  { key: "loyer", label: "Loyer / mensualité", icon: "🏠", hint: "Logement principal" },
-  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration" },
-  { key: "transport", label: "Transport", icon: "🚗", hint: "Voiture, transports en commun" },
-  { key: "telecom", label: "Télécom", icon: "📱", hint: "Internet + téléphone" },
-  { key: "assurances", label: "Assurances", icon: "🛡️", hint: "Habitation, auto, santé…" },
-  { key: "autres", label: "Autres charges", icon: "📦", hint: "Abonnements, loisirs fixes…" },
+  { key: "loyer", label: "Loyer / mensualité", icon: "🏠", hint: "Logement principal", color: "#2563eb" },
+  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration", color: "#0d9488" },
+  { key: "transport", label: "Transport", icon: "🚗", hint: "Voiture, transports en commun", color: "#d97706" },
+  { key: "telecom", label: "Télécom", icon: "📱", hint: "Internet + téléphone", color: "#7c3aed" },
+  { key: "assurances", label: "Assurances", icon: "🛡️", hint: "Habitation, auto, santé…", color: "#0891b2" },
+  { key: "autres", label: "Autres charges", icon: "📦", hint: "Abonnements, loisirs fixes…", color: "#64748b" },
 ];
 
 export default function SimNiveauDeVie() {
@@ -32,6 +33,11 @@ export default function SimNiveauDeVie() {
   }, [v]);
 
   const color = res.disponible < 0 ? "red" : res.tauxCharges > 70 ? "amber" : "green";
+
+  const donutSegments = [
+    ...CHARGE_FIELDS.map((f) => ({ value: v[f.key] || 0, color: f.color, label: f.label })),
+    ...(res.disponible > 0 ? [{ value: res.disponible, color: "#e2e8f0", label: "Disponible" }] : []),
+  ].filter((s) => s.value > 0);
 
   return (
     <SimLayout
@@ -78,6 +84,38 @@ export default function SimNiveauDeVie() {
             <div className="sim-stat-card">
               <span className="sim-stat-card-label">Disponible / an</span>
               <span className="sim-stat-card-value">{formatCurrency(res.disponible * 12)}</span>
+            </div>
+          </div>
+
+          {/* Donut + category bars */}
+          <div className="sim-donut-section">
+            <DonutChart
+              segments={donutSegments}
+              size={130}
+              thickness={22}
+              label={formatCurrency(v.salaire)}
+              subLabel="revenus"
+            />
+            <div className="sim-donut-legend" style={{ flex: 1 }}>
+              <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition par poste</p>
+              <div className="charge-category-bars">
+                {CHARGE_FIELDS.map((f) => {
+                  const pct = v.salaire > 0 ? Math.min(100, ((v[f.key] || 0) / v.salaire) * 100) : 0;
+                  return (
+                    <div key={f.key} className="charge-bar-row">
+                      <span className="charge-bar-row-icon">{f.icon}</span>
+                      <span className="charge-bar-row-label">{f.label}</span>
+                      <div className="charge-bar-track">
+                        <div
+                          className="charge-bar-fill"
+                          style={{ width: `${pct}%`, background: f.color }}
+                        />
+                      </div>
+                      <span className="charge-bar-row-value">{formatCurrency(v[f.key] || 0)}</span>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
 

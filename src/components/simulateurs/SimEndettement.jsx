@@ -15,24 +15,89 @@ function calcEndettement({ revenus, chargesExistantes, taux, duree }) {
       : r > 0 && n > 0
       ? capaciteRestante * (1 - Math.pow(1 + r, -n)) / r
       : 0;
-  const tauxAvec = ((chargesExistantes + capaciteRestante) / revenus) * 100;
-  return { tauxActuel, capaciteRestante, montantEmpruntable, tauxAvec };
+  return { tauxActuel, capaciteRestante, montantEmpruntable };
 }
 
-function TauxGauge({ value }) {
-  const pct = Math.min(100, value);
+/**
+ * Semi-circular SVG gauge showing debt ratio 0–50%.
+ * The arc goes left→top→right, 35% of 50% = 70% of arc = limit marker.
+ */
+function SemiGauge({ value }) {
+  const maxPct = 50; // gauge shows 0–50%
+  const fillPct = Math.min(1, Math.max(0, value / maxPct));
+  const limitPct = 35 / maxPct; // where to draw the 35% tick
+
+  const r = 54;
+  const cx = 80;
+  const cy = 68;
+  const halfCirc = Math.PI * r; // ≈ 169.6
+
+  const fillLen = fillPct * halfCirc;
+  const limitLen = limitPct * halfCirc;
+
   const color = value > 35 ? "#dc2626" : value > 28 ? "#d97706" : "#0d9488";
+
+  // Point on arc at given fraction (0=left, 1=right through top)
+  const arcPoint = (frac, rr) => {
+    const angle = (1 - frac) * Math.PI; // left→top→right in screen coords
+    return {
+      x: cx + rr * Math.cos(angle),
+      y: cy - rr * Math.sin(angle),
+    };
+  };
+
+  const limitInner = arcPoint(limitPct, r - 8);
+  const limitOuter = arcPoint(limitPct, r + 10);
+  const limitLabel = arcPoint(limitPct, r + 20);
+
   return (
-    <div className="taux-gauge">
-      <div className="taux-gauge-track">
-        <div className="taux-gauge-fill" style={{ width: `${pct}%`, background: color }} />
-        <div className="taux-gauge-limit" style={{ left: "35%" }} title="Seuil bancaire 35%" />
-      </div>
-      <div className="taux-gauge-labels">
-        <span>0%</span>
-        <span className="taux-limit-label">35% max</span>
-        <span>100%</span>
-      </div>
+    <div className="semi-gauge-wrap">
+      <svg viewBox="0 0 160 80" className="semi-gauge-svg" aria-hidden="true">
+        {/* Track */}
+        <path
+          d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
+          fill="none"
+          stroke="#e2e8f0"
+          strokeWidth="12"
+          strokeLinecap="round"
+        />
+        {/* Fill */}
+        <path
+          d={`M ${cx - r},${cy} A ${r},${r} 0 0,1 ${cx + r},${cy}`}
+          fill="none"
+          stroke={color}
+          strokeWidth="12"
+          strokeLinecap="round"
+          strokeDasharray={`${fillLen} ${halfCirc}`}
+          className="gauge-fill-path"
+        />
+        {/* 35% limit marker */}
+        <line
+          x1={limitInner.x} y1={limitInner.y}
+          x2={limitOuter.x} y2={limitOuter.y}
+          stroke="#94a3b8"
+          strokeWidth="2"
+        />
+        <text
+          x={limitLabel.x} y={limitLabel.y + 1}
+          textAnchor="middle"
+          fontSize="7.5"
+          fill="#94a3b8"
+          fontWeight="700"
+        >35%</text>
+
+        {/* Value display */}
+        <text x={cx} y={cy - 14} textAnchor="middle" fontSize="22" fontWeight="900" fill={color}>
+          {value.toFixed(1)}%
+        </text>
+        <text x={cx} y={cy + 2} textAnchor="middle" fontSize="8.5" fill="#94a3b8">
+          taux d'endettement
+        </text>
+
+        {/* Scale labels */}
+        <text x={cx - r - 4} y={cy + 10} textAnchor="end" fontSize="8" fill="#cbd5e1">0%</text>
+        <text x={cx + r + 4} y={cy + 10} textAnchor="start" fontSize="8" fill="#cbd5e1">50%</text>
+      </svg>
     </div>
   );
 }
@@ -43,10 +108,12 @@ export default function SimEndettement() {
 
   const res = useMemo(() => calcEndettement(v), [v]);
 
-  const verdict =
-    !res ? null
-    : res.tauxActuel > 35 ? { label: "Déjà sur-endetté", color: "red", msg: "Vos charges actuelles dépassent déjà le seuil de 35 %. L'accès à un nouveau crédit sera difficile." }
-    : res.capaciteRestante < 200 ? { label: "Capacité limitée", color: "amber", msg: `Votre marge mensuelle est faible (${formatCurrency(res.capaciteRestante)}/mois). Privilégiez un montant d'emprunt modéré.` }
+  const verdict = !res
+    ? null
+    : res.tauxActuel > 35
+    ? { label: "Déjà sur-endetté", color: "red", msg: "Vos charges actuelles dépassent déjà le seuil de 35 %. L'accès à un nouveau crédit sera difficile." }
+    : res.capaciteRestante < 200
+    ? { label: "Capacité limitée", color: "amber", msg: `Votre marge mensuelle est faible (${formatCurrency(res.capaciteRestante)}/mois). Privilégiez un montant d'emprunt modéré.` }
     : { label: "Capacité correcte", color: "green", msg: `Vous pouvez emprunter jusqu'à ${formatCurrency(res.montantEmpruntable)} selon les paramètres saisis.` };
 
   return (
@@ -86,15 +153,7 @@ export default function SimEndettement() {
                 </div>
               )}
 
-              <div className="sim-taux-section">
-                <div className="sim-taux-row">
-                  <span className="sim-taux-label">Taux d'endettement actuel</span>
-                  <span className={`sim-taux-value ${res.tauxActuel > 35 ? "sim-taux-red" : ""}`}>
-                    {res.tauxActuel.toFixed(1)} %
-                  </span>
-                </div>
-                <TauxGauge value={res.tauxActuel} />
-              </div>
+              <SemiGauge value={res.tauxActuel} />
 
               <div className="sim-stats-grid">
                 <div className="sim-stat-card">
@@ -110,7 +169,7 @@ export default function SimEndettement() {
                   <span className="sim-stat-card-value">{formatCurrency(res.montantEmpruntable)}</span>
                 </div>
                 <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Seuil 35% (règle HCSF)</span>
+                  <span className="sim-stat-card-label">Seuil HCSF (35%)</span>
                   <span className="sim-stat-card-value">{formatCurrency(v.revenus * 0.35)}/mois</span>
                 </div>
               </div>

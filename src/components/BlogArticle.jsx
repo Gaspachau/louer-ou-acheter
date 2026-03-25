@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
+import ReadingProgress from "./ReadingProgress";
 
 export default function BlogArticle() {
   const { slug } = useParams();
@@ -36,6 +37,7 @@ export default function BlogArticle() {
 
   return (
     <div className="page">
+      <ReadingProgress />
       <TopBar />
       <main className="article-page">
         <nav className="article-breadcrumb" aria-label="Fil d'Ariane">

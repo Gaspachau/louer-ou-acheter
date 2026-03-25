@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
 function calcPret({ principal, annualRate, years }) {
@@ -10,8 +11,7 @@ function calcPret({ principal, annualRate, years }) {
   const monthly = r === 0 ? principal / n : principal * r / (1 - Math.pow(1 + r, -n));
   const totalCost = monthly * n;
   const totalInterest = totalCost - principal;
-  const interestRatio = totalInterest / totalCost;
-  return { monthly, totalCost, totalInterest, interestRatio };
+  return { monthly, totalCost, totalInterest };
 }
 
 function AmortRow({ month, payment, principal, interest, balance }) {
@@ -47,7 +47,12 @@ export default function SimPretImmo() {
     return rows;
   }, [res, showTable, v]);
 
-  const capitalPct = res ? Math.round((v.principal / res.totalCost) * 100) : 0;
+  const donutSegments = res
+    ? [
+        { value: v.principal, color: "#2563eb", label: "Capital" },
+        { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
+      ]
+    : [];
 
   return (
     <SimLayout
@@ -65,18 +70,6 @@ export default function SimPretImmo() {
             <Field label="Taux annuel" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="Mars 2026 : ~3,5–4,0 %" />
             <Field label="Durée" value={v.years} onChange={set("years")} suffix="ans" hint="15, 20 ou 25 ans" />
           </div>
-
-          {res && (
-            <div className="sim-mini-bar">
-              <div className="sim-mini-bar-track">
-                <div className="sim-mini-bar-fill" style={{ width: `${capitalPct}%` }} />
-              </div>
-              <div className="sim-mini-bar-labels">
-                <span>Capital : {capitalPct}%</span>
-                <span>Intérêts : {100 - capitalPct}%</span>
-              </div>
-            </div>
-          )}
         </div>
 
         <div className="sim-results-panel">
@@ -86,7 +79,9 @@ export default function SimPretImmo() {
             <>
               <div className="sim-stat-hero">
                 <span className="sim-stat-label">Mensualité</span>
-                <span className="sim-stat-value">{formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span></span>
+                <span className="sim-stat-value">
+                  {formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span>
+                </span>
               </div>
 
               <div className="sim-stats-grid">
@@ -108,6 +103,26 @@ export default function SimPretImmo() {
                 </div>
               </div>
 
+              <div className="sim-donut-section">
+                <DonutChart
+                  segments={donutSegments}
+                  size={130}
+                  thickness={22}
+                  label={formatCurrency(res.totalCost)}
+                  subLabel="total remboursé"
+                />
+                <div className="sim-donut-legend">
+                  <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition du coût total</p>
+                  {donutSegments.map((seg) => (
+                    <div key={seg.label} className="sim-donut-legend-item">
+                      <span className="sim-donut-dot" style={{ background: seg.color }} />
+                      <span className="sim-donut-legend-label">{seg.label}</span>
+                      <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
               <button
                 className="details-toggle"
                 onClick={() => setShowTable(!showTable)}
@@ -121,7 +136,7 @@ export default function SimPretImmo() {
                 <div className="amort-table-wrap">
                   <table className="amort-table">
                     <thead>
-                      <tr><th>Année</th><th>Mensualité</th><th>Capital</th><th>Intérêts</th><th>Capital restant</th></tr>
+                      <tr><th>Année</th><th>Mensualité</th><th>Capital</th><th>Intérêts</th><th>Restant</th></tr>
                     </thead>
                     <tbody>
                       {amortTable.map((row) => (

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
 const LOAN_TYPES = [
@@ -26,6 +27,13 @@ export default function SimPretConso() {
 
   const res = useMemo(() => calcPretConso(v), [v]);
   const costPct = res ? Math.round((res.totalInterest / res.totalCost) * 100) : 0;
+
+  const donutSegments = res
+    ? [
+        { value: v.principal, color: "#2563eb", label: "Capital" },
+        { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
+      ]
+    : [];
 
   return (
     <SimLayout
@@ -67,7 +75,9 @@ export default function SimPretConso() {
             <>
               <div className="sim-stat-hero">
                 <span className="sim-stat-label">Mensualité</span>
-                <span className="sim-stat-value">{formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span></span>
+                <span className="sim-stat-value">
+                  {formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span>
+                </span>
               </div>
 
               <div className="sim-stats-grid">
@@ -96,15 +106,28 @@ export default function SimPretConso() {
                 </div>
               )}
 
-              <div className="sim-bar-section">
-                <p className="sim-bar-label">Répartition du remboursement</p>
-                <div className="sim-bar">
-                  <div className="sim-bar-contrib" style={{ width: `${100 - costPct}%` }} title="Capital" />
-                  <div className="sim-bar-interest" style={{ width: `${costPct}%` }} title="Intérêts" />
-                </div>
-                <div className="sim-bar-legend">
-                  <span><span className="sim-bar-dot sim-dot-contrib" />Capital ({100 - costPct}%)</span>
-                  <span><span className="sim-bar-dot sim-dot-interest" />Intérêts ({costPct}%)</span>
+              <div className="sim-donut-section">
+                <DonutChart
+                  segments={donutSegments}
+                  size={130}
+                  thickness={22}
+                  label={formatCurrency(res.totalCost)}
+                  subLabel="total remboursé"
+                />
+                <div className="sim-donut-legend">
+                  <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition du remboursement</p>
+                  {donutSegments.map((seg) => (
+                    <div key={seg.label} className="sim-donut-legend-item">
+                      <span className="sim-donut-dot" style={{ background: seg.color }} />
+                      <span className="sim-donut-legend-label">{seg.label}</span>
+                      <span className="sim-donut-legend-value">
+                        {formatCurrency(seg.value)}{" "}
+                        <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+                          ({seg.label === "Capital" ? 100 - costPct : costPct}%)
+                        </span>
+                      </span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </>

@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
 function calcEpargne({ goal, initial, annualReturn, years }) {
@@ -24,8 +25,14 @@ export default function SimEpargne() {
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
   const res = useMemo(() => calcEpargne(v), [v]);
-  const pct = res && v.goal > 0 ? Math.min(100, ((v.initial + (res.totalContributions ?? 0)) / v.goal) * 100) : 0;
-  const interestPct = res && v.goal > 0 ? Math.min(100, ((res.totalInterest ?? 0) / v.goal) * 100) : 0;
+
+  const donutSegments = res && !res.goalReachedByInitial
+    ? [
+        { value: v.initial, color: "#2563eb", label: "Apport initial" },
+        { value: Math.max(0, res.totalContributions), color: "#0d9488", label: "Versements" },
+        { value: Math.max(0, res.totalInterest), color: "#d97706", label: "Intérêts" },
+      ]
+    : [];
 
   return (
     <SimLayout
@@ -77,7 +84,9 @@ export default function SimEpargne() {
             <>
               <div className="sim-stat-hero">
                 <span className="sim-stat-label">Épargne mensuelle nécessaire</span>
-                <span className="sim-stat-value">{formatCurrency(res.monthlySavings)}<span className="sim-stat-unit">/mois</span></span>
+                <span className="sim-stat-value">
+                  {formatCurrency(res.monthlySavings)}<span className="sim-stat-unit">/mois</span>
+                </span>
               </div>
 
               <div className="sim-stats-grid">
@@ -99,19 +108,27 @@ export default function SimEpargne() {
                 </div>
               </div>
 
-              <div className="sim-bar-section">
-                <p className="sim-bar-label">Composition de l'objectif</p>
-                <div className="sim-bar">
-                  <div className="sim-bar-initial" style={{ width: `${(v.initial / v.goal) * 100}%` }} title="Apport initial" />
-                  <div className="sim-bar-contrib" style={{ width: `${pct - (v.initial / v.goal) * 100}%` }} title="Versements" />
-                  <div className="sim-bar-interest" style={{ width: `${interestPct}%` }} title="Intérêts" />
+              {donutSegments.length > 0 && (
+                <div className="sim-donut-section">
+                  <DonutChart
+                    segments={donutSegments}
+                    size={130}
+                    thickness={22}
+                    label={formatCurrency(v.goal)}
+                    subLabel="objectif"
+                  />
+                  <div className="sim-donut-legend">
+                    <p className="sim-bar-label" style={{ marginBottom: 8 }}>Composition de l'objectif</p>
+                    {donutSegments.map((seg) => (
+                      <div key={seg.label} className="sim-donut-legend-item">
+                        <span className="sim-donut-dot" style={{ background: seg.color }} />
+                        <span className="sim-donut-legend-label">{seg.label}</span>
+                        <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
-                <div className="sim-bar-legend">
-                  <span><span className="sim-bar-dot sim-dot-initial" />Apport initial</span>
-                  <span><span className="sim-bar-dot sim-dot-contrib" />Versements</span>
-                  <span><span className="sim-bar-dot sim-dot-interest" />Intérêts</span>
-                </div>
-              </div>
+              )}
             </>
           )}
         </div>
