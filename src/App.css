@@ -1340,6 +1340,130 @@ input[type="range"]::-moz-range-thumb {
   .lp-blog-section { padding: 52px 16px; }
 }
 
+/* ─── Simulator info / advice boxes ────────────────────── */
+.sim-info-box {
+  background: linear-gradient(135deg, rgba(14,165,233,.06), rgba(26,86,219,.06));
+  border: 1px solid rgba(26,86,219,.15); border-radius: 14px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 4px;
+}
+.sim-info-title { margin: 0; font-size: 13px; font-weight: 700; color: var(--text); }
+.sim-info-body  { margin: 0; font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+/* ─── sim-stat-sub ──────────────────────────────────────── */
+.sim-stat-sub { font-size: 12px; color: rgba(255,255,255,.55); font-weight: 500; }
+
+/* ─── Abattements plus-value ────────────────────────────── */
+.abat-section { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+.abat-row { margin-bottom: 12px; }
+.abat-row:last-child { margin-bottom: 0; }
+.abat-row-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 4px; }
+.abat-label { font-size: 12px; font-weight: 600; color: var(--text); }
+.abat-value { font-size: 12px; font-weight: 800; white-space: nowrap; }
+
+/* ─── Notaire detail ────────────────────────────────────── */
+.notaire-details { display: flex; flex-direction: column; gap: 10px; }
+.notaire-detail-row { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; }
+.notaire-detail-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
+.notaire-detail-label { font-size: 13px; font-weight: 700; color: var(--text); }
+.notaire-detail-value { font-size: 14px; font-weight: 800; color: var(--blue); white-space: nowrap; }
+.notaire-detail-explain { margin: 0; font-size: 12px; color: var(--muted); line-height: 1.55; }
+
+/* ─── Benchmark bars (copro) ────────────────────────────── */
+.benchmark-bars { display: flex; flex-direction: column; gap: 10px; }
+.benchmark-bar-row { display: flex; align-items: center; gap: 10px; }
+.benchmark-bar-label { font-size: 12px; color: var(--muted); width: 110px; flex-shrink: 0; font-weight: 600; }
+.benchmark-bar-track { flex: 1; height: 8px; background: var(--line); border-radius: 999px; overflow: hidden; }
+.benchmark-bar-fill  { height: 100%; border-radius: 999px; transition: width .4s ease; }
+.benchmark-bar-val   { font-size: 12px; font-weight: 700; color: var(--text); width: 32px; text-align: right; flex-shrink: 0; }
+.benchmark-bar-you .benchmark-bar-label { color: #7c3aed; font-weight: 800; }
+
+/* ─── Service checkboxes (copro) ────────────────────────── */
+.services-checks { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.service-check-label { display: flex; align-items: flex-start; gap: 12px; cursor: pointer; padding: 10px 12px; border: 1.5px solid var(--line); border-radius: 12px; transition: border-color .15s, background .15s; }
+.service-check-label:hover { border-color: var(--blue-mid); background: var(--blue-soft); }
+.service-check-input { width: 16px; height: 16px; accent-color: var(--blue); flex-shrink: 0; margin-top: 2px; cursor: pointer; }
+.service-check-text { font-size: 13px; font-weight: 700; color: var(--text); display: block; }
+
+/* ─── Select input ──────────────────────────────────────── */
+.input-select {
+  width: 100%; padding: 10px 14px; border: 1.5px solid var(--line); border-radius: 12px;
+  background: white; font-size: 14px; font-weight: 600; color: var(--text);
+  cursor: pointer; outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  font-family: inherit;
+}
+.input-select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,86,219,.12); }
+
+/* ─── Hub filters ───────────────────────────────────────── */
+.hub-filters {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin-bottom: 24px; padding: 0 2px;
+}
+.hub-filter-btn {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 14px; border-radius: 999px;
+  background: white; border: 1.5px solid var(--line);
+  font-size: 13px; font-weight: 700; color: var(--muted);
+  cursor: pointer; transition: all .15s;
+}
+.hub-filter-btn:hover { border-color: var(--blue-mid); color: var(--blue); background: var(--blue-soft); }
+.hub-filter-active { background: var(--blue); border-color: var(--blue); color: white; }
+.hub-filter-active:hover { background: var(--blue-dark); border-color: var(--blue-dark); color: white; }
+.hub-filter-count {
+  background: rgba(0,0,0,.12); color: inherit;
+  font-size: 10px; font-weight: 800; padding: 1px 6px; border-radius: 999px;
+}
+.hub-filter-active .hub-filter-count { background: rgba(255,255,255,.2); }
+
+/* ─── Hub card "Nouveau" badge ──────────────────────────── */
+.sim-hub-card { position: relative; overflow: visible; }
+.sim-hub-new {
+  position: absolute; top: -8px; right: 12px;
+  background: linear-gradient(135deg, #059669, #0d9488);
+  color: white; font-size: 10px; font-weight: 800; letter-spacing: .04em;
+  padding: 3px 8px; border-radius: 999px;
+  box-shadow: 0 2px 8px rgba(5,150,105,.3);
+}
+
+/* ─── Comparateur full-width layout ────────────────────── */
+.sim-layout-full {
+  display: grid; grid-template-columns: 380px 1fr; gap: 24px;
+  align-items: start;
+}
+.comparateur-controls { position: sticky; top: 80px; }
+.comparateur-results  { min-height: 400px; }
+.loan-type-grid-3 { grid-template-columns: repeat(3, 1fr); }
+
+/* ─── Comparateur city cards ────────────────────────────── */
+.comparateur-cards {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-top: 16px;
+}
+.comparateur-city-card {
+  border: 1.5px solid var(--line); border-radius: 16px; padding: 14px 14px;
+  background: white;
+  transition: border-color .15s, box-shadow .15s;
+}
+.comparateur-city-card:hover { border-color: var(--blue-mid); box-shadow: var(--shadow-sm); }
+.city-card-rent { border-left: 3px solid #0d9488; }
+.city-card-buy  { border-left: 3px solid #1a56db; }
+.city-card-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 6px; margin-bottom: 10px; }
+.city-card-nom  { font-size: 14px; font-weight: 800; color: var(--text); }
+.city-card-badge { font-size: 9px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; padding: 3px 7px; border-radius: 999px; white-space: nowrap; }
+.badge-rent { background: #d1fae5; color: #065f46; }
+.badge-buy  { background: #dbeafe; color: #1e40af; }
+.city-card-rows { display: flex; flex-direction: column; gap: 5px; }
+.city-card-row { display: flex; justify-content: space-between; align-items: center; font-size: 11.5px; color: var(--muted); gap: 4px; }
+.city-card-delta { font-size: 12px; }
+
+@media (max-width: 1000px) {
+  .sim-layout-full { grid-template-columns: 1fr; }
+  .comparateur-controls { position: static; }
+  .comparateur-cards { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .comparateur-cards { grid-template-columns: 1fr; }
+}
+
 /* ─── LP (Landing Premium) ──────────────────────────────── */
 @keyframes orb-drift {
   0%, 100% { transform: translate(0, 0) scale(1); }

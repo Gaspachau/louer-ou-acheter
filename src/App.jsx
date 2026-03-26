@@ -15,6 +15,12 @@ import SimPretImmo from "./components/simulateurs/SimPretImmo";
 import SimPretConso from "./components/simulateurs/SimPretConso";
 import SimNiveauDeVie from "./components/simulateurs/SimNiveauDeVie";
 import SimEndettement from "./components/simulateurs/SimEndettement";
+import SimRentabiliteLocative from "./components/simulateurs/SimRentabiliteLocative";
+import SimFraisNotaire from "./components/simulateurs/SimFraisNotaire";
+import SimPlusValue from "./components/simulateurs/SimPlusValue";
+import SimChargesCopro from "./components/simulateurs/SimChargesCopro";
+import SimTaxeFonciere from "./components/simulateurs/SimTaxeFonciere";
+import SimComparateurVilles from "./components/simulateurs/SimComparateurVilles";
 import { computeComparison } from "./utils/finance";
 
 const DEFAULTS = {
@@ -134,6 +140,12 @@ export default function App() {
       <Route path="/simulateurs/pret-conso" element={<SimPretConso />} />
       <Route path="/simulateurs/niveau-de-vie" element={<SimNiveauDeVie />} />
       <Route path="/simulateurs/endettement" element={<SimEndettement />} />
+      <Route path="/simulateurs/rentabilite-locative" element={<SimRentabiliteLocative />} />
+      <Route path="/simulateurs/frais-notaire" element={<SimFraisNotaire />} />
+      <Route path="/simulateurs/plus-value" element={<SimPlusValue />} />
+      <Route path="/simulateurs/charges-copro" element={<SimChargesCopro />} />
+      <Route path="/simulateurs/taxe-fonciere" element={<SimTaxeFonciere />} />
+      <Route path="/simulateurs/comparateur-villes" element={<SimComparateurVilles />} />
       <Route path="/blog" element={<BlogList />} />
       <Route path="/blog/:slug" element={<BlogArticle />} />
     </Routes>

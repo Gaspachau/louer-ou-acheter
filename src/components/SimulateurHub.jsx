@@ -13,6 +13,42 @@ const SIMS = [
     featured: true,
   },
   {
+    href: "/simulateurs/rentabilite-locative",
+    icon: "🏘️",
+    title: "Rentabilité locative",
+    desc: "Rendement brut, net et cashflow mensuel pour un investissement locatif.",
+    tag: "Investissement",
+    tagClass: "tag-green",
+    new: true,
+  },
+  {
+    href: "/simulateurs/frais-notaire",
+    icon: "📋",
+    title: "Frais de notaire",
+    desc: "Calcul au centime près selon le barème légal 2024 — ancien et neuf.",
+    tag: "Immobilier",
+    tagClass: "tag-blue",
+    new: true,
+  },
+  {
+    href: "/simulateurs/plus-value",
+    icon: "📈",
+    title: "Plus-value immobilière",
+    desc: "Impôt à la revente selon la durée de détention et les abattements légaux.",
+    tag: "Fiscalité",
+    tagClass: "tag-purple",
+    new: true,
+  },
+  {
+    href: "/simulateurs/comparateur-villes",
+    icon: "🗺️",
+    title: "Comparateur de villes",
+    desc: "Loyer vs mensualité dans 12 grandes villes françaises — pour T1, T2 ou T3.",
+    tag: "Immobilier",
+    tagClass: "tag-blue",
+    new: true,
+  },
+  {
     href: "/simulateurs/epargne",
     icon: "💰",
     title: "Simulateur d'épargne",
@@ -52,10 +88,43 @@ const SIMS = [
     tag: "Crédit",
     tagClass: "tag-teal",
   },
+  {
+    href: "/simulateurs/charges-copro",
+    icon: "🏢",
+    title: "Charges de copropriété",
+    desc: "Quote-part mensuelle et annuelle selon vos tantièmes, avec comparaison nationale.",
+    tag: "Immobilier",
+    tagClass: "tag-blue",
+    new: true,
+  },
+  {
+    href: "/simulateurs/taxe-fonciere",
+    icon: "🏛️",
+    title: "Taxe foncière",
+    desc: "Estimation de la taxe foncière annuelle dans 12 villes françaises.",
+    tag: "Fiscalité",
+    tagClass: "tag-purple",
+    new: true,
+  },
 ];
 
+const CATEGORIES = [
+  { label: "Tous", filter: null },
+  { label: "Immobilier",    filter: "Immobilier" },
+  { label: "Investissement", filter: "Investissement" },
+  { label: "Crédit",        filter: "Crédit" },
+  { label: "Épargne",       filter: "Épargne" },
+  { label: "Fiscalité",     filter: "Fiscalité" },
+  { label: "Budget",        filter: "Budget" },
+];
+
+import { useState } from "react";
+
 export default function SimulateurHub() {
+  const [catFilter, setCatFilter] = useState(null);
   const [featured, ...rest] = SIMS;
+
+  const filtered = catFilter ? rest.filter((s) => s.tag === catFilter) : rest;
 
   return (
     <div className="page">
@@ -67,8 +136,8 @@ export default function SimulateurHub() {
             <span className="blog-kicker">Outils gratuits</span>
             <h1 className="blog-title">Tous nos simulateurs</h1>
             <p className="blog-subtitle">
-              Des calculateurs précis pour prendre les meilleures décisions immobilières
-              et financières — sans inscription, sans publicité.
+              {SIMS.length} calculateurs précis pour prendre les meilleures décisions
+              immobilières et financières — sans inscription, sans publicité.
             </p>
           </div>
           <div className="blog-stats">
@@ -83,8 +152,8 @@ export default function SimulateurHub() {
             </div>
             <div className="blog-stat-divider" />
             <div className="blog-stat">
-              <span className="blog-stat-num">Temps réel</span>
-              <span className="blog-stat-label">résultats</span>
+              <span className="blog-stat-num">6</span>
+              <span className="blog-stat-label">nouveaux</span>
             </div>
           </div>
         </div>
@@ -107,12 +176,31 @@ export default function SimulateurHub() {
           </div>
         </Link>
 
+        {/* Category filters */}
+        <div className="hub-filters" role="group" aria-label="Filtrer par catégorie">
+          {CATEGORIES.map((c) => (
+            <button
+              key={c.label}
+              type="button"
+              className={`hub-filter-btn${catFilter === c.filter ? " hub-filter-active" : ""}`}
+              onClick={() => setCatFilter(c.filter)}
+            >
+              {c.label}
+              {c.filter && (
+                <span className="hub-filter-count">
+                  {SIMS.filter((s) => s.tag === c.filter && !s.featured).length}
+                </span>
+              )}
+            </button>
+          ))}
+        </div>
+
         {/* Grid */}
         <div className="articles-section">
-          <h2 className="articles-section-title">Calculateurs financiers</h2>
           <div className="sim-hub-grid">
-            {rest.map((sim) => (
+            {filtered.map((sim) => (
               <Link key={sim.href} to={sim.href} className="sim-hub-card">
+                {sim.new && <span className="sim-hub-new">Nouveau</span>}
                 <div className="sim-hub-icon" aria-hidden="true">{sim.icon}</div>
                 <span className={`article-tag ${sim.tagClass}`}>{sim.tag}</span>
                 <h3 className="sim-hub-title">{sim.title}</h3>
