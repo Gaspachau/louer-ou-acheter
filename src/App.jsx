@@ -1,5 +1,5 @@
 import "./App.css";
-import { useEffect, useMemo, useState } from "react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
@@ -7,21 +7,32 @@ import StepLanding from "./components/StepLanding";
 import StepRent from "./components/StepRent";
 import StepBuy from "./components/StepBuy";
 import StepResult from "./components/StepResult";
-import BlogList from "./components/BlogList";
-import BlogArticle from "./components/BlogArticle";
-import SimulateurHub from "./components/SimulateurHub";
-import SimEpargne from "./components/simulateurs/SimEpargne";
-import SimPretImmo from "./components/simulateurs/SimPretImmo";
-import SimPretConso from "./components/simulateurs/SimPretConso";
-import SimNiveauDeVie from "./components/simulateurs/SimNiveauDeVie";
-import SimEndettement from "./components/simulateurs/SimEndettement";
-import SimRentabiliteLocative from "./components/simulateurs/SimRentabiliteLocative";
-import SimFraisNotaire from "./components/simulateurs/SimFraisNotaire";
-import SimPlusValue from "./components/simulateurs/SimPlusValue";
-import SimChargesCopro from "./components/simulateurs/SimChargesCopro";
-import SimTaxeFonciere from "./components/simulateurs/SimTaxeFonciere";
-import SimComparateurVilles from "./components/simulateurs/SimComparateurVilles";
 import { computeComparison } from "./utils/finance";
+
+const BlogList = lazy(() => import("./components/BlogList"));
+const BlogArticle = lazy(() => import("./components/BlogArticle"));
+const SimulateurHub = lazy(() => import("./components/SimulateurHub"));
+const SimEpargne = lazy(() => import("./components/simulateurs/SimEpargne"));
+const SimPretImmo = lazy(() => import("./components/simulateurs/SimPretImmo"));
+const SimPretConso = lazy(() => import("./components/simulateurs/SimPretConso"));
+const SimNiveauDeVie = lazy(() => import("./components/simulateurs/SimNiveauDeVie"));
+const SimEndettement = lazy(() => import("./components/simulateurs/SimEndettement"));
+const SimRentabiliteLocative = lazy(() => import("./components/simulateurs/SimRentabiliteLocative"));
+const SimFraisNotaire = lazy(() => import("./components/simulateurs/SimFraisNotaire"));
+const SimPlusValue = lazy(() => import("./components/simulateurs/SimPlusValue"));
+const SimChargesCopro = lazy(() => import("./components/simulateurs/SimChargesCopro"));
+const SimTaxeFonciere = lazy(() => import("./components/simulateurs/SimTaxeFonciere"));
+const SimComparateurVilles = lazy(() => import("./components/simulateurs/SimComparateurVilles"));
+const PageAPropos = lazy(() => import("./components/PageAPropos"));
+const PageMentionsLegales = lazy(() => import("./components/PageMentionsLegales"));
+
+function PageLoader() {
+  return (
+    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minHeight: "60vh", color: "var(--muted)" }}>
+      <span style={{ fontSize: 14 }}>Chargement…</span>
+    </div>
+  );
+}
 
 const DEFAULTS = {
   purchasePrice: 350000,
@@ -132,22 +143,26 @@ function Simulator() {
 
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Simulator />} />
-      <Route path="/simulateurs" element={<SimulateurHub />} />
-      <Route path="/simulateurs/epargne" element={<SimEpargne />} />
-      <Route path="/simulateurs/pret-immobilier" element={<SimPretImmo />} />
-      <Route path="/simulateurs/pret-conso" element={<SimPretConso />} />
-      <Route path="/simulateurs/niveau-de-vie" element={<SimNiveauDeVie />} />
-      <Route path="/simulateurs/endettement" element={<SimEndettement />} />
-      <Route path="/simulateurs/rentabilite-locative" element={<SimRentabiliteLocative />} />
-      <Route path="/simulateurs/frais-notaire" element={<SimFraisNotaire />} />
-      <Route path="/simulateurs/plus-value" element={<SimPlusValue />} />
-      <Route path="/simulateurs/charges-copro" element={<SimChargesCopro />} />
-      <Route path="/simulateurs/taxe-fonciere" element={<SimTaxeFonciere />} />
-      <Route path="/simulateurs/comparateur-villes" element={<SimComparateurVilles />} />
-      <Route path="/blog" element={<BlogList />} />
-      <Route path="/blog/:slug" element={<BlogArticle />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<Simulator />} />
+        <Route path="/simulateurs" element={<SimulateurHub />} />
+        <Route path="/simulateurs/epargne" element={<SimEpargne />} />
+        <Route path="/simulateurs/pret-immobilier" element={<SimPretImmo />} />
+        <Route path="/simulateurs/pret-conso" element={<SimPretConso />} />
+        <Route path="/simulateurs/niveau-de-vie" element={<SimNiveauDeVie />} />
+        <Route path="/simulateurs/endettement" element={<SimEndettement />} />
+        <Route path="/simulateurs/rentabilite-locative" element={<SimRentabiliteLocative />} />
+        <Route path="/simulateurs/frais-notaire" element={<SimFraisNotaire />} />
+        <Route path="/simulateurs/plus-value" element={<SimPlusValue />} />
+        <Route path="/simulateurs/charges-copro" element={<SimChargesCopro />} />
+        <Route path="/simulateurs/taxe-fonciere" element={<SimTaxeFonciere />} />
+        <Route path="/simulateurs/comparateur-villes" element={<SimComparateurVilles />} />
+        <Route path="/blog" element={<BlogList />} />
+        <Route path="/blog/:slug" element={<BlogArticle />} />
+        <Route path="/a-propos" element={<PageAPropos />} />
+        <Route path="/mentions-legales" element={<PageMentionsLegales />} />
+      </Routes>
+    </Suspense>
   );
 }

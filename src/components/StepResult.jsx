@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { formatCurrency } from "../utils/finance";
 import ProgressionChart from "./ProgressionChart";
 import Summary from "./Summary";
@@ -259,11 +260,101 @@ export default function StepResult({ result, values, onEdit }) {
         </div>
       )}
 
+      {/* ══ POST-SIMULATION ════════════════════════════════ */}
+      <div className="post-sim-section">
+
+        {/* Simulateur complémentaire */}
+        <div className="post-sim-next">
+          <p className="post-sim-next-kicker">Simulateur complémentaire</p>
+          {isBuyingBetter ? (
+            <Link to="/simulateurs/frais-notaire" className="post-sim-next-card">
+              <span className="post-sim-next-icon">📋</span>
+              <div>
+                <p className="post-sim-next-title">Calculez vos frais de notaire</p>
+                <p className="post-sim-next-desc">
+                  Vous envisagez d'acheter — estimez précisément les frais de notaire
+                  au centime près selon le barème légal 2024.
+                </p>
+              </div>
+              <span className="post-sim-next-arrow">→</span>
+            </Link>
+          ) : (
+            <Link to="/simulateurs/epargne" className="post-sim-next-card">
+              <span className="post-sim-next-icon">💰</span>
+              <div>
+                <p className="post-sim-next-title">Optimisez votre épargne</p>
+                <p className="post-sim-next-desc">
+                  La location semble avantageuse — calculez l'épargne mensuelle nécessaire
+                  pour atteindre votre objectif d'apport.
+                </p>
+              </div>
+              <span className="post-sim-next-arrow">→</span>
+            </Link>
+          )}
+        </div>
+
+        {/* Newsletter */}
+        <NewsletterBox />
+
+      </div>
+
       <div className="result-footer">
         <button className="btn-secondary" onClick={onEdit} type="button">
           ← Modifier mes données
         </button>
       </div>
+    </div>
+  );
+}
+
+function NewsletterBox() {
+  const [email, setEmail] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | success | error
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!email.includes("@")) { setStatus("error"); return; }
+    // Stockage local — pas de backend dans cet outil pédagogique
+    try {
+      const existing = JSON.parse(localStorage.getItem("nl_emails") || "[]");
+      if (!existing.includes(email)) existing.push(email);
+      localStorage.setItem("nl_emails", JSON.stringify(existing));
+    } catch {}
+    setStatus("success");
+  };
+
+  return (
+    <div className="newsletter-box">
+      <div className="newsletter-box-inner">
+        <span className="newsletter-icon" aria-hidden="true">📬</span>
+        <div className="newsletter-text">
+          <p className="newsletter-title">Recevez les mises à jour des taux</p>
+          <p className="newsletter-desc">
+            Taux immobiliers, modifications HCSF, nouvelles aides — on vous prévient dès que ça change.
+            Pas de spam, désinscription en un clic.
+          </p>
+        </div>
+      </div>
+      {status === "success" ? (
+        <p className="newsletter-success">✓ Inscription enregistrée — merci !</p>
+      ) : (
+        <form className="newsletter-form" onSubmit={handleSubmit} noValidate>
+          <input
+            type="email"
+            className={`newsletter-input${status === "error" ? " newsletter-input-error" : ""}`}
+            placeholder="votre@email.fr"
+            value={email}
+            onChange={(e) => { setEmail(e.target.value); setStatus("idle"); }}
+            aria-label="Adresse e-mail"
+            autoComplete="email"
+          />
+          <button type="submit" className="btn-primary newsletter-btn">
+            S'inscrire →
+          </button>
+        </form>
+      )}
+      {status === "error" && <p className="newsletter-error">Adresse e-mail invalide.</p>}
+      <p className="newsletter-rgpd">Aucune donnée transmise à des tiers. <Link to="/mentions-legales">Politique de confidentialité</Link></p>
     </div>
   );
 }

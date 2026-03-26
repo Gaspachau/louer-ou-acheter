@@ -90,13 +90,13 @@ function SemiGauge({ value }) {
         <text x={cx} y={cy - 14} textAnchor="middle" fontSize="22" fontWeight="900" fill={color}>
           {value.toFixed(1)}%
         </text>
-        <text x={cx} y={cy + 2} textAnchor="middle" fontSize="8.5" fill="#94a3b8">
+        <text x={cx} y={cy + 2} textAnchor="middle" fontSize="8.5" fill="#5e6e88">
           taux d'endettement
         </text>
 
         {/* Scale labels */}
-        <text x={cx - r - 4} y={cy + 10} textAnchor="end" fontSize="8" fill="#cbd5e1">0%</text>
-        <text x={cx + r + 4} y={cy + 10} textAnchor="start" fontSize="8" fill="#cbd5e1">50%</text>
+        <text x={cx - r - 4} y={cy + 10} textAnchor="end" fontSize="8" fill="#5e6e88">0%</text>
+        <text x={cx + r + 4} y={cy + 10} textAnchor="start" fontSize="8" fill="#5e6e88">50%</text>
       </svg>
     </div>
   );

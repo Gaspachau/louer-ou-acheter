@@ -66,7 +66,7 @@ export default function SimRentabiliteLocative() {
   const barData = [
     { name: "Brut",     value: parseFloat(res.rendementBrut.toFixed(2)), fill: "#1a56db" },
     { name: "Net",      value: parseFloat(Math.max(0, res.rendementNet).toFixed(2)), fill: rendColor === "green" ? "#059669" : rendColor === "amber" ? "#d97706" : "#dc2626" },
-    { name: "Livret A", value: 3,   fill: "#94a3b8" },
+    { name: "Livret A", value: 3,   fill: "#5e6e88" },
     { name: "SCPI",     value: 5,   fill: "#0d9488" },
   ];
 
@@ -158,7 +158,7 @@ export default function SimRentabiliteLocative() {
             <p className="sim-chart-title">Votre rendement vs. les placements alternatifs</p>
             <ResponsiveContainer width="100%" height={130}>
               <BarChart data={barData} layout="vertical" margin={{ top: 2, right: 32, bottom: 2, left: 0 }}>
-                <XAxis type="number" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} domain={[0, "auto"]}/>
+                <XAxis type="number" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} domain={[0, "auto"]}/>
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} width={52}/>
                 <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
                 <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={22}>

@@ -129,7 +129,7 @@ export default function SimComparateurVilles() {
 
           <ResponsiveContainer width="100%" height={380}>
             <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
-              <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false}/>
+              <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
               <YAxis type="category" dataKey="nom" tick={{ fontSize: 11, fill: "#0c1a35" }} axisLine={false} tickLine={false} width={120}/>
               <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }}/>

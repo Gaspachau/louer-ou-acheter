@@ -162,8 +162,8 @@ export default function SimEpargne() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
-                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
-                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={38}/>
+                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
+                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
                       <Tooltip content={<ChartTooltip />}/>
                       <Area type="monotone" dataKey="sansIntérêts" name="Sans intérêts" stroke="#0d9488" strokeWidth={1.5} fill="url(#gradEpContrib)" dot={false} activeDot={{ r: 4 }}/>
                       <Area type="monotone" dataKey="avecIntérêts" name="Avec intérêts" stroke="#1a56db" strokeWidth={2} fill="url(#gradEpGrowth)" dot={false} activeDot={{ r: 4 }}/>

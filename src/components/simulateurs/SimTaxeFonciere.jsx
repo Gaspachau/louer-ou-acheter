@@ -161,7 +161,7 @@ export default function SimTaxeFonciere() {
             <p className="sim-chart-title">Comparaison inter-villes — même bien ({v.surface} m²)</p>
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={compData} layout="vertical" margin={{ top: 4, right: 20, bottom: 4, left: 0 }}>
-                <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 9, fill: "#94a3b8" }} axisLine={false} tickLine={false}/>
+                <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 9, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
                 <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} width={76}/>
                 <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
                 <Bar dataKey="value" name="TF annuelle" radius={[0, 6, 6, 0]} barSize={16}>

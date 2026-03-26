@@ -60,22 +60,24 @@ export default function Footer() {
 
         {/* À propos column */}
         <div className="footer-col footer-about-col">
-          <p className="footer-col-title">À propos</p>
-          <p className="footer-about-text">
-            Louer ou Acheter est un outil pédagogique indépendant. Il ne constitue pas un conseil
-            financier, patrimonial ou une offre de crédit. Les simulations sont basées sur des
-            formules financières standard et les données publiées par l'INSEE, la Banque de France
-            et le HCSF.
+          <p className="footer-col-title">Site</p>
+          <ul className="footer-links">
+            <li><Link to="/a-propos">À propos</Link></li>
+            <li><Link to="/mentions-legales">Mentions légales</Link></li>
+            <li><Link to="/mentions-legales#confidentialite">Confidentialité (RGPD)</Link></li>
+            <li><Link to="/simulateurs">Tous les simulateurs</Link></li>
+          </ul>
+          <p className="footer-about-text" style={{ marginTop: 12 }}>
+            Outil pédagogique indépendant — données INSEE, Banque de France, HCSF.
           </p>
-          <Link to="/simulateurs" className="footer-cta-link">
-            Voir tous les simulateurs →
-          </Link>
         </div>
 
       </div>
 
       <div className="footer-bottom">
         <span>© 2026 louer-acheter.fr</span>
+        <span className="footer-bottom-sep" aria-hidden="true">·</span>
+        <Link to="/mentions-legales" style={{ color: "inherit" }}>Mentions légales</Link>
         <span className="footer-bottom-sep" aria-hidden="true">·</span>
         <span>Simulation pédagogique — pas de conseil financier</span>
       </div>

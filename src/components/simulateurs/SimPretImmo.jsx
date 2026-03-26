@@ -160,8 +160,8 @@ export default function SimPretImmo() {
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
-                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
-                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={38}/>
+                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
+                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
                       <Tooltip content={<ChartTooltip />}/>
                       <Area type="monotone" dataKey="Capital remboursé" stroke="#1a56db" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
                       <Area type="monotone" dataKey="Capital restant" stroke="#ec4899" strokeWidth={2} fill="url(#gradImmoRemaining)" dot={false} activeDot={{ r: 4 }}/>
