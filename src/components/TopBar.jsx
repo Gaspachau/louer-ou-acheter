@@ -22,6 +22,7 @@ export default function TopBar({ onBrandClick, rightContent }) {
 
   return (
     <header className={`top-bar${scrolled ? " top-bar-scrolled" : ""}`} role="banner">
+      <a href="#main-content" className="skip-to-content">Aller au contenu principal</a>
       {/* Brand */}
       {onBrandClick ? (
         <button className="brand-btn" onClick={onBrandClick} type="button" aria-label="Retour à l'accueil">
@@ -41,6 +42,7 @@ export default function TopBar({ onBrandClick, rightContent }) {
           <Link
             to="/simulateurs"
             className={`topbar-nav-pill${isSim ? " topbar-nav-pill-active" : ""}`}
+            aria-current={isSim ? "page" : undefined}
           >
             <svg className="topbar-nav-icon" width="13" height="13" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
               <rect x="0" y="8" width="3" height="6" rx="1" opacity=".55"/>
@@ -52,6 +54,7 @@ export default function TopBar({ onBrandClick, rightContent }) {
           <Link
             to="/blog"
             className={`topbar-nav-pill${isBlog ? " topbar-nav-pill-active" : ""}`}
+            aria-current={isBlog ? "page" : undefined}
           >
             <svg className="topbar-nav-icon" width="13" height="13" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
               <rect x="1" y="2" width="12" height="2" rx="1"/>

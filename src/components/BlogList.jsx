@@ -81,7 +81,7 @@ export default function BlogList() {
   return (
     <div className="page">
       <TopBar />
-      <main className="blog-page">
+      <main id="main-content" className="blog-page">
         {/* Hero */}
         <div className="blog-hero">
           <div className="blog-hero-text">

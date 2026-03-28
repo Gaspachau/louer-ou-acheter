@@ -82,7 +82,7 @@ export default function SimLayout({ children, title, description, icon, backLabe
   return (
     <div className="page">
       <TopBar />
-      <main className="sim-page">
+      <main id="main-content" className="sim-page">
         <div className="sim-topbar-row">
           <nav className="sim-breadcrumb" aria-label="Navigation">
             <Link to="/simulateurs">{backLabel}</Link>

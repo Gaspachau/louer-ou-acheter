@@ -63,130 +63,164 @@ const FORMULAS = [
   },
 ];
 
+const VALUES = [
+  {
+    icon: "🛡️",
+    title: "Indépendance",
+    desc: "Aucune publicité, aucune commission, aucun partenariat bancaire ou immobilier. Les résultats ne sont jamais orientés par un intérêt commercial.",
+  },
+  {
+    icon: "🔬",
+    title: "Transparence",
+    desc: "Toutes les formules sont visibles et documentées. Les sources de données sont citées et vérifiables. Aucun paramètre caché n'influence les calculs.",
+  },
+  {
+    icon: "📐",
+    title: "Précision",
+    desc: "Formules actuarielles standard, identiques à celles des établissements financiers. Les barèmes fiscaux sont mis à jour dès publication officielle.",
+  },
+  {
+    icon: "🎯",
+    title: "Accessibilité",
+    desc: "Gratuit, sans inscription, sans collecte de données personnelles. Les calculs s'effectuent dans votre navigateur — rien n'est transmis à un serveur.",
+  },
+];
+
 export default function PageAPropos() {
   return (
     <div className="page">
       <TopBar />
-      <main className="blog-page">
+      <main id="main-content" className="blog-page">
 
-        {/* Hero */}
+        {/* ── HERO ─────────────────────────────────────────────── */}
         <div className="blog-hero">
           <div className="blog-hero-text">
             <span className="blog-kicker">À propos</span>
-            <h1 className="blog-title">Pourquoi ce site existe</h1>
+            <h1 className="blog-title">La question à 300&nbsp;000&nbsp;€</h1>
             <p className="blog-subtitle">
-              Un outil indépendant, transparent et gratuit pour répondre à la question
-              que se posent des millions de Français : vaut-il mieux louer ou acheter ?
+              Acheter un logement est souvent la plus grande décision financière d'une vie.
+              Ce site existe pour que vous puissiez y répondre avec des chiffres — pas des opinions.
             </p>
           </div>
         </div>
 
-        <div className="blog-content-wrapper" style={{ maxWidth: 760, margin: "0 auto", padding: "0 16px 64px" }}>
+        <div className="abt-content">
 
-          {/* Pourquoi */}
-          <section style={{ marginBottom: 48 }}>
-            <h2 className="blog-h2">La question à 300 000 euros</h2>
+          {/* ── HISTOIRE ─────────────────────────────────────────── */}
+          <section className="abt-section">
+            <h2 className="blog-h2">Pourquoi ce site existe</h2>
             <p className="blog-p">
-              Acheter un appartement est souvent la plus grande décision financière d'une vie.
-              Elle engage sur 20 à 25 ans, mobilise des dizaines de milliers d'euros d'apport
-              et détermine en grande partie le patrimoine à la retraite.
-            </p>
-            <p className="blog-p">
-              Pourtant, la réponse standard — <em>« acheter c'est toujours mieux que jeter l'argent par les fenêtres »</em> —
-              est fausse dans beaucoup de situations. Sur un horizon court, dans des villes à fort
+              La réponse standard — <em>« acheter c'est toujours mieux que jeter l'argent par les fenêtres »</em> —
+              est fausse dans beaucoup de situations. Sur un horizon court, dans des marchés à fort
               prix au m², ou avec un apport insuffisant, louer et investir la différence peut
-              produire un patrimoine bien supérieur.
+              produire un patrimoine supérieur à l'achat.
             </p>
             <p className="blog-p">
-              Ce site est né de la frustration de ne pas trouver un comparateur honnête,
-              sans publicité, sans formulaire de contact, qui pose vraiment les deux options
-              sur un pied d'égalité avec des chiffres vérifiables.
+              Ce site est né de la frustration de ne pas trouver un comparateur honnête :
+              sans publicité, sans formulaire de contact, posant vraiment les deux options
+              sur un pied d'égalité avec des chiffres vérifiables. Lancé en 2023, il propose
+              aujourd'hui plus de 22 simulateurs couvrant l'ensemble du cycle de décision
+              immobilière — du premier achat à l'investissement locatif.
+            </p>
+            <p className="blog-p">
+              Il n'existe aucun financement externe, aucun partenariat avec un réseau de courtiers
+              ou d'agences. L'objectif est unique : mettre à disposition des outils de calcul
+              de qualité professionnelle, accessibles à tous, sans inscription ni contrepartie.
             </p>
           </section>
 
-          {/* Qui */}
-          <section style={{ marginBottom: 48 }}>
-            <h2 className="blog-h2">Qui l'a créé</h2>
+          {/* ── MÉTHODOLOGIE ─────────────────────────────────────── */}
+          <section className="abt-section">
+            <h2 className="blog-h2">Comment les calculs fonctionnent</h2>
             <p className="blog-p">
-              Louer ou Acheter est un projet indépendant, développé sans financement externe
-              ni partenariat bancaire ou immobilier. Il n'y a pas de publicité, pas de collecte
-              de données personnelles, pas d'affiliation à un réseau de courtiers.
+              Tous les simulateurs s'appuient sur des formules financières standard —
+              les mêmes que celles utilisées par les établissements bancaires et les
+              professionnels du patrimoine. Voici les cinq formules centrales :
             </p>
+            <div className="abt-methodo-grid">
+              {FORMULAS.map((f) => (
+                <div key={f.title} className="abt-formula-card sim-card">
+                  <p className="abt-formula-title">{f.title}</p>
+                  <code className="abt-formula-code">{f.formula}</code>
+                  <p className="abt-formula-desc">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── SOURCES ──────────────────────────────────────────── */}
+          <section className="abt-section">
+            <h2 className="blog-h2">Sources et données de référence</h2>
             <p className="blog-p">
-              L'objectif est simple : mettre à disposition des outils de calcul de qualité
-              professionnelle, accessibles à tous, sans inscription ni contrepartie.
+              Les valeurs par défaut — taux de crédit, évolution des loyers, prix au m²,
+              barèmes fiscaux — sont issues des publications officielles suivantes :
             </p>
-            <div className="sim-info-box" style={{ marginTop: 16 }}>
-              <p className="sim-info-title">⚖️ Ce que ce site n'est pas</p>
+            <div className="abt-sources-list">
+              {SOURCES.map((s) => (
+                <div key={s.label} className="abt-source-row">
+                  <a
+                    href={s.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="abt-source-label"
+                  >
+                    {s.label}
+                  </a>
+                  <p className="abt-source-desc blog-p">{s.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── VALEURS ──────────────────────────────────────────── */}
+          <section className="abt-section">
+            <h2 className="blog-h2">Nos engagements</h2>
+            <p className="blog-p">
+              Quatre principes guident chaque décision éditoriale et technique du site.
+            </p>
+            <div className="abt-values-grid">
+              {VALUES.map((v) => (
+                <div key={v.title} className="abt-value-card">
+                  <span className="abt-value-icon" role="img" aria-label={v.title}>{v.icon}</span>
+                  <p className="abt-value-title">{v.title}</p>
+                  <p className="abt-value-desc">{v.desc}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* ── DISCLAIMER ───────────────────────────────────────── */}
+          <section className="abt-section">
+            <h2 className="blog-h2">Ce que ce site n'est pas</h2>
+            <div className="sim-info-box">
+              <p className="sim-info-title">⚖️ Outil pédagogique, pas conseil financier</p>
               <p className="sim-info-body">
-                Louer ou Acheter est un <strong>outil pédagogique</strong>. Il ne constitue pas
-                un conseil financier, patrimonial ou une offre de crédit. Les résultats sont des
-                estimations basées sur vos hypothèses — ils ne remplacent pas l'avis d'un
-                conseiller en gestion de patrimoine ou d'un courtier.
+                Louer ou Acheter est un <strong>outil pédagogique</strong>. Il ne constitue
+                pas un conseil financier, patrimonial ou une offre de crédit au sens de la
+                réglementation française. Les résultats sont des estimations construites à
+                partir de vos hypothèses — ils ne remplacent pas l'avis d'un conseiller en
+                gestion de patrimoine, d'un notaire ou d'un courtier agréé. Toute décision
+                d'acquisition doit faire l'objet d'une étude personnalisée.
               </p>
             </div>
           </section>
 
-          {/* Formules */}
-          <section style={{ marginBottom: 48 }}>
-            <h2 className="blog-h2">Comment les calculs fonctionnent</h2>
-            <p className="blog-p" style={{ marginBottom: 24 }}>
-              Tous les simulateurs utilisent des formules financières standard, les mêmes que
-              celles utilisées par les banques et les professionnels de l'immobilier.
-              Voici les principales :
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
-              {FORMULAS.map((f) => (
-                <div key={f.title} className="sim-card" style={{ padding: "16px 20px" }}>
-                  <p style={{ fontWeight: 700, fontSize: 14, color: "var(--brand)", marginBottom: 6 }}>{f.title}</p>
-                  <code style={{
-                    display: "block",
-                    background: "var(--surface-2, #f1f5f9)",
-                    borderRadius: 6,
-                    padding: "8px 12px",
-                    fontSize: 13,
-                    fontFamily: "monospace",
-                    color: "#0c1a35",
-                    marginBottom: 8,
-                    overflowX: "auto",
-                  }}>
-                    {f.formula}
-                  </code>
-                  <p style={{ fontSize: 13, color: "var(--muted)", lineHeight: 1.6, margin: 0 }}>{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* Sources */}
-          <section style={{ marginBottom: 48 }}>
-            <h2 className="blog-h2">Sources et données de référence</h2>
-            <p className="blog-p" style={{ marginBottom: 24 }}>
-              Les données par défaut (taux de crédit, évolution des loyers, prix au m²,
-              barèmes fiscaux) proviennent des sources officielles suivantes :
-            </p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {SOURCES.map((s) => (
-                <div key={s.label} style={{
-                  borderLeft: "3px solid var(--brand)",
-                  paddingLeft: 16,
-                  paddingTop: 4,
-                  paddingBottom: 4,
-                }}>
-                  <p style={{ fontWeight: 600, fontSize: 13.5, color: "#0c1a35", marginBottom: 2 }}>{s.label}</p>
-                  <p style={{ fontSize: 13, color: "var(--muted)", margin: 0 }}>{s.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* CTA */}
+          {/* ── CTA ──────────────────────────────────────────────── */}
           <div className="blog-cta-banner">
             <div className="blog-cta-inner">
               <p className="blog-cta-title">Prêt à faire vos propres calculs ?</p>
-              <p className="blog-cta-sub">Tous les simulateurs sont gratuits et accessibles sans inscription.</p>
+              <p className="blog-cta-sub">
+                Plus de 22 simulateurs gratuits, sans inscription, directement dans votre navigateur.
+              </p>
             </div>
-            <Link to="/simulateurs" className="btn-primary blog-cta-btn">Voir les simulateurs →</Link>
+            <div className="abt-cta-actions">
+              <Link to="/simulateurs" className="btn-primary blog-cta-btn">
+                Voir les simulateurs →
+              </Link>
+              <Link to="/blog" className="abt-cta-link">
+                Lire le blog →
+              </Link>
+            </div>
           </div>
 
         </div>

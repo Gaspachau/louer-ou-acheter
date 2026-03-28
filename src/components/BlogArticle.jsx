@@ -40,7 +40,7 @@ export default function BlogArticle() {
     <div className="page">
       <ReadingProgress />
       <TopBar />
-      <main className="article-page">
+      <main id="main-content" className="article-page">
         <nav className="article-breadcrumb" aria-label="Fil d'Ariane">
           <Link to="/">Accueil</Link>
           <span aria-hidden="true">/</span>

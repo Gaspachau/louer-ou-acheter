@@ -2,202 +2,349 @@ import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 
+function MlTable({ rows, headers }) {
+  return (
+    <div className="sim-card ml-table-wrapper">
+      <table className="ml-table">
+        {headers && (
+          <thead>
+            <tr>
+              {headers.map((h) => (
+                <th key={h}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+        )}
+        <tbody>
+          {rows.map((row, i) => (
+            <tr key={i}>
+              {row.map((cell, j) => (
+                <td key={j}>{cell}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function MlSection({ badge, title, children }) {
+  return (
+    <section className="ml-section">
+      {badge && <span className="ml-section-badge">{badge}</span>}
+      <h2 className="blog-h2">{title}</h2>
+      {children}
+    </section>
+  );
+}
+
+function MlSubtitle({ children }) {
+  return <h3 className="ml-subtitle">{children}</h3>;
+}
+
 export default function PageMentionsLegales() {
   return (
     <div className="page">
       <TopBar />
-      <main className="blog-page">
+      <main id="main-content" className="blog-page">
 
         {/* Hero */}
         <div className="blog-hero">
           <div className="blog-hero-text">
-            <span className="blog-kicker">Légal</span>
+            <span className="blog-kicker">Légal &amp; Confidentialité</span>
             <h1 className="blog-title">Mentions légales</h1>
             <p className="blog-subtitle">
-              Informations légales, politique de confidentialité et conditions d'utilisation
-              du site louer-acheter.fr.
+              Informations légales, politique de confidentialité et gestion
+              des cookies du site louer-acheter.fr — conformément au RGPD
+              (Règlement UE 2016/679).
             </p>
           </div>
         </div>
 
-        <div className="blog-content-wrapper" style={{ maxWidth: 760, margin: "0 auto", padding: "0 16px 64px" }}>
+        <div className="ml-content-wrapper">
 
-          {/* Éditeur */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 className="blog-h2">Éditeur du site</h2>
-            <div className="sim-card" style={{ padding: "16px 20px" }}>
-              <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 14 }}>
-                <tbody>
-                  {[
-                    ["Site", "louer-acheter.fr"],
-                    ["Statut", "Site édité à titre personnel, sans forme juridique commerciale"],
-                    ["Directeur de publication", "Gaspard (propriétaire du site)"],
-                    ["Contact", "contact@louer-acheter.fr"],
-                    ["Siège", "France"],
-                  ].map(([k, v]) => (
-                    <tr key={k} style={{ borderBottom: "1px solid var(--line, #e2e8f0)" }}>
-                      <td style={{ padding: "8px 12px 8px 0", fontWeight: 600, color: "#0c1a35", whiteSpace: "nowrap", width: "40%" }}>{k}</td>
-                      <td style={{ padding: "8px 0", color: "var(--muted, #64748b)" }}>{v}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
+          {/* 1. Éditeur */}
+          <MlSection badge="1" title="Éditeur du site">
+            <MlTable
+              rows={[
+                ["Site", "louer-acheter.fr"],
+                ["Statut", "Projet personnel, sans forme juridique commerciale"],
+                ["Directeur de publication", "Gaspard"],
+                ["Contact", <a href="mailto:contact@louer-acheter.fr">contact@louer-acheter.fr</a>],
+                ["Siège", "France"],
+              ]}
+            />
+          </MlSection>
 
-          {/* Hébergeur */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 className="blog-h2">Hébergement</h2>
-            <div className="sim-card" style={{ padding: "16px 20px" }}>
-              <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 14 }}>
-                <tbody>
-                  {[
-                    ["Hébergeur", "Vercel Inc."],
-                    ["Adresse", "340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis"],
-                    ["Site", "vercel.com"],
-                    ["Infrastructure", "CDN mondial, serveurs en Europe (Frankfurt)"],
-                  ].map(([k, v]) => (
-                    <tr key={k} style={{ borderBottom: "1px solid var(--line, #e2e8f0)" }}>
-                      <td style={{ padding: "8px 12px 8px 0", fontWeight: 600, color: "#0c1a35", whiteSpace: "nowrap", width: "40%" }}>{k}</td>
-                      <td style={{ padding: "8px 0", color: "var(--muted, #64748b)" }}>{v}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </section>
-
-          {/* Propriété intellectuelle */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 className="blog-h2">Propriété intellectuelle</h2>
+          {/* 2. Hébergement */}
+          <MlSection badge="2" title="Hébergement">
+            <MlTable
+              rows={[
+                ["Hébergeur", "Vercel Inc."],
+                ["Adresse", "340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis"],
+                ["Infrastructure", "CDN mondial, serveurs Europe (Frankfurt, Allemagne)"],
+                [
+                  "Politique de confidentialité",
+                  <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
+                    vercel.com/legal/privacy-policy
+                  </a>,
+                ],
+              ]}
+            />
             <p className="blog-p">
-              L'ensemble du contenu du site louer-acheter.fr (textes, formules, données,
-              code source, design) est protégé par le droit d'auteur. Toute reproduction,
-              même partielle, est soumise à autorisation préalable de l'éditeur,
-              sauf usage strictement personnel.
+              Le site est hébergé sur l'infrastructure Vercel, dont les serveurs
+              de traitement pour les visiteurs européens sont situés en Europe
+              (Frankfurt). Vercel est certifié conforme aux mécanismes de transfert
+              encadrés par le RGPD (Data Processing Agreement disponible).
+            </p>
+          </MlSection>
+
+          {/* 3. Propriété intellectuelle */}
+          <MlSection badge="3" title="Propriété intellectuelle">
+            <p className="blog-p">
+              L'ensemble du contenu du site louer-acheter.fr — textes, formules de
+              calcul, données éditoriales, code source et design — est protégé par
+              le droit d'auteur (Code de la propriété intellectuelle). Toute
+              reproduction, même partielle, est soumise à l'autorisation préalable
+              et écrite de l'éditeur, sauf usage strictement personnel et privé.
             </p>
             <p className="blog-p">
-              Les marques et logos des sources citées (INSEE, Banque de France, etc.)
-              appartiennent à leurs propriétaires respectifs.
+              Les marques, logos et contenus des sources citées (INSEE, Banque de
+              France, etc.) appartiennent à leurs propriétaires respectifs et sont
+              mentionnés à titre informatif uniquement.
             </p>
-          </section>
+          </MlSection>
 
-          {/* Responsabilité */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 className="blog-h2">Limitation de responsabilité</h2>
+          {/* 4. Limitation de responsabilité */}
+          <MlSection badge="4" title="Limitation de responsabilité">
             <p className="blog-p">
               Les simulateurs et calculateurs disponibles sur ce site sont fournis
-              à titre <strong>pédagogique et informatif uniquement</strong>. Ils ne
-              constituent pas un conseil financier, patrimonial, fiscal ou juridique,
-              ni une offre ou sollicitation de crédit.
+              à titre <strong>pédagogique et informatif uniquement</strong>. Ils
+              ne constituent en aucun cas un conseil financier, patrimonial, fiscal
+              ou juridique, ni une offre ou une sollicitation de crédit immobilier.
             </p>
             <p className="blog-p">
-              Les résultats produits sont des estimations basées sur les paramètres
-              saisis et des hypothèses simplificatrices. Ils peuvent différer
-              significativement de la réalité selon votre situation personnelle,
-              les conditions de marché et les évolutions réglementaires.
+              Les résultats produits sont des estimations fondées sur les paramètres
+              saisis par l'utilisateur et sur des hypothèses simplificatrices. Ils
+              peuvent différer significativement de la réalité selon la situation
+              personnelle de chacun, les conditions de marché et les évolutions
+              réglementaires ou fiscales.
             </p>
             <p className="blog-p">
-              L'éditeur ne saurait être tenu responsable de toute décision prise
-              sur la base des simulations effectuées sur ce site. Consultez un
-              professionnel agréé avant toute décision d'investissement.
+              L'éditeur décline toute responsabilité quant aux décisions prises sur
+              la base des simulations effectuées sur ce site. Il est recommandé de
+              consulter un professionnel agréé (courtier, notaire, conseiller en
+              gestion de patrimoine) avant toute décision d'investissement.
             </p>
-          </section>
+          </MlSection>
 
-          {/* Politique de confidentialité */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 className="blog-h2">Politique de confidentialité (RGPD)</h2>
+          {/* 5. Politique de confidentialité */}
+          <MlSection badge="5" title="Politique de confidentialité (RGPD)">
 
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0c1a35", marginBottom: 8, marginTop: 24 }}>
-              Données collectées
-            </h3>
+            {/* 5a. Données collectées */}
+            <MlSubtitle>a. Données collectées</MlSubtitle>
             <p className="blog-p">
-              <strong>Ce site ne collecte aucune donnée personnelle identifiante.</strong>{" "}
-              Il n'y a pas de compte utilisateur, pas de formulaire d'inscription, pas de cookie
-              de traçage publicitaire.
+              Ce site ne collecte <strong>aucune donnée personnelle identifiante</strong> :
+              il n'existe ni compte utilisateur, ni formulaire d'inscription, ni collecte
+              d'adresse e-mail. Les paramètres de simulation sont stockés uniquement dans
+              le <code className="ml-code">sessionStorage</code> de votre navigateur —
+              ils sont supprimés à la fermeture de l'onglet et ne sont jamais transmis
+              à un serveur.
             </p>
             <p className="blog-p">
-              Les paramètres de simulation sont stockés uniquement dans le <code style={{ fontSize: 12, background: "#f1f5f9", padding: "1px 5px", borderRadius: 4 }}>sessionStorage</code> de
-              votre navigateur — ils disparaissent à la fermeture de l'onglet et ne sont
-              jamais transmis à un serveur.
-            </p>
-
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0c1a35", marginBottom: 8, marginTop: 24 }}>
-              Cookies
-            </h3>
-            <p className="blog-p">
-              Le site n'utilise <strong>aucun cookie</strong> de traçage, publicitaire
-              ou analytique. Aucun outil d'analyse de trafic (Google Analytics, Hotjar, etc.)
-              n'est installé.
-            </p>
-            <p className="blog-p">
-              Des cookies techniques strictement nécessaires au fonctionnement du site
-              (navigateur, CDN) peuvent être créés par l'hébergeur Vercel. Ils ne
-              contiennent aucune donnée personnelle.
+              Sous réserve de votre consentement explicite (voir section Cookies
+              ci-dessous), des <strong>événements d'usage anonymisés</strong> sont
+              transmis à PostHog (outil d'analyse de produit). Ces événements
+              décrivent les interactions avec le simulateur (ouverture/fermeture,
+              modification de champs) sans jamais inclure vos valeurs financières
+              personnelles ni aucun identifiant permettant de vous reconnaître.
             </p>
 
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0c1a35", marginBottom: 8, marginTop: 24 }}>
-              Droits des utilisateurs
-            </h3>
+            {/* 5b. Base légale */}
+            <MlSubtitle>b. Base légale du traitement</MlSubtitle>
             <p className="blog-p">
-              Conformément au Règlement Général sur la Protection des Données (RGPD —
-              Règlement UE 2016/679), vous disposez d'un droit d'accès, de rectification
-              et de suppression des données vous concernant. Dans la mesure où aucune
-              donnée personnelle n'est collectée, ces droits ne trouvent pas à s'appliquer.
-            </p>
-            <p className="blog-p">
-              Pour toute question relative à la protection des données, vous pouvez
-              contacter l'éditeur à : <strong>contact@louer-acheter.fr</strong>
-            </p>
-            <p className="blog-p">
-              Vous pouvez également exercer un recours auprès de la{" "}
-              <strong>CNIL (Commission Nationale de l'Informatique et des Libertés)</strong>,
-              3 Place de Fontenoy, 75007 Paris — <a href="https://www.cnil.fr" style={{ color: "var(--brand)" }} target="_blank" rel="noopener noreferrer">www.cnil.fr</a>.
+              Le seul traitement de données susceptible d'être effectué — l'analyse
+              d'usage via PostHog — repose exclusivement sur votre{" "}
+              <strong>consentement libre et éclairé</strong> au sens de l'article
+              6.1.a du RGPD. Ce consentement est recueilli via la bannière cookies
+              affichée lors de votre première visite. Vous pouvez le retirer à tout
+              moment ; aucune donnée analytique n'est collectée en l'absence de
+              consentement.
             </p>
 
-            <h3 style={{ fontSize: 16, fontWeight: 700, color: "#0c1a35", marginBottom: 8, marginTop: 24 }}>
-              Sous-traitants et services tiers
-            </h3>
-            <div className="sim-card" style={{ padding: "12px 16px" }}>
-              <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 13.5 }}>
-                <thead>
-                  <tr style={{ borderBottom: "2px solid var(--line, #e2e8f0)" }}>
-                    <th style={{ textAlign: "left", padding: "4px 12px 8px 0", color: "#0c1a35" }}>Service</th>
-                    <th style={{ textAlign: "left", padding: "4px 12px 8px 0", color: "#0c1a35" }}>Finalité</th>
-                    <th style={{ textAlign: "left", padding: "4px 0 8px 0", color: "#0c1a35" }}>Données</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {[
-                    ["Vercel (hébergement)", "Délivrer les pages web", "IP anonymisée (logs serveur)"],
-                    ["Google Fonts", "Police de caractères Inter", "IP lors du chargement de la police"],
-                  ].map(([s, f, d]) => (
-                    <tr key={s} style={{ borderBottom: "1px solid var(--line, #e2e8f0)" }}>
-                      <td style={{ padding: "8px 12px 8px 0", color: "var(--muted)" }}>{s}</td>
-                      <td style={{ padding: "8px 12px 8px 0", color: "var(--muted)" }}>{f}</td>
-                      <td style={{ padding: "8px 0", color: "var(--muted)" }}>{d}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            {/* 5c. Cookies */}
+            <MlSubtitle>c. Politique de cookies</MlSubtitle>
+            <p className="blog-p">
+              Ce site utilise uniquement le <code className="ml-code">localStorage</code>{" "}
+              du navigateur pour mémoriser vos préférences de consentement. Aucun cookie
+              tiers publicitaire ou de profilage n'est déposé.
+            </p>
+
+            <div className="ml-cookie-list">
+
+              <div className="ml-cookie-type ml-cookie-necessary">
+                <div className="ml-cookie-header">
+                  <span className="ml-cookie-name">Préférences de consentement</span>
+                  <span className="ml-cookie-badge ml-cookie-badge--necessary">Nécessaire</span>
+                </div>
+                <p className="ml-cookie-desc">
+                  Deux entrées sont stockées dans le <code className="ml-code">localStorage</code>{" "}
+                  de votre navigateur :{" "}
+                  <code className="ml-code">cookie_consent_v1</code> (choix global : accepté
+                  ou refusé) et <code className="ml-code">cookie_analytics_v1</code> (préférence
+                  analytique). Ces données restent sur votre appareil, ne sont pas transmises
+                  à un serveur, et sont nécessaires pour respecter votre choix de consentement
+                  sans vous redemander à chaque visite.
+                </p>
+              </div>
+
+              <div className="ml-cookie-type ml-cookie-analytics">
+                <div className="ml-cookie-header">
+                  <span className="ml-cookie-name">Analyse d'usage — PostHog EU</span>
+                  <span className="ml-cookie-badge ml-cookie-badge--optional">Optionnel (sur consentement)</span>
+                </div>
+                <p className="ml-cookie-desc">
+                  Si vous cliquez sur "Accepter" lors de votre première visite, le service
+                  PostHog (région UE, serveurs <code className="ml-code">eu.i.posthog.com</code>)
+                  est activé. PostHog enregistre des événements anonymisés décrivant vos
+                  interactions avec le simulateur : ouverture/fermeture, modification de
+                  champs (type de champ uniquement, pas les valeurs saisies). Il peut
+                  également activer un enregistrement de session anonymisé. Aucune
+                  information personnellement identifiable (nom, adresse IP complète,
+                  montants saisis) n'est collectée. Ces données servent uniquement à
+                  améliorer l'ergonomie du site.
+                </p>
+                <p className="ml-cookie-desc">
+                  Politique de confidentialité PostHog :{" "}
+                  <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">
+                    posthog.com/privacy
+                  </a>
+                </p>
+              </div>
+
+              <div className="ml-cookie-type ml-cookie-infra">
+                <div className="ml-cookie-header">
+                  <span className="ml-cookie-name">Infrastructure — Vercel</span>
+                  <span className="ml-cookie-badge ml-cookie-badge--infra">Infrastructure</span>
+                </div>
+                <p className="ml-cookie-desc">
+                  L'hébergeur Vercel peut générer des données de log techniques
+                  (adresse IP tronquée, horodatage, URL demandée) à des fins de
+                  sécurité et de performance. Ces données sont traitées
+                  conformément à la politique de confidentialité de Vercel et
+                  ne sont pas utilisées à des fins de profilage.
+                </p>
+              </div>
+
             </div>
-          </section>
 
-          {/* Droit applicable */}
-          <section style={{ marginBottom: 40 }}>
-            <h2 className="blog-h2">Droit applicable et juridiction</h2>
+            {/* 5d. Durée de conservation */}
+            <MlSubtitle>d. Durée de conservation</MlSubtitle>
+            <MlTable
+              headers={["Donnée", "Durée", "Lieu"]}
+              rows={[
+                [
+                  "Préférences de consentement (localStorage)",
+                  "Jusqu'à suppression manuelle ou révocation",
+                  "Votre navigateur uniquement",
+                ],
+                [
+                  "Événements analytiques PostHog (si consentement)",
+                  "12 mois glissants",
+                  "Serveurs PostHog EU (Frankfurt)",
+                ],
+                [
+                  "Logs techniques Vercel",
+                  "Conformément à la politique Vercel (max. 30 jours)",
+                  "Infrastructure Vercel",
+                ],
+              ]}
+            />
+
+            {/* 5e. Droits des utilisateurs */}
+            <MlSubtitle>e. Droits des utilisateurs</MlSubtitle>
             <p className="blog-p">
-              Les présentes mentions légales sont soumises au droit français.
-              En cas de litige, les tribunaux français sont seuls compétents.
+              Conformément au RGPD (Règlement UE 2016/679), vous disposez des droits
+              suivants concernant vos données personnelles :
             </p>
-            <p className="blog-p" style={{ fontSize: 13, color: "var(--muted)" }}>
+            <ul className="ml-rights-list">
+              <li><strong>Droit d'accès</strong> — obtenir la confirmation que des données vous concernant sont traitées et en obtenir une copie.</li>
+              <li><strong>Droit de rectification</strong> — faire corriger des données inexactes.</li>
+              <li><strong>Droit à l'effacement</strong> — demander la suppression de vos données ("droit à l'oubli").</li>
+              <li><strong>Droit d'opposition</strong> — vous opposer au traitement de vos données.</li>
+              <li><strong>Droit à la portabilité</strong> — recevoir vos données dans un format structuré et lisible par machine.</li>
+              <li><strong>Droit au retrait du consentement</strong> — révoquer à tout moment votre consentement à l'analyse d'usage, sans que cela affecte la licéité du traitement antérieur.</li>
+            </ul>
+            <p className="blog-p">
+              Pour exercer ces droits ou pour toute question relative à la protection
+              de vos données, contactez l'éditeur à :{" "}
+              <a href="mailto:contact@louer-acheter.fr">contact@louer-acheter.fr</a>.
+              Une réponse sera apportée dans un délai d'un mois conformément à l'article
+              12 du RGPD.
+            </p>
+            <p className="blog-p">
+              Vous disposez également du droit d'introduire une réclamation auprès de
+              l'autorité de contrôle compétente :{" "}
+              <strong>CNIL (Commission Nationale de l'Informatique et des Libertés)</strong>,
+              3 Place de Fontenoy — TSA 80715 — 75334 Paris Cedex 07 —{" "}
+              <a href="https://www.cnil.fr" target="_blank" rel="noopener noreferrer">
+                www.cnil.fr
+              </a>.
+            </p>
+
+            {/* 5f. Sous-traitants */}
+            <MlSubtitle>f. Sous-traitants et services tiers</MlSubtitle>
+            <MlTable
+              headers={["Service", "Finalité", "Données transmises", "Lieu"]}
+              rows={[
+                [
+                  "Vercel Inc.",
+                  "Hébergement et délivrance du site",
+                  "IP tronquée, logs techniques",
+                  "Frankfurt (UE) / USA",
+                ],
+                [
+                  "PostHog EU (si consentement)",
+                  "Analyse d'usage anonymisée",
+                  "Événements anonymisés, pas de PII",
+                  "Frankfurt (UE)",
+                ],
+                [
+                  "Google Fonts",
+                  "Police de caractères Inter",
+                  "IP lors du chargement initial",
+                  "Serveurs Google (mondial)",
+                ],
+              ]}
+            />
+            <p className="blog-p">
+              Google Fonts est chargé via CSS. Lors du premier chargement, votre
+              adresse IP est transmise aux serveurs de Google afin de télécharger
+              la police. Si vous souhaitez éviter ce transfert, vous pouvez bloquer
+              les requêtes tierces via les paramètres de votre navigateur.
+            </p>
+
+          </MlSection>
+
+          {/* 6. Droit applicable */}
+          <MlSection badge="6" title="Droit applicable et juridiction">
+            <p className="blog-p">
+              Les présentes mentions légales et la politique de confidentialité sont
+              soumises au <strong>droit français</strong>. En cas de litige relatif
+              à leur interprétation ou à leur exécution, les tribunaux français sont
+              seuls compétents, sous réserve des dispositions impératives applicables
+              aux consommateurs résidant dans un autre État membre de l'Union européenne.
+            </p>
+            <p className="blog-p ml-update-date">
               Dernière mise à jour : mars 2026
             </p>
-          </section>
+          </MlSection>
 
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
-            <Link to="/" className="btn-secondary" style={{ fontSize: 14 }}>← Accueil</Link>
-            <Link to="/a-propos" className="btn-secondary" style={{ fontSize: 14 }}>À propos du site</Link>
+          {/* Liens de retour */}
+          <div className="ml-back-links">
+            <Link to="/" className="btn-secondary">← Accueil</Link>
+            <Link to="/a-propos" className="btn-secondary">À propos du site</Link>
           </div>
 
         </div>
