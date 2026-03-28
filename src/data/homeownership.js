@@ -46,7 +46,7 @@ export const HOMEOWNERSHIP = {
   372: { name: "Irlande",            rate: 70 },
   376: { name: "Israël",             rate: 66 },
   380: { name: "Italie",             rate: 73 },
-  384: { name: "Côte d'Ivoire",      rate: 35 },
+  384: { name: "Côte d'Ivoire",      rate: 52 },
   392: { name: "Japon",              rate: 62 },
   400: { name: "Jordanie",           rate: 69 },
   404: { name: "Kenya",              rate: 75 },
