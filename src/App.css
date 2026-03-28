@@ -3768,3 +3768,730 @@ input[type="range"]::-moz-range-thumb {
   .guide-cta-inner { flex-direction: column; align-items: flex-start; }
   .guide-cta-inner .btn-primary { margin-left: 0; width: 100%; text-align: center; }
 }
+
+/* ─── Flash animation for reactive city updates ─── */
+@keyframes fieldFlash {
+  0%   { background: #d1fae5; border-color: #059669; }
+  60%  { background: #d1fae5; border-color: #059669; }
+  100% { background: transparent; border-color: var(--line); }
+}
+.field-updated .field-input {
+  animation: fieldFlash 0.7s ease forwards;
+}
+.input-flash {
+  animation: fieldFlash 0.7s ease forwards;
+}
+.field-city-update {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11.5px;
+  color: #059669;
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* ─── Sim progress bar ─── */
+.sim-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 0;
+}
+.sim-progress-steps {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.sim-progress-step {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: none;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 20px;
+  cursor: default;
+  font-size: 12px;
+  color: var(--muted);
+  transition: all .2s;
+}
+.sim-progress-step.done {
+  cursor: pointer;
+  color: var(--text);
+}
+.sim-progress-step.active {
+  background: var(--bg-card);
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+.sim-progress-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--line);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+}
+.sim-progress-step.active .sim-progress-dot {
+  background: var(--accent);
+  color: #fff;
+}
+.sim-progress-step.done .sim-progress-dot {
+  background: #059669;
+  color: #fff;
+}
+.sim-progress-label {
+  display: none;
+}
+@media (min-width: 480px) {
+  .sim-progress-label { display: inline; }
+}
+
+/* ─── Step city badge ─── */
+.step-city-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11.5px;
+  background: var(--accent-soft);
+  color: var(--accent);
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin-left: 8px;
+}
+
+/* ─── Smart suggestions ─── */
+.smart-suggestions {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.smart-sug-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.smart-sug-icon {
+  font-size: 20px;
+}
+.smart-sug-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+}
+.smart-sug-sub {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: auto;
+}
+.smart-sug-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+@media (max-width: 680px) {
+  .smart-sug-grid { grid-template-columns: 1fr; }
+}
+.smart-sug-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  text-decoration: none;
+  transition: all .18s;
+}
+.smart-sug-card:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 8px rgba(37,99,235,.1);
+  transform: translateY(-1px);
+}
+.smart-sug-card-icon {
+  font-size: 20px;
+}
+.smart-sug-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.smart-sug-card-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+.smart-sug-card-cta {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  margin-top: auto;
+}
+
+/* ─── City selector grid (SimMachineTemps) ─── */
+.city-select-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.city-select-btn {
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: all .15s;
+  font-family: inherit;
+}
+.city-select-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.city-select-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  font-weight: 700;
+}
+
+/* ─── Pouvoir d'achat m² table ─── */
+.pam2-table {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.pam2-row {
+  display: grid;
+  grid-template-columns: 24px 1fr 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+}
+.pam2-rank {
+  font-size: 11px;
+  font-weight: 800;
+  color: var(--muted);
+  text-align: center;
+}
+.pam2-city {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pam2-city-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.pam2-price-m2 {
+  font-size: 11px;
+  color: var(--muted);
+}
+.pam2-bar-wrap {
+  min-width: 0;
+}
+.pam2-bar-track {
+  height: 8px;
+  background: var(--line);
+  border-radius: 999px;
+  overflow: hidden;
+}
+.pam2-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width .4s ease;
+}
+.pam2-numbers {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  min-width: 80px;
+}
+.pam2-m2 {
+  font-size: 16px;
+  font-weight: 800;
+}
+.pam2-months {
+  font-size: 10px;
+  color: var(--muted);
+  text-align: right;
+}
+@media (max-width: 520px) {
+  .pam2-row { grid-template-columns: 20px 1fr auto; }
+  .pam2-bar-wrap { display: none; }
+}
+
+/* ─── Calendrier acheteur timeline ─── */
+.cal-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  margin-top: 16px;
+}
+.cal-step {
+  display: flex;
+  gap: 14px;
+}
+.cal-step-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex-shrink: 0;
+  width: 40px;
+}
+.cal-step-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  z-index: 1;
+}
+.cal-step-connector {
+  flex: 1;
+  width: 2px;
+  background: var(--line);
+  margin: 4px 0;
+  min-height: 16px;
+}
+.cal-step-body {
+  padding-bottom: 20px;
+  flex: 1;
+  min-width: 0;
+}
+.cal-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  flex-wrap: wrap;
+}
+.cal-step-date {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+.cal-step-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.cal-step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+.cal-step-desc {
+  font-size: 12.5px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ─── Héritage options ─── */
+.heritage-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-top: 16px;
+}
+@media (max-width: 560px) {
+  .heritage-options { grid-template-columns: 1fr; }
+}
+.heritage-option {
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.heritage-option-best {
+  border-color: #059669;
+  background: #f0fdf4;
+}
+.dark .heritage-option-best {
+  background: #052e16;
+  border-color: #059669;
+}
+.heritage-option-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.heritage-option-icon {
+  font-size: 18px;
+}
+.heritage-option-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+}
+.heritage-option-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 700;
+  background: #059669;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.heritage-option-value {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text);
+}
+.heritage-option-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.4;
+  margin: 0;
+}
+.heritage-option-detail {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11.5px;
+  color: var(--muted);
+  padding-top: 4px;
+  border-top: 1px solid var(--line);
+}
+.heritage-option-detail span:last-child {
+  font-weight: 700;
+  color: var(--text);
+}
+
+/* ─── Guide personnalisé page ─── */
+.guide-perso-page {
+  min-height: 100vh;
+  background: var(--bg);
+}
+.guide-perso-hero {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1a56db 100%);
+  padding: 60px 20px 40px;
+}
+.guide-perso-hero-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  text-align: center;
+}
+.guide-perso-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  padding: 4px 12px;
+  border-radius: 20px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.guide-perso-title {
+  font-size: 32px;
+  font-weight: 900;
+  color: #fff;
+  margin: 0 0 12px;
+  line-height: 1.2;
+}
+.guide-perso-subtitle {
+  font-size: 16px;
+  color: rgba(255,255,255,.75);
+  margin: 0;
+  line-height: 1.5;
+}
+.guide-perso-content {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+.guide-perso-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.guide-quiz-progress {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.guide-quiz-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+  transition: all .2s;
+}
+.guide-quiz-dot.active {
+  background: var(--accent);
+  width: 28px;
+  border-radius: 5px;
+}
+.guide-quiz-dot.done {
+  background: #059669;
+}
+.guide-quiz-step {
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 0;
+}
+.guide-quiz-card {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.guide-quiz-icon {
+  font-size: 36px;
+  text-align: center;
+}
+.guide-quiz-question {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  text-align: center;
+  margin: 0;
+  line-height: 1.3;
+}
+.guide-quiz-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.guide-quiz-option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  background: var(--bg);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s;
+  font-family: inherit;
+}
+.guide-quiz-option:hover {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.guide-quiz-option.selected {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.guide-quiz-opt-emoji {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.guide-quiz-opt-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.guide-quiz-opt-text strong {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.guide-quiz-opt-text span {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* ─── Guide result ─── */
+.guide-perso-result {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+.guide-result-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 20px;
+  background: #f0fdf4;
+  border: 1.5px solid #059669;
+  border-radius: 16px;
+}
+.dark .guide-result-header {
+  background: #052e16;
+}
+.guide-result-check {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #059669;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.guide-result-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 6px;
+}
+.guide-result-intro {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.5;
+}
+.guide-result-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.guide-result-step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  text-decoration: none;
+  transition: all .18s;
+}
+.guide-result-step:hover {
+  border-color: var(--accent);
+  box-shadow: 0 2px 10px rgba(37,99,235,.1);
+  transform: translateX(2px);
+}
+.guide-result-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 800;
+  flex-shrink: 0;
+}
+.guide-result-step-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+.guide-result-step-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.guide-result-step-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.guide-result-step-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+}
+.guide-result-step-tag {
+  font-size: 10.5px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 20px;
+}
+.guide-result-step-desc {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 0;
+  line-height: 1.4;
+}
+.guide-result-step-arrow {
+  font-size: 18px;
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: transform .15s;
+}
+.guide-result-step:hover .guide-result-step-arrow {
+  transform: translateX(4px);
+  color: var(--accent);
+}
+.guide-result-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.guide-reset-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all .15s;
+}
+.guide-reset-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.guide-hub-btn {
+  padding: 10px 18px;
+  border-radius: 10px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity .15s;
+}
+.guide-hub-btn:hover {
+  opacity: .88;
+}
+
+/* ─── Hub guide banner variant ─── */
+.hub-guide-banner-perso {
+  background: linear-gradient(90deg, #1e3a5f 0%, #1a56db 80%);
+  color: #fff;
+}
+.hub-guide-banner-perso .hub-guide-step-dot {
+  background: rgba(255,255,255,.2);
+  color: #fff;
+}
+.hub-guide-banner-perso .hub-guide-title {
+  color: #fff;
+}
+.hub-guide-banner-perso .hub-guide-sub {
+  color: rgba(255,255,255,.75);
+}
+.hub-guide-banner-perso .hub-guide-arrow {
+  color: #fff;
+}

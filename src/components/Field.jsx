@@ -12,6 +12,21 @@ function fmtDisplay(v) {
   return new Intl.NumberFormat("fr-FR").format(Number(v));
 }
 
+/** Flash animation when value changes externally (e.g. city update) */
+function useFlash(value) {
+  const [flash, setFlash] = useState(false);
+  const prev = useRef(value);
+  useEffect(() => {
+    if (prev.current !== value) {
+      setFlash(true);
+      const t = setTimeout(() => setFlash(false), 700);
+      prev.current = value;
+      return () => clearTimeout(t);
+    }
+  }, [value]);
+  return flash;
+}
+
 function InfoTooltip({ text }) {
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
@@ -52,10 +67,11 @@ function InfoTooltip({ text }) {
   );
 }
 
-function Field({ label, value, onChange, suffix, hint, tooltip, warning, step, min, max }) {
+function Field({ label, value, onChange, suffix, hint, tooltip, warning, cityHint, step, min, max }) {
   const id = useFieldId();
   const [display, setDisplay] = useState(() => fmtDisplay(value));
   const [editing, setEditing] = useState(false);
+  const flash = useFlash(value);
 
   const hasValue = Number.isFinite(value) && value > 0;
   const isValid = hasValue && !warning;
@@ -84,12 +100,12 @@ function Field({ label, value, onChange, suffix, hint, tooltip, warning, step, m
   };
 
   return (
-    <div className={`field${isWarn ? " field-has-warn" : isValid ? " field-has-valid" : ""}`}>
+    <div className={`field${isWarn ? " field-has-warn" : isValid ? " field-has-valid" : ""}${flash ? " field-updated" : ""}`}>
       <div className="field-label-row">
         <label htmlFor={id} className="field-label">{label}</label>
         {tooltip && <InfoTooltip text={tooltip} />}
       </div>
-      <div className="input-wrap">
+      <div className={`input-wrap${flash ? " input-flash" : ""}`}>
         <input
           id={id}
           type="text"
@@ -103,10 +119,18 @@ function Field({ label, value, onChange, suffix, hint, tooltip, warning, step, m
         />
         {suffix && <em className="field-suffix">{suffix}</em>}
       </div>
-      {warning
+      {flash && cityHint && (
+        <span className="field-city-update" aria-live="polite">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" aria-hidden="true">
+            <path d="M2 5l2.5 2.5L8 2.5" stroke="#0d9488" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          {cityHint}
+        </span>
+      )}
+      {!flash && (warning
         ? <span id={`${id}-warn`} className="field-warning" role="alert">{warning}</span>
         : hint && <span id={`${id}-hint`} className="field-hint">{hint}</span>
-      }
+      )}
     </div>
   );
 }

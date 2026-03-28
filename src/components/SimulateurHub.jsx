@@ -48,6 +48,13 @@ const SIMS = [
   /* Outils transverses */
   { href: "/simulateurs/stress-test",  icon: "🛡️", title: "Test de résistance", desc: "Votre projet face à 3 crises : hausse des taux, chute du marché, perte de revenus.",  tag: "Stratégie", tagClass: "tag-teal"  },
   { href: "/simulateurs/niveau-de-vie",icon: "📊", title: "Niveau de vie",      desc: "Visualisez votre revenu disponible après toutes vos charges fixes du mois.",         tag: "Budget",    tagClass: "tag-amber" },
+
+  /* Fonctionnalités créatives */
+  { href: "/simulateurs/pouvoir-achat-m2",    icon: "🗺️", title: "Pouvoir d'achat par ville",       desc: "Combien de m² pouvez-vous acheter dans 10 grandes villes françaises avec votre budget ?",            tag: "Immobilier",  tagClass: "tag-blue",   step: 2 },
+  { href: "/simulateurs/simulateur-couple",   icon: "👫", title: "Simulateur d'achat à deux",       desc: "Combinez vos revenus pour calculer votre capacité d'emprunt en couple et votre budget immobilier.",   tag: "Crédit",      tagClass: "tag-purple", step: 1 },
+  { href: "/simulateurs/machine-temps",       icon: "⏳", title: "Machine à remonter le temps",     desc: "Et si vous aviez acheté en 2010, 2015 ou 2018 ? Calculez le gain ou la perte réelle selon la ville.", tag: "Stratégie",   tagClass: "tag-teal",   step: 2 },
+  { href: "/simulateurs/calendrier-acheteur", icon: "📅", title: "Calendrier acheteur personnalisé",desc: "Votre feuille de route complète vers les clés — étapes, délais et conseils selon votre situation.",   tag: "Immobilier",  tagClass: "tag-blue",   step: 5 },
+  { href: "/simulateurs/heritage-immobilier", icon: "🏛️", title: "Héritage : garder ou vendre ?",  desc: "Héritez d'un bien ou en possédez un en trop ? Calculez la stratégie optimale sur le long terme.",     tag: "Investissement", tagClass: "tag-green" },
 ];
 
 const STEP_LABELS = {
@@ -108,6 +115,20 @@ export default function SimulateurHub() {
             </div>
           </div>
         </div>
+
+        {/* Guide personnalisé banner */}
+        <Link to="/guide-personnalise" className="hub-guide-banner hub-guide-banner-perso" style={{ marginBottom: 12 }}>
+          <div className="hub-guide-steps">
+            {["?", "?", "?"].map((n, i) => (
+              <span key={i} className="hub-guide-step-dot" style={{ fontSize: 14 }}>{n}</span>
+            ))}
+          </div>
+          <div className="hub-guide-text">
+            <p className="hub-guide-title">🎯 Guide personnalisé — 3 questions pour votre parcours sur mesure</p>
+            <p className="hub-guide-sub">Dites-nous votre situation et vos objectifs. On sélectionne les bons simulateurs pour vous.</p>
+          </div>
+          <span className="hub-guide-arrow">→</span>
+        </Link>
 
         {/* Guide banner */}
         <Link to="/guide-achat" className="hub-guide-banner">

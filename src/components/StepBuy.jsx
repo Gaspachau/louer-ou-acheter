@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Field from "./Field";
 import { formatCurrency } from "../utils/finance";
+import { CITIES } from "../data/cityData";
 
 function calcMonthly(v) {
   const principal = Math.max(0, v.purchasePrice - v.downPayment);
@@ -55,8 +56,9 @@ function warnDuree(v) {
   return null;
 }
 
-function StepBuy({ values, set, onNext, onBack }) {
+function StepBuy({ values, set, onNext, onBack, city }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const cityData = city ? CITIES[city] : null;
 
   const { payment, charges, total } = useMemo(() => calcMonthly(values), [values]);
   const loanAmount = Math.max(0, values.purchasePrice - values.downPayment);
@@ -73,8 +75,12 @@ function StepBuy({ values, set, onNext, onBack }) {
     <div className="funnel-step">
       <div className="step-card step-buy" onKeyDown={handleKeyDown}>
         <div className="step-card-header">
-          <span className="step-pill buy-pill">Étape 2 sur 2</span>
-          <span className="step-enter-hint" aria-hidden="true">Entrée ↵ pour continuer</span>
+          <span className="step-pill buy-pill">Le projet d'achat</span>
+          {cityData ? (
+            <span className="step-city-badge">{cityData.emoji} {cityData.name} · {cityData.pricePerM2.toLocaleString("fr-FR")} €/m²</span>
+          ) : (
+            <span className="step-enter-hint" aria-hidden="true">Entrée ↵ pour continuer</span>
+          )}
         </div>
 
         <div>
@@ -118,6 +124,8 @@ function StepBuy({ values, set, onNext, onBack }) {
               value={values.purchasePrice}
               onChange={set("purchasePrice")}
               suffix="€"
+              hint={cityData ? `Prix médian 50 m² à ${cityData.name} : ${(cityData.pricePerM2 * 50).toLocaleString("fr-FR")} €` : undefined}
+              cityHint={cityData ? `Mis à jour pour ${cityData.name}` : null}
               tooltip={T.prix}
               warning={warnPrix(values.purchasePrice)}
             />
@@ -139,7 +147,7 @@ function StepBuy({ values, set, onNext, onBack }) {
               value={values.mortgageRate}
               onChange={set("mortgageRate")}
               suffix="%"
-              hint="Taux moyen 2026 : ~3,5 % sur 20 ans"
+              hint={cityData ? `Taux moyen 2026 à ${cityData.name} : ~${cityData.appreciationRate > 2.2 ? "3,4" : "3,5"} % sur 20 ans` : "Taux moyen 2026 : ~3,5 % sur 20 ans"}
               tooltip={T.taux}
               warning={warnTaux(values.mortgageRate)}
             />

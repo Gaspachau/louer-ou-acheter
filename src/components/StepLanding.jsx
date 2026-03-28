@@ -4,25 +4,22 @@ import { trackPresetSelected, trackSimulationStarted } from "../utils/analytics"
 import { PRESETS } from "../App";
 import { ARTICLES } from "../data/articles";
 import { computeComparison } from "../utils/finance";
+import { CITY_LIST, CITIES } from "../data/cityData";
 
-// Real 2026 data per city — calibrated so each city gives a distinct louer/acheter verdict:
-// Paris (P/R≈24) → clairement louer | Lyon (P/R≈22) → légèrement louer
-// Nantes (P/R≈19) → neutre | Bordeaux (P/R≈17) → légèrement acheter
-// Marseille (P/R≈14) → clairement acheter
-const CITY_DATA = [
-  { id: "paris",     name: "Paris",     emoji: "🗼", pricePerM2: 10000, surface: 42, loyer: 1450, taxe: 2400, apport: 80000 },
-  { id: "lyon",      name: "Lyon",      emoji: "🦁", pricePerM2: 5000,  surface: 55, loyer: 1050, taxe: 1500, apport: 45000 },
-  { id: "bordeaux",  name: "Bordeaux",  emoji: "🍷", pricePerM2: 4500,  surface: 55, loyer: 1100, taxe: 1300, apport: 35000 },
-  { id: "marseille", name: "Marseille", emoji: "☀️", pricePerM2: 3500,  surface: 50, loyer: 900,  taxe: 1000, apport: 15000 },
-  { id: "nantes",    name: "Nantes",    emoji: "🏰", pricePerM2: 4000,  surface: 55, loyer: 940,  taxe: 1400, apport: 30000 },
-];
+// Map cityData to the shape expected by CityMockup
+const CITY_DATA = CITY_LIST.map((c) => ({
+  id: c.id, name: c.name, emoji: c.emoji,
+  pricePerM2: c.pricePerM2, surface: c.surfaceRef,
+  loyer: c.rentT2, taxe: c.taxeFonciere,
+  apport: Math.round(c.pricePerM2 * c.surfaceRef * 0.15),
+}));
 
 const fmtK = (v) => {
   if (Math.abs(v) >= 1000) return `${Math.round(v / 1000)} k€`;
   return `${Math.round(v)} €`;
 };
 
-function CityMockup() {
+function CityMockup({ onSelect }) {
   const [cityId, setCityId] = useState("lyon");
   const city = CITY_DATA.find((c) => c.id === cityId);
 
@@ -67,7 +64,7 @@ function CityMockup() {
               key={c.id}
               type="button"
               className={`lp-city-btn${cityId === c.id ? " active" : ""}`}
-              onClick={() => setCityId(c.id)}
+              onClick={() => { setCityId(c.id); onSelect?.(c.id); }}
               aria-pressed={cityId === c.id}
             >
               {c.emoji} {c.name}
@@ -300,7 +297,7 @@ function FaqItem({ q, a }) {
   );
 }
 
-export default function StepLanding({ onStart, onPreset }) {
+export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
   useEffect(() => {
     const sections = document.querySelectorAll(".lp-section");
     const observer = new IntersectionObserver(
@@ -352,7 +349,7 @@ export default function StepLanding({ onStart, onPreset }) {
             </div>
           </div>
 
-          <CityMockup />
+          <CityMockup onSelect={onCityChange} />
         </div>
       </section>
 

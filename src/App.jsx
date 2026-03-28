@@ -11,6 +11,7 @@ import StepRent from "./components/StepRent";
 import StepBuy from "./components/StepBuy";
 import StepResult from "./components/StepResult";
 import { computeComparison } from "./utils/finance";
+import { getDefaultsForCity } from "./data/cityData";
 
 const BlogList = lazy(() => import("./components/BlogList"));
 const BlogArticle = lazy(() => import("./components/BlogArticle"));
@@ -29,7 +30,13 @@ const SimComparateurVilles = lazy(() => import("./components/simulateurs/SimComp
 const PageAPropos = lazy(() => import("./components/PageAPropos"));
 const PageMentionsLegales = lazy(() => import("./components/PageMentionsLegales"));
 const PageCarteMondiale = lazy(() => import("./components/PageCarteMondiale"));
-const PageGuideAchat    = lazy(() => import("./components/PageGuideAchat"));
+const PageGuideAchat         = lazy(() => import("./components/PageGuideAchat"));
+const PageGuidePersonnalise  = lazy(() => import("./components/PageGuidePersonnalise"));
+const SimPouvoirAchatM2      = lazy(() => import("./components/simulateurs/SimPouvoirAchatM2"));
+const SimCouple              = lazy(() => import("./components/simulateurs/SimCouple"));
+const SimMachineTemps        = lazy(() => import("./components/simulateurs/SimMachineTemps"));
+const SimCalendrier          = lazy(() => import("./components/simulateurs/SimCalendrier"));
+const SimHeritage            = lazy(() => import("./components/simulateurs/SimHeritage"));
 const SimScoreAcheteur = lazy(() => import("./components/simulateurs/SimScoreAcheteur"));
 const SimOptimiseurApport = lazy(() => import("./components/simulateurs/SimOptimiseurApport"));
 const SimStressTest = lazy(() => import("./components/simulateurs/SimStressTest"));
@@ -50,19 +57,20 @@ function PageLoader() {
 }
 
 const DEFAULTS = {
-  purchasePrice: 250000,   // prix médian appartement France 2026
-  downPayment: 35000,      // ~14 % du prix — couvre les frais de notaire
-  mortgageRate: 3.5,       // taux moyen 20 ans en France, mars 2026
-  mortgageYears: 20,       // durée la plus courante
-  notaryFeesPct: 8,        // frais de notaire dans l'ancien
-  annualPropertyTax: 1400, // taxe foncière moyenne pour 250 k€
-  annualMaintenancePct: 1, // entretien ~1 %/an du prix
-  annualInsurance: 300,    // assurance habitation propriétaire
-  appreciationRate: 2,     // hausse moyenne des prix immobiliers France
-  saleCostsPct: 5,         // frais de revente (agence + diagnostics)
-  monthlyRent: 900,        // loyer médian hors Paris en 2026
-  annualRentIncrease: 2,   // IRL ~2 %/an
-  investmentReturn: 3.5,   // rendement mixte (Livret A 1,5 % + un peu d'ETF)
+  city: null,
+  purchasePrice: 250000,
+  downPayment: 35000,
+  mortgageRate: 3.5,
+  mortgageYears: 20,
+  notaryFeesPct: 8,
+  annualPropertyTax: 1400,
+  annualMaintenancePct: 1,
+  annualInsurance: 300,
+  appreciationRate: 2,
+  saleCostsPct: 5,
+  monthlyRent: 900,
+  annualRentIncrease: 2,
+  investmentReturn: 3.5,
   comparisonYears: 10,
   monthlySavings: 0,
 };
@@ -115,40 +123,46 @@ function Simulator() {
   const setStep = (n) => navigate(n === 0 ? "/" : `/?step=${n}`);
   const set = (key) => (val) => setValues((v) => ({ ...v, [key]: val }));
   const applyPreset = (preset) => { setValues({ ...DEFAULTS, ...preset.values }); setStep(1); };
+  const applyCity = (cityId) => {
+    const cityDefaults = getDefaultsForCity(cityId);
+    if (cityDefaults) setValues((v) => ({ ...v, ...cityDefaults }));
+  };
   const result = useMemo(() => computeComparison(values), [values]);
 
-  const stepperContent = step > 0 ? (
-    <nav className="stepper" aria-label="Progression">
-      {STEP_LABELS.map((label, i) => {
-        const s = i + 1;
-        const done = step > s;
-        const active = step === s;
-        return (
-          <span key={s} className="stepper-item">
+  /* Slim progress bar instead of numbered stepper */
+  const progressContent = step > 0 ? (
+    <div className="sim-progress" aria-label="Progression de la simulation">
+      <div className="sim-progress-steps">
+        {STEP_LABELS.map((label, i) => {
+          const s = i + 1;
+          const done = step > s;
+          const active = step === s;
+          return (
             <button
-              className={`stepper-dot ${active ? "stepper-dot-active" : ""} ${done ? "stepper-dot-done" : ""}`}
+              key={s}
+              type="button"
+              className={`sim-progress-step${active ? " active" : ""}${done ? " done" : ""}`}
               onClick={() => done && setStep(s)}
               disabled={!done}
-              aria-label={`${done ? "Retour à l'é" : "É"}tape ${s} : ${label}${active ? " (actuelle)" : done ? " (terminée)" : ""}`}
               aria-current={active ? "step" : undefined}
+              aria-label={`${label}${active ? " (en cours)" : done ? " (terminé)" : ""}`}
             >
-              {done ? "✓" : s}
+              <span className="sim-progress-dot" aria-hidden="true">{done ? "✓" : s}</span>
+              <span className="sim-progress-label">{label}</span>
             </button>
-            <span className={`stepper-label ${active ? "stepper-label-active" : ""}`} aria-hidden="true">{label}</span>
-            {i < 2 && <span className={`stepper-line ${done ? "stepper-line-done" : ""}`} aria-hidden="true" />}
-          </span>
-        );
-      })}
-    </nav>
+          );
+        })}
+      </div>
+    </div>
   ) : null;
 
   return (
     <div className="page">
-      <TopBar onBrandClick={() => setStep(0)} rightContent={stepperContent} />
+      <TopBar onBrandClick={() => setStep(0)} rightContent={progressContent} />
       <main id="main-content">
-        {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} />}
-        {step === 1 && <StepRent values={values} set={set} onNext={() => setStep(2)} />}
-        {step === 2 && <StepBuy values={values} set={set} onNext={() => setStep(3)} onBack={() => navigate(-1)} />}
+        {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} onCityChange={applyCity} city={values.city} />}
+        {step === 1 && <StepRent values={values} set={set} onNext={() => setStep(2)} city={values.city} />}
+        {step === 2 && <StepBuy values={values} set={set} onNext={() => setStep(3)} onBack={() => navigate(-1)} city={values.city} />}
         {step === 3 && <StepResult result={result} values={values} onEdit={() => setStep(1)} />}
       </main>
       {step === 0 && <Footer />}
@@ -189,6 +203,12 @@ export default function App() {
         <Route path="/mentions-legales" element={<PageMentionsLegales />} />
         <Route path="/carte-mondiale" element={<PageCarteMondiale />} />
         <Route path="/guide-achat" element={<PageGuideAchat />} />
+        <Route path="/guide-personnalise" element={<PageGuidePersonnalise />} />
+        <Route path="/simulateurs/pouvoir-achat-m2" element={<SimPouvoirAchatM2 />} />
+        <Route path="/simulateurs/simulateur-couple" element={<SimCouple />} />
+        <Route path="/simulateurs/machine-temps" element={<SimMachineTemps />} />
+        <Route path="/simulateurs/calendrier-acheteur" element={<SimCalendrier />} />
+        <Route path="/simulateurs/heritage-immobilier" element={<SimHeritage />} />
         <Route path="/simulateurs/score-acheteur" element={<SimScoreAcheteur />} />
         <Route path="/simulateurs/optimiser-apport" element={<SimOptimiseurApport />} />
         <Route path="/simulateurs/stress-test" element={<SimStressTest />} />

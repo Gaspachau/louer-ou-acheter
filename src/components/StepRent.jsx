@@ -1,12 +1,13 @@
 import Field from "./Field";
+import { CITIES } from "../data/cityData";
 
-const TOOLTIP_LOYER = "Ce que vous payez chaque mois, charges locatives comprises. Moyenne nationale : ~700 €/mois (source : CLAMEUR 2024). À Paris : ~1 400 €, en province : ~600–700 €.";
+const TOOLTIP_LOYER = "Ce que vous payez chaque mois, charges locatives comprises. Moyenne nationale : ~700 €/mois (source : CLAMEUR 2024). À Paris : ~1 500 €, en province : ~600–800 €.";
 const TOOLTIP_HAUSSE = "Taux auquel votre loyer augmente chaque année. Encadré par l'IRL (Indice de Référence des Loyers), il tourne autour de 1,5–2 %/an depuis 2022.";
 const TOOLTIP_RENDEMENT = "Ce que rapporte votre argent placé chaque année, net de frais. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % en moyenne sur 20 ans.";
 const TOOLTIP_EPARGNE = "Montant supplémentaire que vous mettez de côté chaque mois (livret, PEA…), indépendamment de l'achat ou de la location. S'ajoute au capital de l'acheteur ou du locataire.";
 
 function warnLoyer(v) {
-  if (v > 3000) return `La moyenne nationale est ~700 €/mois (Paris ~1 400 €). Votre loyer semble très élevé — vérifiez qu'il s'agit bien du montant mensuel.`;
+  if (v > 3000) return `La moyenne nationale est ~700 €/mois (Paris ~1 500 €). Votre loyer semble très élevé — vérifiez qu'il s'agit bien du montant mensuel.`;
   if (v > 0 && v < 200) return "Loyer très bas. Assurez-vous qu'il est bien mensuel et charges comprises.";
   return null;
 }
@@ -16,7 +17,9 @@ function warnRendement(v) {
   return null;
 }
 
-function StepRent({ values, set, onNext }) {
+function StepRent({ values, set, onNext, city }) {
+  const cityData = city ? CITIES[city] : null;
+
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && e.target.tagName === "INPUT") onNext();
   };
@@ -25,8 +28,12 @@ function StepRent({ values, set, onNext }) {
     <div className="funnel-step">
       <div className="step-card step-rent" onKeyDown={handleKeyDown}>
         <div className="step-card-header">
-          <span className="step-pill rent-pill">Étape 1 sur 2</span>
-          <span className="step-enter-hint" aria-hidden="true">Entrée ↵ pour continuer</span>
+          <span className="step-pill rent-pill">Situation locative</span>
+          {cityData && (
+            <span className="step-city-badge">
+              {cityData.emoji} {cityData.name}
+            </span>
+          )}
         </div>
 
         <div>
@@ -46,7 +53,8 @@ function StepRent({ values, set, onNext }) {
                 value={values.monthlyRent}
                 onChange={set("monthlyRent")}
                 suffix="€"
-                hint="Loyer + charges locatives"
+                hint={cityData ? `Loyer + charges locatives · Médiane à ${cityData.name} : ${cityData.rentT2.toLocaleString("fr-FR")} €/mois` : "Loyer + charges locatives"}
+                cityHint={cityData ? `Mis à jour pour ${cityData.name}` : null}
                 tooltip={TOOLTIP_LOYER}
                 warning={warnLoyer(values.monthlyRent)}
               />
@@ -56,7 +64,8 @@ function StepRent({ values, set, onNext }) {
               value={values.annualRentIncrease}
               onChange={set("annualRentIncrease")}
               suffix="%"
-              hint="Indice IRL ~1,5–2 %/an"
+              hint={cityData ? `IRL local à ${cityData.name} ≈ ${cityData.rentIndexGrowth} %/an` : "Indice IRL ~1,5–2 %/an"}
+              cityHint={cityData ? `IRL ${cityData.name}` : null}
               tooltip={TOOLTIP_HAUSSE}
             />
             <Field

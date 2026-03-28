@@ -60,6 +60,57 @@ function getContextualTips({ result, values }) {
   return tips.slice(0, 2);
 }
 
+/* ─── Smart suggestions ──────────────────────────────────── */
+function SmartSuggestions({ isBuyingBetter, values, result }) {
+  const apportPct = values.downPayment / values.purchasePrice;
+
+  const buySuggestions = [
+    { href: "/simulateurs/frais-notaire", icon: "📋", title: "Calculez vos frais de notaire", desc: "Estimez précisément les frais selon le barème légal 2024 — ancien ou neuf." },
+    { href: "/simulateurs/pret-immobilier", icon: "🏦", title: "Tableau d'amortissement", desc: "Votre mensualité, le coût total et le tableau d'amortissement année par année." },
+    apportPct < 0.15
+      ? { href: "/simulateurs/ptz", icon: "🏗️", title: "Vérifiez votre éligibilité PTZ", desc: "Prêt à Taux Zéro 2026 : économisez jusqu'à 50 000 € selon votre profil." }
+      : { href: "/simulateurs/assurance-pret", icon: "🛡️", title: "Comparez l'assurance emprunteur", desc: "Loi Lemoine : changer d'assurance peut économiser 10 000–20 000 € sur 20 ans." },
+    { href: "/simulateurs/machine-temps", icon: "⏳", title: "Et si vous aviez acheté plus tôt ?", desc: "Calculez le gain ou la perte selon la date à laquelle vous auriez acheté." },
+  ];
+
+  const rentSuggestions = [
+    { href: "/simulateurs/optimiser-apport", icon: "💡", title: "Optimisez votre apport", desc: "Acheter maintenant ou épargner encore ? Le ROI chiffré de chaque option." },
+    { href: "/simulateurs/epargne", icon: "💰", title: "Construisez votre apport", desc: "Calculez l'épargne mensuelle pour atteindre votre objectif dans X mois." },
+    { href: "/simulateurs/pouvoir-achat-m2", icon: "🗺️", title: "Où pouvez-vous acheter ?", desc: "Combien de m² votre budget offre dans 10 villes françaises — visualisé en un clin d'œil." },
+    { href: "/simulateurs/calendrier-acheteur", icon: "📅", title: "Votre feuille de route", desc: "Un calendrier personnalisé des étapes vers votre achat selon votre situation." },
+  ];
+
+  const suggestions = (isBuyingBetter ? buySuggestions : rentSuggestions).slice(0, 3);
+
+  return (
+    <div className="smart-suggestions">
+      <div className="smart-sug-header">
+        <p className="smart-sug-kicker">Étape suivante</p>
+        <h2 className="smart-sug-title">
+          {isBuyingBetter ? "Concrétisez votre achat" : "Préparez votre projet"}
+        </h2>
+        <p className="smart-sug-desc">
+          {isBuyingBetter
+            ? "L'achat est avantageux. Voici les simulateurs pour bien préparer votre dossier."
+            : "La location est plus rentable maintenant. Préparez-vous à acheter quand le moment sera idéal."}
+        </p>
+      </div>
+      <div className="smart-sug-grid">
+        {suggestions.map((s) => (
+          <Link key={s.href} to={s.href} className="smart-sug-card">
+            <span className="smart-sug-icon">{s.icon}</span>
+            <div>
+              <p className="smart-sug-card-title">{s.title}</p>
+              <p className="smart-sug-card-desc">{s.desc}</p>
+            </div>
+            <span className="smart-sug-arrow">→</span>
+          </Link>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 /* ─── Main component ─────────────────────────────────────── */
 export default function StepResult({ result, values, onEdit }) {
   const [copied, setCopied] = useState(false);
@@ -334,30 +385,10 @@ export default function StepResult({ result, values, onEdit }) {
         </div>
       )}
 
-      {/* ══ 9 — POST-SIMULATION ══════════════════════════════ */}
-      <div className="post-sim-section">
-        <div className="post-sim-next">
-          <p className="post-sim-next-kicker">Simulateur complémentaire</p>
-          {isBuyingBetter ? (
-            <Link to="/simulateurs/frais-notaire" className="post-sim-next-card">
-              <span className="post-sim-next-icon">📋</span>
-              <div>
-                <p className="post-sim-next-title">Calculez vos frais de notaire</p>
-                <p className="post-sim-next-desc">Estimez précisément les frais de notaire au centime près selon le barème légal 2024.</p>
-              </div>
-              <span className="post-sim-next-arrow">→</span>
-            </Link>
-          ) : (
-            <Link to="/simulateurs/epargne" className="post-sim-next-card">
-              <span className="post-sim-next-icon">💰</span>
-              <div>
-                <p className="post-sim-next-title">Optimisez votre épargne</p>
-                <p className="post-sim-next-desc">Calculez l'épargne mensuelle nécessaire pour atteindre votre objectif d'apport.</p>
-              </div>
-              <span className="post-sim-next-arrow">→</span>
-            </Link>
-          )}
-        </div>
+      {/* ══ 9 — SMART SUGGESTIONS ════════════════════════════ */}
+      <SmartSuggestions isBuyingBetter={isBuyingBetter} values={values} result={result} />
+
+      <div className="post-sim-section" style={{ marginTop: 0 }}>
         <NewsletterBox />
       </div>
 
