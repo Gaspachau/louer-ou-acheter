@@ -26,6 +26,11 @@ const SimTaxeFonciere = lazy(() => import("./components/simulateurs/SimTaxeFonci
 const SimComparateurVilles = lazy(() => import("./components/simulateurs/SimComparateurVilles"));
 const PageAPropos = lazy(() => import("./components/PageAPropos"));
 const PageMentionsLegales = lazy(() => import("./components/PageMentionsLegales"));
+const SimScoreAcheteur = lazy(() => import("./components/simulateurs/SimScoreAcheteur"));
+const SimOptimiseurApport = lazy(() => import("./components/simulateurs/SimOptimiseurApport"));
+const SimStressTest = lazy(() => import("./components/simulateurs/SimStressTest"));
+const SimHistoire = lazy(() => import("./components/simulateurs/SimHistoire"));
+const SimBudgetMax = lazy(() => import("./components/simulateurs/SimBudgetMax"));
 
 function PageLoader() {
   return (
@@ -165,6 +170,11 @@ export default function App() {
         <Route path="/blog/:slug" element={<BlogArticle />} />
         <Route path="/a-propos" element={<PageAPropos />} />
         <Route path="/mentions-legales" element={<PageMentionsLegales />} />
+        <Route path="/simulateurs/score-acheteur" element={<SimScoreAcheteur />} />
+        <Route path="/simulateurs/optimiser-apport" element={<SimOptimiseurApport />} />
+        <Route path="/simulateurs/stress-test" element={<SimStressTest />} />
+        <Route path="/simulateurs/histoire" element={<SimHistoire />} />
+        <Route path="/simulateurs/budget-maximum" element={<SimBudgetMax />} />
       </Routes>
     </Suspense>
     </>
