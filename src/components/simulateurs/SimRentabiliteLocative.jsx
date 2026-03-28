@@ -116,6 +116,7 @@ export default function SimRentabiliteLocative() {
               </div>
               <input type="range" min="50" max="100" step="1" value={v.tauxOccupation}
                 onChange={(e) => set("tauxOccupation")(Number(e.target.value))}
+                style={{ "--range-pct": `${((v.tauxOccupation - 50) / (100 - 50)) * 100}%` }}
                 aria-label={`Taux d'occupation : ${v.tauxOccupation}%`} />
               <div className="horizon-ticks"><span>50 %</span><span>Typique 92 %</span><span>100 %</span></div>
             </div>

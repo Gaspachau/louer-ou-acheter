@@ -313,11 +313,11 @@ function NewsletterBox() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!email.includes("@")) { setStatus("error"); return; }
-    // Stockage local — pas de backend dans cet outil pédagogique
+    const valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
+    if (!valid) { setStatus("error"); return; }
     try {
       const existing = JSON.parse(localStorage.getItem("nl_emails") || "[]");
-      if (!existing.includes(email)) existing.push(email);
+      if (!existing.includes(email.trim())) existing.push(email.trim());
       localStorage.setItem("nl_emails", JSON.stringify(existing));
     } catch {}
     setStatus("success");

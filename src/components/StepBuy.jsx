@@ -6,8 +6,11 @@ function calcMonthly(v) {
   const principal = Math.max(0, v.purchasePrice - v.downPayment);
   const r = v.mortgageRate / 100 / 12;
   const n = v.mortgageYears * 12;
-  const payment = !r || !n ? (n ? principal / n : 0)
-    : (principal * r) / (1 - Math.pow(1 + r, -n));
+  const payment = r === 0 && n > 0
+    ? principal / n
+    : r > 0 && n > 0
+    ? (principal * r) / (1 - Math.pow(1 + r, -n))
+    : 0;
   const charges = (v.annualPropertyTax + v.purchasePrice * (v.annualMaintenancePct / 100) + v.annualInsurance) / 12;
   return { payment, charges, total: payment + charges };
 }
@@ -137,6 +140,7 @@ function StepBuy({ values, set, onNext, onBack }) {
             type="range" min="1" max="25" step="1"
             value={values.comparisonYears}
             onChange={(e) => set("comparisonYears")(Number(e.target.value))}
+            style={{ "--range-pct": `${((values.comparisonYears - 1) / (25 - 1)) * 100}%` }}
             aria-label={`Horizon : ${values.comparisonYears} ans`}
           />
           <div className="horizon-ticks" aria-hidden="true">

@@ -1,6 +1,7 @@
 import "./App.css";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
+import ScrollToTop from "./components/ScrollToTop";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
 import StepLanding from "./components/StepLanding";
@@ -143,6 +144,8 @@ function Simulator() {
 
 export default function App() {
   return (
+    <>
+    <ScrollToTop />
     <Suspense fallback={<PageLoader />}>
       <Routes>
         <Route path="/" element={<Simulator />} />
@@ -164,5 +167,6 @@ export default function App() {
         <Route path="/mentions-legales" element={<PageMentionsLegales />} />
       </Routes>
     </Suspense>
+    </>
   );
 }

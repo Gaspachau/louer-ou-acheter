@@ -98,6 +98,7 @@ export default function SimEpargne() {
                   type="range" min="1" max="40" step="1"
                   value={v.years}
                   onChange={(e) => set("years")(Number(e.target.value))}
+                  style={{ "--range-pct": `${((v.years - 1) / (40 - 1)) * 100}%` }}
                   aria-label={`Horizon : ${v.years} ans`}
                 />
                 <div className="horizon-ticks"><span>1 an</span><span>20 ans</span><span>40 ans</span></div>

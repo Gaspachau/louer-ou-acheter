@@ -169,11 +169,12 @@ export default function SimPlusValue() {
               <div className="horizon-row">
                 <p className="horizon-explain">Nombre d'années entre l'achat et la revente</p>
                 <strong className="horizon-value" style={{ color: v.annees >= 22 ? "#059669" : "inherit" }}>
-                  {v.annees} ans {v.annees >= 22 ? "✓ IR exonéré" : v.annees >= 30 ? "✓ Totalement exonéré" : ""}
+                  {v.annees} ans {v.annees >= 30 ? "✓ Totalement exonéré" : v.annees >= 22 ? "✓ IR exonéré" : ""}
                 </strong>
               </div>
               <input type="range" min="1" max="35" step="1" value={v.annees}
-                onChange={(e) => set("annees")(Number(e.target.value))} />
+                onChange={(e) => set("annees")(Number(e.target.value))}
+                style={{ "--range-pct": `${((v.annees - 1) / (35 - 1)) * 100}%` }} />
               <div className="horizon-ticks"><span>1 an</span><span>22 ans (IR)</span><span>30 ans (total)</span></div>
             </div>
           </div>
