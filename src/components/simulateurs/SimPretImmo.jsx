@@ -1,4 +1,5 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { trackResultComputed, trackFieldChanged } from "../../utils/analytics";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
@@ -51,6 +52,21 @@ export default function SimPretImmo() {
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
   const res = useMemo(() => calcPret(v), [v]);
+
+  useEffect(() => {
+    if (!res) return;
+    const t = setTimeout(() => {
+      trackFieldChanged("Prêt immobilier", "capital", v.principal);
+      trackFieldChanged("Prêt immobilier", "taux", v.annualRate);
+      trackFieldChanged("Prêt immobilier", "duree", v.years);
+      trackResultComputed("Prêt immobilier", {
+        mensualite: res.monthly,
+        cout_total: res.totalCost,
+        total_interets: res.totalInterest,
+      });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [v, res]);
 
   const chartData = useMemo(() => {
     if (!res) return [];

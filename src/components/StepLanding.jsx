@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { trackPresetSelected, trackSimulationStarted } from "../utils/analytics";
 import { PRESETS } from "../App";
 import { ARTICLES } from "../data/articles";
 
@@ -295,7 +296,7 @@ export default function StepLanding({ onStart, onPreset }) {
             <button
               key={preset.id}
               className="lp-preset-card"
-              onClick={() => onPreset(preset)}
+              onClick={() => { trackPresetSelected(preset.id, preset.name); onPreset(preset); }}
               type="button"
               role="listitem"
               aria-label={`Scénario ${preset.name} : ${preset.desc}`}
@@ -314,7 +315,7 @@ export default function StepLanding({ onStart, onPreset }) {
             </button>
           ))}
         </div>
-        <button className="lp-custom-btn" onClick={onStart} type="button">
+        <button className="lp-custom-btn" onClick={() => { trackSimulationStarted("custom"); onStart(); }} type="button">
           <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
             <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/>
             <path d="M9 6v6M6 9h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>

@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { formatCurrency } from "../utils/finance";
+import { trackResultComputed } from "../utils/analytics";
 import ProgressionChart from "./ProgressionChart";
 import Summary from "./Summary";
 
@@ -66,6 +67,20 @@ export default function StepResult({ result, values, onEdit }) {
   const monthlyDiff = ownerMonthlyTotal - values.monthlyRent;
   const renterLumpSum = values.downPayment + notaryFees;
   const breakevenYear = yearlyData?.find((d) => d.ownerNetWorth >= d.renterPortfolio)?.year ?? null;
+
+  useEffect(() => {
+    trackResultComputed("Louer ou Acheter", {
+      isBuyingBetter,
+      breakeven_year: breakevenYear,
+      advantage,
+      purchase_price: values.purchasePrice,
+      down_payment: values.downPayment,
+      monthly_rent: values.monthlyRent,
+      mortgage_rate: values.mortgageRate,
+      comparison_years: values.comparisonYears,
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [result]);
 
   const tips = getContextualTips({ result, values });
   const insights = buildInsights({ result, values, monthlyDiff, breakevenYear });

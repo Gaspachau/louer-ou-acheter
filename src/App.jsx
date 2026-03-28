@@ -2,6 +2,8 @@ import "./App.css";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
+import CookieBanner from "./components/CookieBanner";
+import { initAnalytics } from "./utils/analytics";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
 import StepLanding from "./components/StepLanding";
@@ -153,8 +155,16 @@ function Simulator() {
 }
 
 export default function App() {
+  useEffect(() => {
+    // Re-init analytics if consent updates during the session
+    const handler = () => initAnalytics();
+    window.addEventListener("consent_updated", handler);
+    return () => window.removeEventListener("consent_updated", handler);
+  }, []);
+
   return (
     <>
+    <CookieBanner />
     <ScrollToTop />
     <Suspense fallback={<PageLoader />}>
       <Routes>

@@ -13,6 +13,9 @@ export default defineConfig({
           if (id.includes('node_modules/recharts') || id.includes('node_modules/d3') || id.includes('node_modules/victory')) {
             return 'recharts-vendor';
           }
+          if (id.includes('node_modules/posthog-js')) {
+            return 'analytics-vendor';
+          }
         },
       },
     },
