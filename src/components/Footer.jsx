@@ -66,6 +66,7 @@ export default function Footer() {
             <li><Link to="/mentions-legales">Mentions légales</Link></li>
             <li><Link to="/mentions-legales#confidentialite">Confidentialité (RGPD)</Link></li>
             <li><Link to="/simulateurs">Tous les simulateurs</Link></li>
+            <li><Link to="/carte-mondiale">Carte mondiale</Link></li>
           </ul>
           <p className="footer-about-text" style={{ marginTop: 12 }}>
             Outil pédagogique indépendant — données INSEE, Banque de France, HCSF.

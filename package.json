@@ -12,10 +12,13 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "posthog-js": "^1.364.1",
+    "prop-types": "^15.8.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
     "react-router-dom": "^7.13.2",
-    "recharts": "^3.8.1"
+    "react-simple-maps": "^3.0.0",
+    "recharts": "^3.8.1",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
