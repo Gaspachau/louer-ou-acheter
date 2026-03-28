@@ -111,10 +111,10 @@ export default function SimEndettement() {
   const verdict = !res
     ? null
     : res.tauxActuel > 35
-    ? { label: "Déjà sur-endetté", color: "red", msg: "Vos charges actuelles dépassent déjà le seuil de 35 %. L'accès à un nouveau crédit sera difficile." }
+    ? { label: "Déjà sur-endetté", color: "red", msg: `Vos charges actuelles (${formatCurrency(v.chargesExistantes)}/mois) représentent ${res.tauxActuel.toFixed(1)} % de vos revenus — au-dessus du seuil légal HCSF de 35 %. L'accès à un nouveau crédit sera difficile voire impossible sans réduire vos charges existantes.` }
     : res.capaciteRestante < 200
-    ? { label: "Capacité limitée", color: "amber", msg: `Votre marge mensuelle est faible (${formatCurrency(res.capaciteRestante)}/mois). Privilégiez un montant d'emprunt modéré.` }
-    : { label: "Capacité correcte", color: "green", msg: `Vous pouvez emprunter jusqu'à ${formatCurrency(res.montantEmpruntable)} selon les paramètres saisis.` };
+    ? { label: "Capacité limitée", color: "amber", msg: `Votre taux d'endettement actuel est de ${res.tauxActuel.toFixed(1)} %. Il vous reste ${formatCurrency(res.capaciteRestante)}/mois de marge avant d'atteindre le plafond de 35 % — soit un emprunt maximal de ${formatCurrency(res.montantEmpruntable)} sur ${v.duree} ans à ${v.taux} %. Prudence.` }
+    : { label: "Capacité correcte", color: "green", msg: `Votre taux d'endettement actuel est de ${res.tauxActuel.toFixed(1)} %. Avec une capacité mensuelle disponible de ${formatCurrency(res.capaciteRestante)}, vous pouvez emprunter jusqu'à ${formatCurrency(res.montantEmpruntable)} sur ${v.duree} ans à ${v.taux} % tout en restant sous le seuil HCSF de 35 %.` };
 
   return (
     <SimLayout

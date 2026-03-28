@@ -139,6 +139,11 @@ export default function SimPretImmo() {
                 <span className="sim-stat-value">
                   {formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span>
                 </span>
+                <p className="sim-stat-hero-summary">
+                  Pour {fmtCur(v.principal)} emprunté sur {v.years} ans à {v.annualRate} %, vous rembourserez{" "}
+                  {fmtCur(res.totalCost)} au total, dont {fmtCur(res.totalInterest)} d'intérêts
+                  ({((res.totalInterest / v.principal) * 100).toFixed(0)} % du capital).
+                </p>
               </div>
 
               <div className="sim-stats-grid">

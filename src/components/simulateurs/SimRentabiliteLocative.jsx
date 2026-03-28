@@ -129,6 +129,9 @@ export default function SimRentabiliteLocative() {
             <span className="sim-stat-value">
               {res.rendementNet.toFixed(2)}<span className="sim-stat-unit"> %/an</span>
             </span>
+            <p className="sim-stat-hero-summary">
+              {verdicts[rendColor].msg}
+            </p>
           </div>
 
           <div className="sim-stats-grid">
@@ -148,11 +151,6 @@ export default function SimRentabiliteLocative() {
               <span className="sim-stat-card-label">Récupération capital</span>
               <span className="sim-stat-card-value">{res.dureeRecup ? `${Math.round(res.dureeRecup)} ans` : "—"}</span>
             </div>
-          </div>
-
-          <div className={`sim-verdict sim-verdict-${rendColor}`}>
-            <strong>{verdicts[rendColor].icon} {verdicts[rendColor].title}</strong>
-            <p>{verdicts[rendColor].msg}</p>
           </div>
 
           <div className="sim-chart-wrap">

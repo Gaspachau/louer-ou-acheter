@@ -126,6 +126,11 @@ export default function SimEpargne() {
                 <span className="sim-stat-value">
                   {formatCurrency(res.monthlySavings)}<span className="sim-stat-unit">/mois</span>
                 </span>
+                <p className="sim-stat-hero-summary">
+                  En épargnant {formatCurrency(res.monthlySavings)}/mois pendant {v.years} ans à {v.annualReturn} %/an,
+                  vous atteindrez {formatCurrency(v.goal)}. Les intérêts représentent {formatCurrency(Math.max(0, res.totalInterest))} —
+                  {res.totalInterest > 0 ? ` soit ${((res.totalInterest / v.goal) * 100).toFixed(0)} % de votre objectif financé par les rendements.` : " l'épargne seule couvre l'objectif."}
+                </p>
               </div>
 
               <div className="sim-stats-grid">

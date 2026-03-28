@@ -1,62 +1,69 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
+} from "recharts";
 import { formatCurrency } from "../utils/finance";
 import { trackResultComputed } from "../utils/analytics";
-import ProgressionChart from "./ProgressionChart";
 import Summary from "./Summary";
 
+/* ─── Custom chart tooltip ───────────────────────────────── */
+function ChartTooltip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  const owner  = payload.find((p) => p.dataKey === "ownerNetWorth");
+  const renter = payload.find((p) => p.dataKey === "renterPortfolio");
+  return (
+    <div className="res-chart-tip">
+      <p className="res-chart-tip-year">{label} an{label > 1 ? "s" : ""}</p>
+      {owner  && <div className="res-chart-tip-row"><span className="res-chart-tip-dot" style={{ background: "#2563eb" }}/><span>Achat</span><strong>{formatCurrency(owner.value)}</strong></div>}
+      {renter && <div className="res-chart-tip-row"><span className="res-chart-tip-dot" style={{ background: "#ec4899" }}/><span>Location</span><strong>{formatCurrency(renter.value)}</strong></div>}
+    </div>
+  );
+}
+
+/* ─── Natural language summary ───────────────────────────── */
+function buildNaturalSummary({ result, values, monthlyDiff, breakevenYear }) {
+  const { isBuyingBetter, advantage, ownerNetWorth, renterPortfolio } = result;
+  const y = values.comparisonYears;
+  const adv = formatCurrency(Math.abs(advantage));
+
+  if (isBuyingBetter) {
+    return breakevenYear
+      ? `En achetant, votre patrimoine net dépasse celui du locataire dès ${breakevenYear} an${breakevenYear > 1 ? "s" : ""}. Sur ${y} ans, vous accumulez ${adv} de plus qu'en restant locataire.`
+      : `Sur ${y} ans, acheter vous permet d'accumuler ${adv} de plus qu'en restant locataire (${formatCurrency(ownerNetWorth)} vs ${formatCurrency(renterPortfolio)}).`;
+  } else {
+    return breakevenYear
+      ? `En restant locataire et en plaçant la différence, vous accumulez ${adv} de plus sur ${y} ans. L'achat ne deviendrait avantageux qu'après ${breakevenYear} an${breakevenYear > 1 ? "s" : ""}.`
+      : `En restant locataire ${y} ans, vous accumulez ${adv} de plus qu'en achetant (${formatCurrency(renterPortfolio)} vs ${formatCurrency(ownerNetWorth)}). L'achat n'atteint pas l'équilibre sur cet horizon.`;
+  }
+}
+
+/* ─── Contextual tips ────────────────────────────────────── */
 function getContextualTips({ result, values }) {
   const tips = [];
   const apportPct = values.downPayment / values.purchasePrice;
-
   if (apportPct < 0.1) {
-    tips.push({ type: "warn", text: "Votre apport est inférieur à 10 %. Les banques exigent souvent au moins 10 % pour accorder un prêt — et préfèrent 20 % pour les meilleures conditions." });
+    tips.push({ type: "warn", text: "Apport < 10 % — les banques exigent souvent 10 % minimum, et préfèrent 20 % pour les meilleures conditions." });
   }
   if (values.comparisonYears <= 5) {
-    tips.push({ type: "warn", text: `Sur ${values.comparisonYears} ans, les frais d'achat (~8–10 %) ont à peine le temps de s'amortir. C'est souvent pourquoi la location gagne sur les horizons courts.` });
+    tips.push({ type: "warn", text: `Sur ${values.comparisonYears} ans, les frais d'achat (~8–10 %) ont à peine le temps de s'amortir.` });
   }
   if (!result.isBuyingBetter && values.comparisonYears < 12) {
-    tips.push({ type: "info", text: `Testez un horizon de 15–20 ans : l'achat gagne souvent sur le long terme une fois les frais initiaux absorbés.` });
+    tips.push({ type: "info", text: `Testez 15–20 ans : l'achat gagne souvent sur le long terme une fois les frais initiaux absorbés.` });
   }
   if (result.isBuyingBetter && result.advantage > 60000) {
-    tips.push({ type: "ok", text: `L'achat est nettement gagnant. Le bien s'apprécie suffisamment pour compenser les frais d'entrée et l'effort mensuel plus élevé.` });
+    tips.push({ type: "ok", text: `L'achat est nettement gagnant. Le bien s'apprécie suffisamment pour compenser les frais d'entrée.` });
   }
   if (values.monthlySavings > 0) {
-    tips.push({ type: "info", text: `Votre épargne mensuelle de ${formatCurrency(values.monthlySavings)} fait une vraie différence. Sur ${values.comparisonYears} ans, c'est ${formatCurrency(values.monthlySavings * values.comparisonYears * 12)} placés — hors rendement.` });
+    tips.push({ type: "info", text: `Votre épargne de ${formatCurrency(values.monthlySavings)}/mois fait une vraie différence sur ${values.comparisonYears} ans.` });
   }
-  return tips.slice(0, 2); // max 2 tips
+  return tips.slice(0, 2);
 }
 
-function buildInsights({ result, values, monthlyDiff, breakevenYear }) {
-  return [
-    {
-      icon: "💸",
-      text: monthlyDiff > 0
-        ? `Mensualité propriétaire : ${formatCurrency(result.ownerMonthlyTotal)}/mois vs ${formatCurrency(values.monthlyRent)}/mois de loyer. ${formatCurrency(monthlyDiff)}/mois de plus — épargne forcée via le remboursement du capital.`
-        : `La mensualité (${formatCurrency(result.ownerMonthlyTotal)}/mois) est inférieure au loyer (${formatCurrency(values.monthlyRent)}/mois). Avantage immédiat pour l'achat : ${formatCurrency(-monthlyDiff)}/mois d'économie.`,
-    },
-    {
-      icon: "📅",
-      text: breakevenYear
-        ? `L'achat devient plus rentable à partir de ${breakevenYear} an${breakevenYear > 1 ? "s" : ""}. En dessous, la location garde l'avantage malgré la constitution de patrimoine.`
-        : `Sur ${values.comparisonYears} ans, la location garde l'avantage. L'achat pourrait prendre l'avantage sur un horizon plus long.`,
-    },
-    {
-      icon: "🏠",
-      text: `Dans ${values.comparisonYears} ans, le bien vaudrait environ ${formatCurrency(result.propertyValueAtEnd)} avec une hausse de ${values.appreciationRate} %/an. Frais de revente estimés : ${formatCurrency(result.saleCosts)}.`,
-    },
-    {
-      icon: result.isBuyingBetter ? "📈" : "🔑",
-      text: result.isBuyingBetter
-        ? "L'achat constitue un patrimoine immobilier tangible et protège contre la hausse des loyers — au prix d'un engagement long terme."
-        : "La location offre plus de flexibilité et un capital liquide. Idéal si votre situation professionnelle ou personnelle peut évoluer.",
-    },
-  ];
-}
-
+/* ─── Main component ─────────────────────────────────────── */
 export default function StepResult({ result, values, onEdit }) {
-  const [showDetails, setShowDetails] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [showDetails, setShowDetails] = useState(false);
 
   const {
     isBuyingBetter, recommendation, advantage,
@@ -64,8 +71,7 @@ export default function StepResult({ result, values, onEdit }) {
     notaryFees, yearlyData, minPropertyValue,
   } = result;
 
-  const monthlyDiff = ownerMonthlyTotal - values.monthlyRent;
-  const renterLumpSum = values.downPayment + notaryFees;
+  const monthlyDiff  = ownerMonthlyTotal - values.monthlyRent;
   const breakevenYear = yearlyData?.find((d) => d.ownerNetWorth >= d.renterPortfolio)?.year ?? null;
 
   useEffect(() => {
@@ -82,9 +88,11 @@ export default function StepResult({ result, values, onEdit }) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [result]);
 
+  const naturalSummary = buildNaturalSummary({ result, values, monthlyDiff, breakevenYear });
   const tips = getContextualTips({ result, values });
-  const insights = buildInsights({ result, values, monthlyDiff, breakevenYear });
+  const winner  = isBuyingBetter ? "buy" : "rent";
 
+  /* share */
   const handleShare = async () => {
     const text =
       `Simulation Louer ou Acheter — ${values.comparisonYears} ans\n\n` +
@@ -93,27 +101,144 @@ export default function StepResult({ result, values, onEdit }) {
       `Verdict : ${recommendation} (avantage de ${formatCurrency(Math.abs(advantage))})\n` +
       `Mensualité : ${formatCurrency(ownerMonthlyTotal)}/mois vs loyer ${formatCurrency(values.monthlyRent)}/mois`;
     try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2200);
-    } catch {
-      /* fallback: ignore */
-    }
+      if (navigator.share) {
+        await navigator.share({ title: "Louer ou Acheter ?", text });
+      } else {
+        await navigator.clipboard.writeText(text);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2200);
+      }
+    } catch { /* ignore */ }
+  };
+
+  /* chart tick formatter */
+  const fmtYAxis = (v) => {
+    if (Math.abs(v) >= 1_000_000) return `${(v / 1_000_000).toFixed(1)}M`;
+    if (Math.abs(v) >= 1_000) return `${Math.round(v / 1_000)}k`;
+    return `${v}`;
   };
 
   return (
-    <div className="result-page" role="main" aria-label="Résultats de la simulation">
+    <div className="result-page" id="main-content" aria-label="Résultats de la simulation">
 
-      {/* ══ 1 — SCOREBOARD ══════════════════════════════════ */}
+      {/* ══ 1 — VERDICT HERO ════════════════════════════════ */}
+      <section className={`res-verdict-hero res-verdict-${winner}`} aria-live="polite">
+        <div className="res-verdict-badge">
+          {isBuyingBetter
+            ? <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 12l7 7L21 5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+            : <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 2v20M2 12h20" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/></svg>
+          }
+        </div>
+        <div className="res-verdict-content">
+          <p className="res-verdict-label">Meilleure option sur {values.comparisonYears} ans</p>
+          <h1 className="res-verdict-title">
+            {isBuyingBetter ? "Acheter" : "Louer"}
+            <span className="res-verdict-sub"> est plus avantageux</span>
+          </h1>
+          <p className="res-verdict-summary">{naturalSummary}</p>
+        </div>
+        <div className="res-verdict-delta">
+          <span className="res-verdict-delta-label">Avantage</span>
+          <span className="res-verdict-delta-amount">{formatCurrency(Math.abs(advantage))}</span>
+          <span className="res-verdict-delta-sub">de patrimoine en plus</span>
+        </div>
+      </section>
+
+      {/* ══ 2 — 3 KEY METRICS ═══════════════════════════════ */}
+      <div className="res-metrics" role="group" aria-label="Chiffres clés">
+        <div className="res-metric-card res-metric-blue">
+          <span className="res-metric-label">Mensualité propriétaire</span>
+          <span className="res-metric-value">{formatCurrency(ownerMonthlyTotal)}</span>
+          <span className="res-metric-sub">vs {formatCurrency(values.monthlyRent)}/mois de loyer</span>
+        </div>
+        <div className={`res-metric-card ${isBuyingBetter ? "res-metric-green" : "res-metric-pink"}`}>
+          <span className="res-metric-label">Différence de patrimoine</span>
+          <span className="res-metric-value">{formatCurrency(Math.abs(advantage))}</span>
+          <span className="res-metric-sub">en faveur de {isBuyingBetter ? "l'achat" : "la location"}</span>
+        </div>
+        <div className="res-metric-card res-metric-amber">
+          <span className="res-metric-label">Point d'équilibre</span>
+          <span className="res-metric-value">
+            {breakevenYear ? `${breakevenYear} an${breakevenYear > 1 ? "s" : ""}` : `> ${values.comparisonYears} ans`}
+          </span>
+          <span className="res-metric-sub">achat = location en patrimoine</span>
+        </div>
+      </div>
+
+      {/* ══ 3 — PATRIMOINE CHART ════════════════════════════ */}
+      <section className="res-chart-section" aria-label="Évolution du patrimoine">
+        <div className="res-chart-header">
+          <div>
+            <p className="res-chart-kicker">Évolution année par année</p>
+            <h2 className="res-chart-title">Comment les deux patrimoines évoluent</h2>
+          </div>
+          <div className="res-chart-legend">
+            <span className="res-chart-legend-item">
+              <span className="res-chart-legend-dot" style={{ background: "#2563eb" }}/>
+              Achat
+            </span>
+            <span className="res-chart-legend-item">
+              <span className="res-chart-legend-dot" style={{ background: "#ec4899" }}/>
+              Location
+            </span>
+          </div>
+        </div>
+        <ResponsiveContainer width="100%" height={260}>
+          <AreaChart data={yearlyData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+            <defs>
+              <linearGradient id="gradOwner" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#2563eb" stopOpacity={0.18}/>
+                <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
+              </linearGradient>
+              <linearGradient id="gradRenter" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="5%" stopColor="#ec4899" stopOpacity={0.14}/>
+                <stop offset="95%" stopColor="#ec4899" stopOpacity={0.02}/>
+              </linearGradient>
+            </defs>
+            <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" vertical={false}/>
+            <XAxis
+              dataKey="year"
+              tickFormatter={(v) => `${v}a`}
+              tick={{ fontSize: 11, fill: "var(--muted)" }}
+              axisLine={false} tickLine={false}
+            />
+            <YAxis
+              tickFormatter={fmtYAxis}
+              tick={{ fontSize: 11, fill: "var(--muted)" }}
+              axisLine={false} tickLine={false}
+              width={48}
+            />
+            <Tooltip content={<ChartTooltip />} cursor={{ stroke: "var(--line)", strokeWidth: 1 }}/>
+            {breakevenYear && (
+              <ReferenceLine
+                x={breakevenYear}
+                stroke="#94a3b8"
+                strokeDasharray="4 3"
+                label={{ value: `Équilibre ${breakevenYear}a`, position: "top", fontSize: 10, fill: "#94a3b8" }}
+              />
+            )}
+            <Area
+              type="monotone" dataKey="renterPortfolio" name="Location"
+              stroke="#ec4899" strokeWidth={2.5}
+              fill="url(#gradRenter)" dot={false} activeDot={{ r: 4, fill: "#ec4899" }}
+            />
+            <Area
+              type="monotone" dataKey="ownerNetWorth" name="Achat"
+              stroke="#2563eb" strokeWidth={2.5}
+              fill="url(#gradOwner)" dot={false} activeDot={{ r: 4, fill: "#2563eb" }}
+            />
+          </AreaChart>
+        </ResponsiveContainer>
+      </section>
+
+      {/* ══ 4 — SCOREBOARD ══════════════════════════════════ */}
       <section className="scoreboard" aria-label="Comparaison des deux scénarios">
-        <article className={`score-card ${isBuyingBetter ? "sc-winner" : "sc-loser"} sc-buy`} aria-label="Scénario achat">
+        <article className={`score-card ${isBuyingBetter ? "sc-winner" : "sc-loser"} sc-buy`}>
           {isBuyingBetter && <span className="sc-badge">✓ Meilleure option</span>}
           <span className="sc-icon" aria-hidden="true">🏠</span>
           <span className="sc-label">Acheter</span>
           <div className="sc-amount">{formatCurrency(ownerNetWorth)}</div>
-          <p className="sc-amount-label">
-            Patrimoine net dans {values.comparisonYears} an{values.comparisonYears > 1 ? "s" : ""}
-          </p>
+          <p className="sc-amount-label">Patrimoine net dans {values.comparisonYears} an{values.comparisonYears > 1 ? "s" : ""}</p>
           <div className="sc-monthly">
             <strong>{formatCurrency(ownerMonthlyTotal)}</strong>
             <span>/mois</span>
@@ -124,24 +249,16 @@ export default function StepResult({ result, values, onEdit }) {
         <div className="score-vs" aria-hidden="true">
           <span>vs</span>
           <div className={`advantage-pill ${isBuyingBetter ? "ap-buy" : "ap-rent"}`}>
-            {formatCurrency(Math.abs(advantage))}
-            <br />de différence
+            {formatCurrency(Math.abs(advantage))}<br/>de différence
           </div>
-          {breakevenYear && (
-            <span className="breakeven-note">
-              Achat + rentable<br />dès {breakevenYear} an{breakevenYear > 1 ? "s" : ""}
-            </span>
-          )}
         </div>
 
-        <article className={`score-card ${!isBuyingBetter ? "sc-winner" : "sc-loser"} sc-rent`} aria-label="Scénario location">
+        <article className={`score-card ${!isBuyingBetter ? "sc-winner" : "sc-loser"} sc-rent`}>
           {!isBuyingBetter && <span className="sc-badge">✓ Meilleure option</span>}
           <span className="sc-icon" aria-hidden="true">📈</span>
           <span className="sc-label">Louer</span>
           <div className="sc-amount">{formatCurrency(renterPortfolio)}</div>
-          <p className="sc-amount-label">
-            Capital investi dans {values.comparisonYears} an{values.comparisonYears > 1 ? "s" : ""}
-          </p>
+          <p className="sc-amount-label">Capital investi dans {values.comparisonYears} an{values.comparisonYears > 1 ? "s" : ""}</p>
           <div className="sc-monthly">
             <strong>{formatCurrency(values.monthlyRent)}</strong>
             <span>/mois</span>
@@ -150,17 +267,9 @@ export default function StepResult({ result, values, onEdit }) {
         </article>
       </section>
 
-      {/* ══ 2 — VERDICT ════════════════════════════════════ */}
-      <div className={`verdict-sentence ${isBuyingBetter ? "vs-buy" : "vs-rent"}`} role="status">
-        <strong>{recommendation}</strong> est la meilleure option sur {values.comparisonYears} ans —{" "}
-        {isBuyingBetter
-          ? `votre patrimoine net serait ${formatCurrency(advantage)} plus élevé qu'en restant locataire.`
-          : `votre capital serait ${formatCurrency(Math.abs(advantage))} plus élevé qu'en achetant.`}
-      </div>
-
-      {/* ══ 3 — CONTEXTUAL TIPS ════════════════════════════ */}
+      {/* ══ 5 — TIPS ════════════════════════════════════════ */}
       {tips.length > 0 && (
-        <div className="tips-list" role="note" aria-label="Conseils">
+        <div className="tips-list" role="note">
           {tips.map((tip, i) => (
             <div key={i} className={`tip-item tip-${tip.type}`}>
               <span className="tip-icon" aria-hidden="true">
@@ -172,31 +281,7 @@ export default function StepResult({ result, values, onEdit }) {
         </div>
       )}
 
-      {/* ══ 4 — RENTER OPPORTUNITY ═════════════════════════ */}
-      <div className="opportunity-card">
-        <div className="opp-left">
-          <span className="opp-icon" aria-hidden="true">💡</span>
-          <div>
-            <p className="opp-title">L'opportunité du locataire</p>
-            <p className="opp-text">
-              En plaçant <strong>{formatCurrency(renterLumpSum)}</strong> aujourd'hui
-              (apport + frais non dépensés) à {values.investmentReturn}&nbsp;%/an
-              {values.monthlySavings > 0 ? `, en investissant ${formatCurrency(values.monthlySavings)}/mois` : ""}
-              {monthlyDiff > 0 ? ` et ${formatCurrency(monthlyDiff)}/mois de différence de charges` : ""}
-              , le locataire accumule <strong>{formatCurrency(renterPortfolio)}</strong> en{" "}
-              {values.comparisonYears} ans — sans s'engager sur {values.mortgageYears} ans.
-            </p>
-          </div>
-        </div>
-        {monthlyDiff > 0 && (
-          <div className="opp-right" aria-label={`${formatCurrency(monthlyDiff)} par mois épargnés en restant locataire`}>
-            <span className="opp-saving-label">Épargné / mois</span>
-            <strong className="opp-saving-amount">{formatCurrency(monthlyDiff)}</strong>
-          </div>
-        )}
-      </div>
-
-      {/* ══ 5 — MIN PROPERTY VALUE ═════════════════════════ */}
+      {/* ══ 6 — MIN PROPERTY VALUE ══════════════════════════ */}
       <div className="min-value-card">
         <span className="min-value-icon" aria-hidden="true">🎯</span>
         <div>
@@ -212,19 +297,17 @@ export default function StepResult({ result, values, onEdit }) {
         </div>
       </div>
 
-      {/* ══ 6 — SHARE + EDIT ═══════════════════════════════ */}
-      <div className="result-actions">
-        <button
-          className="btn-share"
-          onClick={handleShare}
-          type="button"
-          aria-label="Copier le résumé dans le presse-papiers"
-        >
-          {copied ? "✓ Copié !" : "⎘ Copier les résultats"}
+      {/* ══ 7 — ACTIONS ═════════════════════════════════════ */}
+      <div className="res-actions">
+        <button className="btn-share" onClick={handleShare} type="button" aria-label="Partager les résultats">
+          {copied ? "✓ Copié !" : "⎘ Partager les résultats"}
+        </button>
+        <button className="btn-secondary res-restart-btn" onClick={onEdit} type="button">
+          ↩ Modifier les données
         </button>
       </div>
 
-      {/* ══ 7 — DETAILS (expandable) ═══════════════════════ */}
+      {/* ══ 8 — DETAILS expandable ══════════════════════════ */}
       <button
         className={`details-toggle ${showDetails ? "dt-open" : ""}`}
         onClick={() => setShowDetails(!showDetails)}
@@ -232,35 +315,11 @@ export default function StepResult({ result, values, onEdit }) {
         aria-expanded={showDetails}
         aria-controls="details-content"
       >
-        {showDetails ? "▲ Masquer le détail" : "▼ Voir l'évolution et le détail complet"}
+        {showDetails ? "▲ Masquer le détail complet" : "▼ Voir le détail complet"}
       </button>
 
       {showDetails && (
         <div id="details-content" className="details-section">
-          <div className="panel prog-section">
-            <p className="section-kicker">Évolution année par année</p>
-            <h2 className="panel-h2">Comment les deux patrimoines évoluent</h2>
-            <p className="prog-desc">
-              Courbe bleue = patrimoine net du propriétaire (valeur du bien − capital
-              restant dû − frais de revente). Courbe rose = capital du locataire
-              (apport placé + épargne mensuelle + surplus accumulés).
-            </p>
-            <ProgressionChart yearlyData={yearlyData} />
-          </div>
-
-          <div className="panel insights-panel">
-            <p className="section-kicker">Points clés</p>
-            <h2 className="panel-h2">Ce qu'il faut retenir</h2>
-            <ul className="insights-list">
-              {insights.map((it, i) => (
-                <li key={i} className="insight-item">
-                  <span className="insight-icon" aria-hidden="true">{it.icon}</span>
-                  <span>{it.text}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
-
           <div className="details-grid">
             <Summary result={result} />
             <div className="panel note-card">
@@ -275,10 +334,8 @@ export default function StepResult({ result, values, onEdit }) {
         </div>
       )}
 
-      {/* ══ POST-SIMULATION ════════════════════════════════ */}
+      {/* ══ 9 — POST-SIMULATION ══════════════════════════════ */}
       <div className="post-sim-section">
-
-        {/* Simulateur complémentaire */}
         <div className="post-sim-next">
           <p className="post-sim-next-kicker">Simulateur complémentaire</p>
           {isBuyingBetter ? (
@@ -286,10 +343,7 @@ export default function StepResult({ result, values, onEdit }) {
               <span className="post-sim-next-icon">📋</span>
               <div>
                 <p className="post-sim-next-title">Calculez vos frais de notaire</p>
-                <p className="post-sim-next-desc">
-                  Vous envisagez d'acheter — estimez précisément les frais de notaire
-                  au centime près selon le barème légal 2024.
-                </p>
+                <p className="post-sim-next-desc">Estimez précisément les frais de notaire au centime près selon le barème légal 2024.</p>
               </div>
               <span className="post-sim-next-arrow">→</span>
             </Link>
@@ -298,25 +352,17 @@ export default function StepResult({ result, values, onEdit }) {
               <span className="post-sim-next-icon">💰</span>
               <div>
                 <p className="post-sim-next-title">Optimisez votre épargne</p>
-                <p className="post-sim-next-desc">
-                  La location semble avantageuse — calculez l'épargne mensuelle nécessaire
-                  pour atteindre votre objectif d'apport.
-                </p>
+                <p className="post-sim-next-desc">Calculez l'épargne mensuelle nécessaire pour atteindre votre objectif d'apport.</p>
               </div>
               <span className="post-sim-next-arrow">→</span>
             </Link>
           )}
         </div>
-
-        {/* Newsletter */}
         <NewsletterBox />
-
       </div>
 
       <div className="result-footer">
-        <button className="btn-secondary" onClick={onEdit} type="button">
-          ← Modifier mes données
-        </button>
+        <button className="btn-secondary" onClick={onEdit} type="button">← Modifier mes données</button>
       </div>
     </div>
   );
@@ -324,7 +370,7 @@ export default function StepResult({ result, values, onEdit }) {
 
 function NewsletterBox() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | success | error
+  const [status, setStatus] = useState("idle");
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -344,10 +390,7 @@ function NewsletterBox() {
         <span className="newsletter-icon" aria-hidden="true">📬</span>
         <div className="newsletter-text">
           <p className="newsletter-title">Recevez les mises à jour des taux</p>
-          <p className="newsletter-desc">
-            Taux immobiliers, modifications HCSF, nouvelles aides — on vous prévient dès que ça change.
-            Pas de spam, désinscription en un clic.
-          </p>
+          <p className="newsletter-desc">Taux immobiliers, modifications HCSF, nouvelles aides — on vous prévient dès que ça change. Pas de spam, désinscription en un clic.</p>
         </div>
       </div>
       {status === "success" ? (
@@ -363,9 +406,7 @@ function NewsletterBox() {
             aria-label="Adresse e-mail"
             autoComplete="email"
           />
-          <button type="submit" className="btn-primary newsletter-btn">
-            S'inscrire →
-          </button>
+          <button type="submit" className="btn-primary newsletter-btn">S'inscrire →</button>
         </form>
       )}
       {status === "error" && <p className="newsletter-error">Adresse e-mail invalide.</p>}
