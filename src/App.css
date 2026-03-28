@@ -1,4 +1,7 @@
 /* ─── Tokens ─────────────────────────────────────────────── */
+/* Prevent horizontal overflow on all devices */
+html, body { overflow-x: hidden; max-width: 100%; }
+
 :root {
   --bg: #f5f7fb;
   --card: #ffffff;
@@ -1620,13 +1623,14 @@ input[type="range"]::-moz-range-thumb {
   66%       { transform: translate(-20px, 15px) scale(.95); }
 }
 
-.lp { flex: 1; display: flex; flex-direction: column; }
+.lp { flex: 1; display: flex; flex-direction: column; overflow-x: hidden; width: 100%; }
 
 /* Hero */
 .lp-hero {
-  position: relative; overflow: hidden;
+  position: relative; overflow: clip; /* clip prevents iOS scroll leak from animated orbs */
   background: #070d1a;
   padding: 80px 24px 96px;
+  width: 100%;
 }
 .lp-hero-orb {
   position: absolute; border-radius: 50%; filter: blur(80px);
@@ -1650,9 +1654,10 @@ input[type="range"]::-moz-range-thumb {
 
 .lp-hero-inner {
   position: relative; z-index: 1;
-  max-width: 1100px; margin: 0 auto;
+  max-width: 1100px; width: 100%; margin: 0 auto;
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 64px; align-items: center;
+  min-width: 0;
 }
 
 .lp-hero-content { display: flex; flex-direction: column; gap: 24px; }
@@ -1957,7 +1962,7 @@ input[type="range"]::-moz-range-thumb {
 /* LP Responsive */
 @media (max-width: 900px) {
   .lp-hero-inner { grid-template-columns: 1fr; gap: 44px; }
-  .lp-mockup { max-width: 480px; margin: 0 auto; }
+  .lp-mockup { max-width: min(480px, 100%); margin: 0 auto; width: 100%; }
   .lp-hero { padding: 60px 24px 68px; }
   .lp-how-steps { grid-template-columns: 1fr; gap: 28px; }
   .lp-how-steps::before { display: none; }
@@ -1975,6 +1980,19 @@ input[type="range"]::-moz-range-thumb {
   .lp-presets-section, .lp-sims-section { padding: 52px 16px; }
   .lp-how { padding: 52px 16px; }
   .lp-sims-grid { grid-template-columns: 1fr; }
+  /* Hide interactive mockup on small phones — too cramped */
+  .lp-mockup { display: none; }
+  /* Reduce why-section large padding */
+  .lp-why-section { padding: 40px 20px; }
+  .lp-testimonials-section { padding: 40px 16px; }
+  .lp-blog-section { padding: 40px 16px; }
+  .lp-faq-section { padding: 40px 16px; }
+  /* Why grid: 2 columns on small screens */
+  .lp-why-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+  .lp-why-card { padding: 18px 12px; }
+  .lp-why-icon { font-size: 26px; }
+  .lp-why-title { font-size: 13px; }
+  .lp-why-desc { font-size: 12px; }
 }
 @media (max-width: 480px) {
   .lp-trust-item { border-right: none; border-bottom: 1px solid var(--line); width: 100%; min-width: unset; flex: none; }
@@ -1982,6 +2000,8 @@ input[type="range"]::-moz-range-thumb {
   .lp-preset-card { padding: 14px; gap: 12px; }
   .lp-preset-icon-wrap { width: 48px; height: 48px; font-size: 28px; }
   .lp-preset-name { font-size: 15px; }
+  /* Ensure why grid stays 2×2 even at very small widths */
+  .lp-why-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 
 /* ─── SimScoreAcheteur ───────────────────────────────────── */
@@ -2257,7 +2277,7 @@ input[type="range"]::-moz-range-thumb {
 .sim-conseil-text strong { color: #92400e; }
 
 /* ─── StepLanding — Why Different ───────────────────────── */
-.lp-why-section { background: var(--card); border-radius: var(--radius); padding: 52px 40px; }
+.lp-why-section { background: var(--card); border-radius: var(--radius); padding: 52px 40px; width: 100%; box-sizing: border-box; }
 .lp-why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; margin-top: 32px; }
 .lp-why-card { text-align: center; padding: 24px 16px; border-radius: 16px; border: 1.5px solid var(--line); background: var(--bg); }
 .lp-why-icon { font-size: 32px; display: block; margin-bottom: 12px; }

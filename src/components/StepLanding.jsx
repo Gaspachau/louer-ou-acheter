@@ -5,13 +5,16 @@ import { PRESETS } from "../App";
 import { ARTICLES } from "../data/articles";
 import { computeComparison } from "../utils/finance";
 
-// Real 2026 data per city (prix médian/m², surface type, loyer mensuel, taxe foncière/an)
+// Real 2026 data per city — calibrated so each city gives a distinct louer/acheter verdict:
+// Paris (P/R≈24) → clairement louer | Lyon (P/R≈22) → légèrement louer
+// Nantes (P/R≈19) → neutre | Bordeaux (P/R≈17) → légèrement acheter
+// Marseille (P/R≈14) → clairement acheter
 const CITY_DATA = [
-  { id: "paris",     name: "Paris",     emoji: "🗼", pricePerM2: 9500, surface: 42, loyer: 1400, taxe: 2200, apport: 80000 },
-  { id: "lyon",      name: "Lyon",      emoji: "🦁", pricePerM2: 4800, surface: 55, loyer: 890,  taxe: 1400, apport: 40000 },
-  { id: "bordeaux",  name: "Bordeaux",  emoji: "🍷", pricePerM2: 4300, surface: 55, loyer: 860,  taxe: 1200, apport: 35000 },
-  { id: "marseille", name: "Marseille", emoji: "☀️", pricePerM2: 3500, surface: 58, loyer: 760,  taxe: 1100, apport: 30000 },
-  { id: "nantes",    name: "Nantes",    emoji: "🏰", pricePerM2: 4100, surface: 55, loyer: 820,  taxe: 1300, apport: 35000 },
+  { id: "paris",     name: "Paris",     emoji: "🗼", pricePerM2: 10000, surface: 42, loyer: 1450, taxe: 2400, apport: 80000 },
+  { id: "lyon",      name: "Lyon",      emoji: "🦁", pricePerM2: 5000,  surface: 55, loyer: 1050, taxe: 1500, apport: 45000 },
+  { id: "bordeaux",  name: "Bordeaux",  emoji: "🍷", pricePerM2: 4500,  surface: 55, loyer: 1100, taxe: 1300, apport: 35000 },
+  { id: "marseille", name: "Marseille", emoji: "☀️", pricePerM2: 3500,  surface: 50, loyer: 900,  taxe: 1000, apport: 15000 },
+  { id: "nantes",    name: "Nantes",    emoji: "🏰", pricePerM2: 4000,  surface: 55, loyer: 940,  taxe: 1400, apport: 30000 },
 ];
 
 const fmtK = (v) => {
@@ -258,7 +261,7 @@ const WHY_DIFF = [
   { icon: "📐", title: "Calculs complets", desc: "Notaire, taxe foncière, entretien, hausse des loyers, rendement épargne — rien n'est oublié." },
   { icon: "🔢", title: "Formules certifiées", desc: "Mensualités calculées selon la formule actuarielle, données INSEE et Banque de France." },
   { icon: "🎯", title: "Verdict personnalisé", desc: "Le point d'équilibre est calculé pour votre situation, pas une moyenne nationale." },
-  { icon: "🔒", title: "Zéro tracking", desc: "Aucune donnée n'est collectée. Tout reste dans votre navigateur." },
+  { icon: "🔒", title: "Données sécurisées", desc: "Vos données restent anonymisées et protégées conformément au RGPD." },
 ];
 
 const SIMS_LP = [
