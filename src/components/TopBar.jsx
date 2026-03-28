@@ -8,6 +8,7 @@ export default function TopBar({ onBrandClick, rightContent }) {
   const isSim   = pathname.startsWith("/simulateurs");
   const isBlog  = pathname === "/blog" || pathname.startsWith("/blog/");
   const isMap   = pathname === "/carte-mondiale";
+  const isGuide = pathname === "/guide-achat";
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -62,6 +63,18 @@ export default function TopBar({ onBrandClick, rightContent }) {
               <path d="M7 1C7 1 5 4 5 7s2 6 2 6M7 1c0 0 2 3 2 6s-2 6-2 6M1 7h12" strokeLinecap="round"/>
             </svg>
             Carte
+          </Link>
+          <Link
+            to="/guide-achat"
+            className={`topbar-nav-pill${isGuide ? " topbar-nav-pill-active" : ""}`}
+            aria-current={isGuide ? "page" : undefined}
+          >
+            <svg className="topbar-nav-icon" width="13" height="13" viewBox="0 0 14 14" fill="currentColor" aria-hidden="true">
+              <path d="M2 2h10v1.5H2zM2 5h7v1.5H2zM2 8h8.5v1.5H2zM2 11h5v1.5H2z" opacity=".9"/>
+              <circle cx="11.5" cy="11.5" r="2" fill="none" stroke="currentColor" strokeWidth="1.3"/>
+              <path d="M13 13l1.2 1.2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round"/>
+            </svg>
+            Guide
           </Link>
           <Link
             to="/blog"

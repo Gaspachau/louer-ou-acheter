@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
+import { select } from "d3-selection";
+import { zoom, zoomIdentity } from "d3-zoom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 import { HOMEOWNERSHIP, ownershipColor, FRANCE_RATE, COLOR_LEGEND } from "../data/homeownership";
@@ -13,6 +15,9 @@ const projection = geoNaturalEarth1()
   .translate([W / 2, H / 2 + 20]);
 
 const pathGen = geoPath().projection(projection);
+
+/* ─── Pre-compute paths once ─────────────────────────────── */
+let cachedFeatures = [];
 
 /* ─── Top 10 lists ────────────────────────────────────────── */
 const sorted = Object.entries(HOMEOWNERSHIP)
@@ -32,8 +37,9 @@ function Tooltip({ data, x, y, visible }) {
     <div
       className="cm-tooltip"
       style={{
-        left: Math.min(x + 12, window.innerWidth - 240),
-        top:  Math.max(y - 80, 8),
+        left: Math.min(x + 16, window.innerWidth - 248),
+        top:  Math.max(y - 88, 8),
+        pointerEvents: "none",
       }}
     >
       <p className="cm-tooltip-country">{data.name}</p>
@@ -55,7 +61,7 @@ function Tooltip({ data, x, y, visible }) {
   );
 }
 
-/* ─── Country info panel (mobile/click) ──────────────────── */
+/* ─── Country info panel (click / mobile) ────────────────── */
 function CountryPanel({ data, onClose }) {
   if (!data) return null;
   const diff = data.rate - FRANCE_RATE;
@@ -115,14 +121,49 @@ function RankRow({ rank, name, rate, isFrance }) {
   );
 }
 
+/* ─── Map SVG (memoised so zoom doesn't re-render paths) ─── */
+function MapPaths({ features, hoveredId, selected, onEnter, onLeave, onMove, onClick }) {
+  return (
+    <>
+      {features.map((geo) => {
+        const id      = parseInt(geo.id, 10);
+        const country = HOMEOWNERSHIP[id];
+        const color   = ownershipColor(country?.rate);
+        const isHigh  = (hoveredId === String(geo.id) || (selected && selected.name === country?.name)) && !!country;
+        const d       = pathGen(geo);
+        if (!d) return null;
+        return (
+          <path
+            key={geo.id}
+            d={d}
+            fill={isHigh ? "#f59e0b" : color}
+            stroke="#fff"
+            strokeWidth={0.3}
+            style={{ cursor: country ? "pointer" : "default" }}
+            onMouseEnter={country ? () => onEnter(String(geo.id)) : undefined}
+            onMouseMove={country  ? (e) => onMove(e, country)    : undefined}
+            onMouseLeave={onLeave}
+            onClick={() => onClick(country ?? null)}
+          />
+        );
+      })}
+    </>
+  );
+}
+
 /* ─── Main page ───────────────────────────────────────────── */
 export default function PageCarteMondiale() {
   const [features, setFeatures]   = useState([]);
   const [tooltip,  setTooltip]    = useState({ visible: false, data: null, x: 0, y: 0 });
   const [selected, setSelected]   = useState(null);
   const [hoveredId, setHoveredId] = useState(null);
-  const [zoom, setZoom]           = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
 
+  const svgRef  = useRef(null);
+  const gRef    = useRef(null);
+  const zoomRef = useRef(null);
+
+  /* Load topojson */
   useEffect(() => {
     fetch("/world-110m.json")
       .then((r) => r.json())
@@ -133,24 +174,51 @@ export default function PageCarteMondiale() {
       .catch(() => {});
   }, []);
 
-  const handleMouseMove = useCallback((e, data) => {
-    setTooltip({ visible: true, data, x: e.clientX, y: e.clientY });
-  }, []);
+  /* Setup D3 zoom (drag + scroll + pinch) */
+  useEffect(() => {
+    if (!svgRef.current || features.length === 0) return;
 
-  const handlePathMouseLeave = useCallback(() => {
+    const svg = select(svgRef.current);
+
+    const zoomBehavior = zoom()
+      .scaleExtent([1, 8])
+      .on("start", () => setIsDragging(true))
+      .on("zoom",  (event) => {
+        if (gRef.current) {
+          gRef.current.setAttribute("transform", event.transform.toString());
+        }
+      })
+      .on("end", () => setIsDragging(false));
+
+    zoomRef.current = zoomBehavior;
+    svg.call(zoomBehavior);
+
+    return () => svg.on(".zoom", null);
+  }, [features.length > 0]);
+
+  /* Zoom controls */
+  const zoomIn    = () => zoomRef.current && select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, 1.5);
+  const zoomOut   = () => zoomRef.current && select(svgRef.current).transition().duration(300).call(zoomRef.current.scaleBy, 1 / 1.5);
+  const zoomReset = () => zoomRef.current && select(svgRef.current).transition().duration(400).call(zoomRef.current.transform, zoomIdentity);
+
+  const handleMouseMove = useCallback((e, data) => {
+    if (isDragging) return;
+    setTooltip({ visible: true, data, x: e.clientX, y: e.clientY });
+  }, [isDragging]);
+
+  const handleMouseLeave = useCallback(() => {
     setHoveredId(null);
     setTooltip((t) => ({ ...t, visible: false }));
   }, []);
 
-  const handleClick = useCallback((data) => {
-    if (data) setSelected(data);
-  }, []);
+  const handleEnter = useCallback((id) => {
+    if (!isDragging) setHoveredId(id);
+  }, [isDragging]);
 
-  /* ViewBox-based zoom (zooms into center) */
-  const vbW = W / zoom;
-  const vbH = H / zoom;
-  const vbX = (W - vbW) / 2;
-  const vbY = (H - vbH) / 2;
+  const handleClick = useCallback((data) => {
+    if (isDragging) return;
+    if (data) setSelected(data);
+  }, [isDragging]);
 
   return (
     <div className="page">
@@ -207,46 +275,43 @@ export default function PageCarteMondiale() {
 
           {/* Zoom controls */}
           <div className="cm-zoom-controls">
-            <button className="cm-zoom-btn" onClick={() => setZoom((z) => Math.min(z * 1.5, 8))}  type="button" aria-label="Zoom avant">+</button>
-            <button className="cm-zoom-btn" onClick={() => setZoom((z) => Math.max(z / 1.5, 1))} type="button" aria-label="Zoom arrière">−</button>
-            <button className="cm-zoom-btn" onClick={() => setZoom(1)}                             type="button" aria-label="Réinitialiser le zoom">↺</button>
+            <button className="cm-zoom-btn" onClick={zoomIn}    type="button" aria-label="Zoom avant">+</button>
+            <button className="cm-zoom-btn" onClick={zoomOut}   type="button" aria-label="Zoom arrière">−</button>
+            <button className="cm-zoom-btn" onClick={zoomReset} type="button" aria-label="Réinitialiser le zoom">↺</button>
+          </div>
+
+          <div className="cm-map-hint">
+            <span>🖱️ Scroll pour zoomer · Cliquer-glisser pour naviguer · Clic sur un pays pour les détails</span>
           </div>
 
           <div
-            className="cm-map-wrap"
+            className={`cm-map-wrap${isDragging ? " cm-map-dragging" : ""}`}
             role="img"
             aria-label="Carte mondiale des taux de propriétaires"
           >
+            {features.length === 0 && (
+              <div className="cm-map-loading">Chargement de la carte…</div>
+            )}
             <svg
-              viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
-              style={{ width: "100%", height: "auto", display: "block" }}
+              ref={svgRef}
+              viewBox={`0 0 ${W} ${H}`}
+              style={{ width: "100%", height: "auto", display: "block", touchAction: "none" }}
             >
-              {features.map((geo) => {
-                const id      = parseInt(geo.id, 10);
-                const country = HOMEOWNERSHIP[id];
-                const color   = ownershipColor(country?.rate);
-                const isHigh  = (hoveredId === geo.id || (selected && selected.name === country?.name)) && !!country;
-                const d       = pathGen(geo);
-                if (!d) return null;
-                return (
-                  <path
-                    key={geo.id}
-                    d={d}
-                    fill={isHigh ? "#f59e0b" : color}
-                    stroke="#fff"
-                    strokeWidth={0.4}
-                    style={{ cursor: country ? "pointer" : "default" }}
-                    onMouseEnter={country ? () => setHoveredId(geo.id) : undefined}
-                    onMouseMove={country  ? (e) => handleMouseMove(e, country) : undefined}
-                    onMouseLeave={handlePathMouseLeave}
-                    onClick={() => handleClick(country ?? null)}
-                  />
-                );
-              })}
+              <g ref={gRef}>
+                <MapPaths
+                  features={features}
+                  hoveredId={hoveredId}
+                  selected={selected}
+                  onEnter={handleEnter}
+                  onLeave={handleMouseLeave}
+                  onMove={handleMouseMove}
+                  onClick={handleClick}
+                />
+              </g>
             </svg>
           </div>
 
-          {/* Tooltip (desktop) */}
+          {/* Tooltip (desktop hover) */}
           <Tooltip {...tooltip} />
 
           {/* Country panel (click / mobile) */}
@@ -319,47 +384,39 @@ export default function PageCarteMondiale() {
                 affichent les taux les plus élevés du monde. La privatisation massive des
                 logements sociaux dans les années 1990 a transféré la propriété à des prix
                 symboliques aux locataires d'État. Ces pays ont ainsi créé une société de
-                propriétaires en quelques années — sans que le marché immobilier ait eu le
-                temps de se développer.
+                propriétaires en quelques années.
               </p>
             </div>
-
             <div className="cm-why-card">
               <div className="cm-why-card-icon">🏦</div>
               <h3 className="cm-why-card-title">Fiscalité et politique du logement</h3>
               <p className="cm-why-card-text">
                 En Suisse (36 %), la location est culturellement valorisée et fiscalement
-                traitée à égalité avec l'achat — les loyers sont encadrés, le marché locatif
-                est stable et de qualité. En Allemagne (45 %), les loyers réglementés
-                (<em>Mietpreisbremse</em>) et des droits très forts pour les locataires
-                rendent la location attractive. À l'inverse, des aides à l'accession
-                (PTZ en France, Help to Buy au Royaume-Uni) poussent vers la propriété.
+                traitée à égalité avec l'achat. En Allemagne (45 %), les loyers réglementés
+                (<em>Mietpreisbremse</em>) rendent la location attractive. À l'inverse,
+                des aides à l'accession (PTZ en France, Help to Buy au Royaume-Uni)
+                poussent vers la propriété.
               </p>
             </div>
-
             <div className="cm-why-card">
               <div className="cm-why-card-icon">💰</div>
               <h3 className="cm-why-card-title">Revenus et prix immobiliers</h3>
               <p className="cm-why-card-text">
-                Dans les pays où les prix immobiliers sont très élevés par rapport aux revenus
-                (Royaume-Uni, Australie, Canada), le taux de propriétaires baisse tendanciellement
+                Dans les pays où les prix sont très élevés par rapport aux revenus
+                (Royaume-Uni, Australie, Canada), le taux de propriétaires baisse
                 depuis 20 ans. En Corée du Sud (57 %), le système du <em>jeonse</em>
-                (location avec caution importante remboursée) est une alternative culturelle
-                à l'achat. Dans les pays en développement, l'accès au crédit immobilier étant
-                limité, on observe des taux élevés de propriétaires de logements informels.
+                (caution importante remboursée) est une alternative culturelle à l'achat.
               </p>
             </div>
-
             <div className="cm-why-card">
               <div className="cm-why-card-icon">🧬</div>
               <h3 className="cm-why-card-title">Culture et démographie</h3>
               <p className="cm-why-card-text">
-                La taille des ménages joue un rôle : les pays à forte natalité et familles
-                élargies (Inde 87 %, Afrique subsaharienne) ont souvent des taux de propriétaires
-                élevés, car plusieurs générations partagent un logement familial transmis.
-                Les jeunes adultes nordiques, plus mobiles et individualistes, restent locataires
-                plus longtemps. En France, "la pierre" reste un placement culturellement
-                valorisé, mais le coût élevé dans les grandes villes maintient le taux à 65 %.
+                Les pays à forte natalité et familles élargies (Inde 87 %) ont souvent
+                des taux élevés, car plusieurs générations partagent un logement familial.
+                Les jeunes adultes nordiques restent locataires plus longtemps. En France,
+                "la pierre" reste culturellement valorisée mais le coût élevé dans les
+                grandes villes maintient le taux à 65 %.
               </p>
             </div>
           </div>
@@ -368,8 +425,6 @@ export default function PageCarteMondiale() {
             <p>
               <strong>Sources :</strong> Eurostat Housing Statistics 2023, OECD Affordable
               Housing Database 2022–2024, UN-Habitat World Cities Report, statistiques nationales.
-              Les données reflètent les ménages résidents — les résidences secondaires et
-              logements vacants ne sont pas comptabilisés.
             </p>
           </div>
         </section>

@@ -29,6 +29,7 @@ const SimComparateurVilles = lazy(() => import("./components/simulateurs/SimComp
 const PageAPropos = lazy(() => import("./components/PageAPropos"));
 const PageMentionsLegales = lazy(() => import("./components/PageMentionsLegales"));
 const PageCarteMondiale = lazy(() => import("./components/PageCarteMondiale"));
+const PageGuideAchat    = lazy(() => import("./components/PageGuideAchat"));
 const SimScoreAcheteur = lazy(() => import("./components/simulateurs/SimScoreAcheteur"));
 const SimOptimiseurApport = lazy(() => import("./components/simulateurs/SimOptimiseurApport"));
 const SimStressTest = lazy(() => import("./components/simulateurs/SimStressTest"));
@@ -187,6 +188,7 @@ export default function App() {
         <Route path="/a-propos" element={<PageAPropos />} />
         <Route path="/mentions-legales" element={<PageMentionsLegales />} />
         <Route path="/carte-mondiale" element={<PageCarteMondiale />} />
+        <Route path="/guide-achat" element={<PageGuideAchat />} />
         <Route path="/simulateurs/score-acheteur" element={<SimScoreAcheteur />} />
         <Route path="/simulateurs/optimiser-apport" element={<SimOptimiseurApport />} />
         <Route path="/simulateurs/stress-test" element={<SimStressTest />} />

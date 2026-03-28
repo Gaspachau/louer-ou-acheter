@@ -12,6 +12,8 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "d3-geo": "^3.1.1",
+    "d3-selection": "^3.0.0",
+    "d3-zoom": "^3.0.0",
     "posthog-js": "^1.364.1",
     "prop-types": "^15.8.1",
     "react": "^19.2.4",
