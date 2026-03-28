@@ -1,17 +1,25 @@
-import { useState, useCallback } from "react";
-import { ComposableMap, Geographies, Geography, ZoomableGroup } from "react-simple-maps";
+import { useState, useEffect, useCallback, useRef } from "react";
+import { geoNaturalEarth1, geoPath } from "d3-geo";
+import { feature } from "topojson-client";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 import { HOMEOWNERSHIP, ownershipColor, FRANCE_RATE, COLOR_LEGEND } from "../data/homeownership";
 
-const GEO_URL = "/world-110m.json";
+const W = 960;
+const H = 500;
+
+const projection = geoNaturalEarth1()
+  .scale(153)
+  .translate([W / 2, H / 2 + 20]);
+
+const pathGen = geoPath().projection(projection);
 
 /* ─── Top 10 lists ────────────────────────────────────────── */
 const sorted = Object.entries(HOMEOWNERSHIP)
   .map(([, d]) => d)
   .sort((a, b) => b.rate - a.rate);
 
-const TOP_OWNERS = sorted.slice(0, 10);
+const TOP_OWNERS  = sorted.slice(0, 10);
 const TOP_RENTERS = sorted.slice(-10).reverse();
 
 /* ─── Tooltip ─────────────────────────────────────────────── */
@@ -20,13 +28,12 @@ function Tooltip({ data, x, y, visible }) {
   const diff = data.rate - FRANCE_RATE;
   const diffStr = diff > 0 ? `+${diff} pts` : `${diff} pts`;
   const diffColor = diff > 0 ? "#1a56db" : "#0d9488";
-
   return (
     <div
       className="cm-tooltip"
       style={{
         left: Math.min(x + 12, window.innerWidth - 240),
-        top: Math.max(y - 80, 8),
+        top:  Math.max(y - 80, 8),
       }}
     >
       <p className="cm-tooltip-country">{data.name}</p>
@@ -110,32 +117,47 @@ function RankRow({ rank, name, rate, isFrance }) {
 
 /* ─── Main page ───────────────────────────────────────────── */
 export default function PageCarteMondiale() {
-  const [tooltip, setTooltip] = useState({ visible: false, data: null, x: 0, y: 0 });
-  const [selected, setSelected] = useState(null);
-  const [zoom, setZoom] = useState(1);
+  const [features, setFeatures]   = useState([]);
+  const [tooltip,  setTooltip]    = useState({ visible: false, data: null, x: 0, y: 0 });
+  const [selected, setSelected]   = useState(null);
+  const [hoveredId, setHoveredId] = useState(null);
+  const [zoom, setZoom]           = useState(1);
 
-  const handleMouseMove = useCallback((geo, e) => {
-    const id = parseInt(geo.id, 10);
-    const data = HOMEOWNERSHIP[id];
-    setTooltip({ visible: true, data: data || null, x: e.clientX, y: e.clientY });
+  useEffect(() => {
+    fetch("/world-110m.json")
+      .then((r) => r.json())
+      .then((topo) => {
+        const geo = feature(topo, topo.objects.countries);
+        setFeatures(geo.features);
+      })
+      .catch(() => {});
   }, []);
 
-  const handleMouseLeave = useCallback(() => {
+  const handleMouseMove = useCallback((e, data) => {
+    setTooltip({ visible: true, data, x: e.clientX, y: e.clientY });
+  }, []);
+
+  const handlePathMouseLeave = useCallback(() => {
+    setHoveredId(null);
     setTooltip((t) => ({ ...t, visible: false }));
   }, []);
 
-  const handleClick = useCallback((geo) => {
-    const id = parseInt(geo.id, 10);
-    const data = HOMEOWNERSHIP[id];
+  const handleClick = useCallback((data) => {
     if (data) setSelected(data);
   }, []);
+
+  /* ViewBox-based zoom (zooms into center) */
+  const vbW = W / zoom;
+  const vbH = H / zoom;
+  const vbX = (W - vbW) / 2;
+  const vbY = (H - vbH) / 2;
 
   return (
     <div className="page">
       <TopBar />
       <main id="main-content" className="cm-page">
 
-        {/* ── HERO ───────────────────────────────────────────── */}
+        {/* ── HERO ─────────────────────────────────────────── */}
         <div className="cm-hero">
           <div className="cm-hero-text">
             <span className="blog-kicker">Comparaison mondiale</span>
@@ -164,7 +186,7 @@ export default function PageCarteMondiale() {
           </div>
         </div>
 
-        {/* ── MAP ────────────────────────────────────────────── */}
+        {/* ── MAP ──────────────────────────────────────────── */}
         <div className="cm-map-section">
           {/* Legend */}
           <div className="cm-legend">
@@ -185,54 +207,43 @@ export default function PageCarteMondiale() {
 
           {/* Zoom controls */}
           <div className="cm-zoom-controls">
-            <button className="cm-zoom-btn" onClick={() => setZoom((z) => Math.min(z * 1.5, 8))} type="button" aria-label="Zoom avant">+</button>
+            <button className="cm-zoom-btn" onClick={() => setZoom((z) => Math.min(z * 1.5, 8))}  type="button" aria-label="Zoom avant">+</button>
             <button className="cm-zoom-btn" onClick={() => setZoom((z) => Math.max(z / 1.5, 1))} type="button" aria-label="Zoom arrière">−</button>
-            <button className="cm-zoom-btn" onClick={() => setZoom(1)} type="button" aria-label="Réinitialiser le zoom">↺</button>
+            <button className="cm-zoom-btn" onClick={() => setZoom(1)}                             type="button" aria-label="Réinitialiser le zoom">↺</button>
           </div>
 
-          <div className="cm-map-wrap" role="img" aria-label="Carte mondiale des taux de propriétaires">
-            <ComposableMap
-              projectionConfig={{ scale: 147, center: [0, 10] }}
-              style={{ width: "100%", height: "auto" }}
+          <div
+            className="cm-map-wrap"
+            role="img"
+            aria-label="Carte mondiale des taux de propriétaires"
+          >
+            <svg
+              viewBox={`${vbX} ${vbY} ${vbW} ${vbH}`}
+              style={{ width: "100%", height: "auto", display: "block" }}
             >
-              <ZoomableGroup zoom={zoom} minZoom={1} maxZoom={8}>
-                <Geographies geography={GEO_URL}>
-                  {({ geographies }) =>
-                    geographies.map((geo) => {
-                      const id = parseInt(geo.id, 10);
-                      const country = HOMEOWNERSHIP[id];
-                      const color = ownershipColor(country?.rate);
-                      const isSelected = selected && selected.name === country?.name;
-                      return (
-                        <Geography
-                          key={geo.rsmKey}
-                          geography={geo}
-                          fill={color}
-                          stroke="#fff"
-                          strokeWidth={0.4}
-                          style={{
-                            default: {
-                              fill: isSelected ? "#f59e0b" : color,
-                              outline: "none",
-                              cursor: country ? "pointer" : "default",
-                            },
-                            hover: {
-                              fill: country ? "#f59e0b" : color,
-                              outline: "none",
-                              cursor: country ? "pointer" : "default",
-                            },
-                            pressed: { outline: "none" },
-                          }}
-                          onMouseMove={country ? (e) => handleMouseMove(geo, e) : undefined}
-                          onMouseLeave={handleMouseLeave}
-                          onClick={() => handleClick(geo)}
-                        />
-                      );
-                    })
-                  }
-                </Geographies>
-              </ZoomableGroup>
-            </ComposableMap>
+              {features.map((geo) => {
+                const id      = parseInt(geo.id, 10);
+                const country = HOMEOWNERSHIP[id];
+                const color   = ownershipColor(country?.rate);
+                const isHigh  = (hoveredId === geo.id || (selected && selected.name === country?.name)) && !!country;
+                const d       = pathGen(geo);
+                if (!d) return null;
+                return (
+                  <path
+                    key={geo.id}
+                    d={d}
+                    fill={isHigh ? "#f59e0b" : color}
+                    stroke="#fff"
+                    strokeWidth={0.4}
+                    style={{ cursor: country ? "pointer" : "default" }}
+                    onMouseEnter={country ? () => setHoveredId(geo.id) : undefined}
+                    onMouseMove={country  ? (e) => handleMouseMove(e, country) : undefined}
+                    onMouseLeave={handlePathMouseLeave}
+                    onClick={() => handleClick(country ?? null)}
+                  />
+                );
+              })}
+            </svg>
           </div>
 
           {/* Tooltip (desktop) */}
@@ -244,7 +255,7 @@ export default function PageCarteMondiale() {
           )}
         </div>
 
-        {/* ── TOP 10 LISTS ───────────────────────────────────── */}
+        {/* ── TOP 10 LISTS ─────────────────────────────────── */}
         <div className="cm-rankings">
           <div className="cm-ranking-col">
             <div className="cm-ranking-header cm-ranking-owners">
@@ -256,15 +267,8 @@ export default function PageCarteMondiale() {
             </div>
             <div className="cm-ranking-list">
               {TOP_OWNERS.map((c, i) => (
-                <RankRow
-                  key={c.name}
-                  rank={i + 1}
-                  name={c.name}
-                  rate={c.rate}
-                  isFrance={c.name === "France"}
-                />
+                <RankRow key={c.name} rank={i + 1} name={c.name} rate={c.rate} isFrance={c.name === "France"} />
               ))}
-              {/* France if not in top 10 */}
               {!TOP_OWNERS.find((c) => c.name === "France") && (
                 <>
                   <div className="cm-rank-ellipsis">…</div>
@@ -289,19 +293,13 @@ export default function PageCarteMondiale() {
             </div>
             <div className="cm-ranking-list">
               {TOP_RENTERS.map((c, i) => (
-                <RankRow
-                  key={c.name}
-                  rank={i + 1}
-                  name={c.name}
-                  rate={c.rate}
-                  isFrance={c.name === "France"}
-                />
+                <RankRow key={c.name} rank={i + 1} name={c.name} rate={c.rate} isFrance={c.name === "France"} />
               ))}
             </div>
           </div>
         </div>
 
-        {/* ── WHY section ────────────────────────────────────── */}
+        {/* ── WHY section ──────────────────────────────────── */}
         <section className="cm-why-section">
           <div className="cm-why-header">
             <span className="blog-kicker">Analyse</span>
