@@ -31,6 +31,11 @@ const SimOptimiseurApport = lazy(() => import("./components/simulateurs/SimOptim
 const SimStressTest = lazy(() => import("./components/simulateurs/SimStressTest"));
 const SimHistoire = lazy(() => import("./components/simulateurs/SimHistoire"));
 const SimBudgetMax = lazy(() => import("./components/simulateurs/SimBudgetMax"));
+const SimPTZ = lazy(() => import("./components/simulateurs/SimPTZ"));
+const SimNegociation = lazy(() => import("./components/simulateurs/SimNegociation"));
+const SimImpactDPE = lazy(() => import("./components/simulateurs/SimImpactDPE"));
+const SimRemboursementAnticipe = lazy(() => import("./components/simulateurs/SimRemboursementAnticipe"));
+const SimAssurancePret = lazy(() => import("./components/simulateurs/SimAssurancePret"));
 
 function PageLoader() {
   return (
@@ -175,6 +180,11 @@ export default function App() {
         <Route path="/simulateurs/stress-test" element={<SimStressTest />} />
         <Route path="/simulateurs/histoire" element={<SimHistoire />} />
         <Route path="/simulateurs/budget-maximum" element={<SimBudgetMax />} />
+        <Route path="/simulateurs/ptz" element={<SimPTZ />} />
+        <Route path="/simulateurs/negociation" element={<SimNegociation />} />
+        <Route path="/simulateurs/impact-dpe" element={<SimImpactDPE />} />
+        <Route path="/simulateurs/remboursement-anticipe" element={<SimRemboursementAnticipe />} />
+        <Route path="/simulateurs/assurance-pret" element={<SimAssurancePret />} />
       </Routes>
     </Suspense>
     </>

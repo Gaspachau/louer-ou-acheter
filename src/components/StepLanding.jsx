@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { PRESETS } from "../App";
 import { ARTICLES } from "../data/articles";
@@ -76,6 +76,67 @@ const HOW_STEPS = [
   },
 ];
 
+const TESTIMONIALS = [
+  {
+    initials: "ML",
+    name: "Marie L.",
+    situation: "32 ans · CDI à Lyon",
+    color: "#1a56db",
+    text: "J'hésitais depuis 2 ans. Le simulateur m'a montré qu'avec mon loyer de 850 € et un apport de 30 000 €, l'achat devenait rentable au bout de 6 ans. J'ai signé en janvier !",
+  },
+  {
+    initials: "TP",
+    name: "Thomas P.",
+    situation: "41 ans · Indépendant à Bordeaux",
+    color: "#059669",
+    text: "En tant qu'indépendant, les banques étaient frileuses. Le test de résistance m'a aidé à comprendre quel niveau de réserve je devais constituer avant de me lancer.",
+  },
+  {
+    initials: "SC",
+    name: "Sophie & Cédric",
+    situation: "38 et 40 ans · Paris 11e",
+    color: "#7c3aed",
+    text: "À Paris avec 2 enfants, on pensait devoir acheter. La simulation nous a montré que louer encore 3 ans et épargner la différence était la meilleure stratégie patrimoniale.",
+  },
+  {
+    initials: "JR",
+    name: "Julie R.",
+    situation: "29 ans · Primo-accédante à Nantes",
+    color: "#d97706",
+    text: "Le calculateur PTZ m'a révélé que j'avais droit à 54 000 € de prêt à taux zéro. Sans ça, j'aurais raté cette aide et surpayé mes intérêts pendant 20 ans.",
+  },
+];
+
+const FAQ_ITEMS = [
+  {
+    q: "Vaut-il mieux louer ou acheter en 2026 ?",
+    a: "Il n'y a pas de réponse universelle. Tout dépend de votre horizon de détention, de l'écart entre votre loyer actuel et la mensualité d'un crédit équivalent, et du rendement que vous pouvez obtenir sur votre épargne. Notre simulateur calcule le point d'équilibre précis selon votre situation.",
+  },
+  {
+    q: "Quel apport minimum faut-il pour acheter ?",
+    a: "Les banques exigent généralement 10 % du prix d'achat minimum — idéalement 20 % pour obtenir les meilleures conditions. Ce montant doit couvrir les frais de notaire (7–8 % dans l'ancien, 2–3 % dans le neuf) et laisser une réserve d'urgence après l'achat.",
+  },
+  {
+    q: "Comment calculer sa capacité d'emprunt ?",
+    a: "La règle HCSF 2022 fixe le taux d'endettement maximum à 35 % de vos revenus nets mensuels. Avec 3 500 €/mois, vous pouvez rembourser jusqu'à 1 225 €/mois, soit environ 207 000 € sur 20 ans à 3,8 %. Notre simulateur de capacité d'emprunt fait ce calcul instantanément.",
+  },
+  {
+    q: "Les frais de notaire sont-ils vraiment obligatoires ?",
+    a: "Oui, ils sont dus lors de toute transaction immobilière. Dans l'ancien, ils représentent 7 à 8 % du prix (dont 5,8 % de taxes collectées pour l'État). Dans le neuf, ils descendent à 2–3 %. Seul un achat entre particuliers sans intermédiaire peut parfois les réduire légèrement.",
+  },
+  {
+    q: "Quand vaut-il mieux louer plutôt qu'acheter ?",
+    a: "Louer est souvent plus avantageux si : vous restez moins de 5 ans dans le logement, le ratio prix/loyer dépasse 20 (ex. Paris), vous n'avez pas d'apport suffisant, ou votre situation professionnelle est incertaine. Notre simulateur calcule exactement à partir de combien d'années l'achat devient gagnant.",
+  },
+];
+
+const WHY_DIFF = [
+  { icon: "📐", title: "Calculs complets", desc: "Notaire, taxe foncière, entretien, hausse des loyers, rendement épargne — rien n'est oublié." },
+  { icon: "🔢", title: "Formules certifiées", desc: "Mensualités calculées selon la formule actuarielle, données INSEE et Banque de France." },
+  { icon: "🎯", title: "Verdict personnalisé", desc: "Le point d'équilibre est calculé pour votre situation, pas une moyenne nationale." },
+  { icon: "🔒", title: "Zéro tracking", desc: "Aucune donnée n'est collectée. Tout reste dans votre navigateur." },
+];
+
 const SIMS_LP = [
   { href: "/simulateurs/epargne",       icon: "💰", title: "Simulateur d'épargne",  desc: "Objectif financier en X mois",               tag: "Épargne", tagClass: "tag-green" },
   { href: "/simulateurs/pret-immobilier",icon: "🏦", title: "Prêt immobilier",       desc: "Mensualité & tableau d'amortissement",       tag: "Crédit",  tagClass: "tag-purple" },
@@ -91,6 +152,26 @@ const BLOG_GRADIENTS = {
   "tag-amber":  "linear-gradient(135deg,#d97706,#f59e0b)",
   "tag-teal":   "linear-gradient(135deg,#0d9488,#14b8a6)",
 };
+
+function FaqItem({ q, a }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className={`lp-faq-item${open ? " lp-faq-open" : ""}`}>
+      <button
+        className="lp-faq-q"
+        onClick={() => setOpen((v) => !v)}
+        type="button"
+        aria-expanded={open}
+      >
+        <span>{q}</span>
+        <svg className="lp-faq-chevron" width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <path d="M4.5 7l4.5 4.5L13.5 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </button>
+      {open && <p className="lp-faq-a">{a}</p>}
+    </div>
+  );
+}
 
 export default function StepLanding({ onStart, onPreset }) {
   useEffect(() => {
@@ -268,6 +349,43 @@ export default function StepLanding({ onStart, onPreset }) {
         </button>
       </section>
 
+      {/* ── WHY DIFFERENT ────────────────────────────────────── */}
+      <section className="lp-section lp-why-section" aria-label="Pourquoi nous ?">
+        <div className="lp-section-header">
+          <h2 className="lp-section-title">Pourquoi ce simulateur ?</h2>
+          <p className="lp-section-sub">Pas de pub, pas d'inscription, pas de raccourcis dans les calculs</p>
+        </div>
+        <div className="lp-why-grid">
+          {WHY_DIFF.map((item, i) => (
+            <div key={i} className="lp-why-card">
+              <span className="lp-why-icon" aria-hidden="true">{item.icon}</span>
+              <strong className="lp-why-title">{item.title}</strong>
+              <p className="lp-why-desc">{item.desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ── TESTIMONIALS ─────────────────────────────────────── */}
+      <section className="lp-section lp-testimonials-section" aria-label="Témoignages">
+        <div className="lp-section-header">
+          <h2 className="lp-section-title">Ils ont tranché grâce au simulateur</h2>
+          <p className="lp-section-sub">Des situations réelles, des décisions éclairées</p>
+        </div>
+        <div className="lp-testimonials-grid">
+          {TESTIMONIALS.map((t, i) => (
+            <div key={i} className="lp-testimonial-card">
+              <div className="lp-testimonial-avatar" style={{ background: t.color }} aria-hidden="true">{t.initials}</div>
+              <p className="lp-testimonial-text">"{t.text}"</p>
+              <div className="lp-testimonial-person">
+                <strong>{t.name}</strong>
+                <span>{t.situation}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
       {/* ── SIMULATORS SHOWCASE ──────────────────────────────── */}
       <section className="lp-section lp-sims-section" aria-label="Tous nos simulateurs">
         <div className="lp-section-header">
@@ -322,6 +440,17 @@ export default function StepLanding({ onStart, onPreset }) {
         <Link to="/blog" className="lp-sims-all">
           Voir tous les articles →
         </Link>
+      </section>
+
+      {/* ── FAQ ──────────────────────────────────────────────── */}
+      <section className="lp-section lp-faq-section" aria-label="Questions fréquentes">
+        <div className="lp-section-header">
+          <h2 className="lp-section-title">Questions fréquentes</h2>
+          <p className="lp-section-sub">Les réponses aux 5 questions les plus posées sur l'immobilier</p>
+        </div>
+        <div className="lp-faq">
+          {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
+        </div>
       </section>
 
       <p className="lp-disclaimer">

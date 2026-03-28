@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
@@ -70,8 +71,12 @@ function ArticleCover({ tagClass }) {
   );
 }
 
+const ALL_TAGS = [...new Set(ARTICLES.map((a) => a.tag))];
+
 export default function BlogList() {
+  const [activeTag, setActiveTag] = useState(null);
   const [featured, ...rest] = ARTICLES;
+  const filteredRest = activeTag ? rest.filter((a) => a.tag === activeTag) : rest;
 
   return (
     <div className="page">
@@ -126,9 +131,29 @@ export default function BlogList() {
 
         {/* Articles grid with illustrated covers */}
         <div className="articles-section">
-          <h2 className="articles-section-title">Tous les articles</h2>
+          <div className="articles-section-header">
+            <h2 className="articles-section-title">Tous les articles</h2>
+            <div className="hub-filters" role="group" aria-label="Filtrer par thème">
+              <button
+                type="button"
+                className={`hub-filter-btn${!activeTag ? " hub-filter-active" : ""}`}
+                onClick={() => setActiveTag(null)}
+              >Tous <span className="hub-filter-count">{rest.length}</span></button>
+              {ALL_TAGS.map((tag) => (
+                <button
+                  key={tag}
+                  type="button"
+                  className={`hub-filter-btn${activeTag === tag ? " hub-filter-active" : ""}`}
+                  onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+                >
+                  {tag}
+                  <span className="hub-filter-count">{rest.filter((a) => a.tag === tag).length}</span>
+                </button>
+              ))}
+            </div>
+          </div>
           <div className="articles-grid">
-            {rest.map((article) => (
+            {filteredRest.map((article) => (
               <Link key={article.slug} to={`/blog/${article.slug}`} className="article-card" aria-label={article.title}>
                 <div
                   className="article-cover"
