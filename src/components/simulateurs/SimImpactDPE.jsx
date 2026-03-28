@@ -96,8 +96,8 @@ export default function SimImpactDPE() {
         <div className="sim-card">
           <p className="sim-card-legend">Le bien</p>
           <div className="step-fields">
-            <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" />
-            <Field label="Superficie" value={superficie} onChange={setSuperficie} suffix="m²" step={5} />
+            <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat du bien. Sert à calculer la décote liée au DPE et la valorisation après travaux." />
+            <Field label="Superficie" value={superficie} onChange={setSuperficie} suffix="m²" step={5} tooltip="Surface habitable en m². Détermine le volume de consommation énergétique totale." />
 
             <div className="field-wrap">
               <label className="field-label">DPE actuel du bien</label>
@@ -140,6 +140,7 @@ export default function SimImpactDPE() {
               min={0}
               max={70}
               hint="0% = revenus élevés, 70% = revenus très modestes"
+              tooltip="Aide de l'État pour la rénovation énergétique. Taux : 70 % pour revenus très modestes, 50 % modestes, 35 % intermédiaires, 15 % aisés."
             />
           </div>
         </div>

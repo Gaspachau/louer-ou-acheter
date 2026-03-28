@@ -121,7 +121,7 @@ export default function SimFraisNotaire() {
           <div className="step-fields">
             <div className="field-full">
               <Field label="Prix d'achat net vendeur" value={v.prix} onChange={set("prix")} suffix="€"
-                hint="Prix mentionné dans le compromis de vente, hors mobilier" />
+                hint="Prix mentionné dans le compromis de vente, hors mobilier" tooltip="Prix mentionné dans le compromis de vente, hors frais de notaire et hors mobilier. Si vous achetez dans le neuf, choisissez le type 'Neuf' pour des frais réduits (~2–3 %)." />
             </div>
           </div>
 

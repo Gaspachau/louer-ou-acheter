@@ -86,19 +86,19 @@ export default function SimRentabiliteLocative() {
           <p className="sim-card-legend">Le bien immobilier</p>
           <div className="step-fields">
             <Field label="Prix d'achat" value={v.prixAchat} onChange={set("prixAchat")} suffix="€"
-              hint="Prix net vendeur — hors frais de notaire et travaux" />
+              hint="Prix net vendeur — hors frais de notaire et travaux" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
             <Field label="Frais de notaire" value={v.fraisNotairePct} onChange={set("fraisNotairePct")} suffix="%"
               hint="≈ 7–8 % dans l'ancien / 2–3 % dans le neuf" />
             <div className="field-full">
               <Field label="Budget travaux & ameublement" value={v.travaux} onChange={set("travaux")} suffix="€"
-                hint="Intégré à l'investissement total — améliore le loyer obtenu" />
+                hint="Intégré à l'investissement total — améliore le loyer obtenu" tooltip="Travaux de rénovation + ameublement si location meublée. Intégrés dans le calcul du prix de revient total." />
             </div>
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 16 }}>Revenus et charges locatifs</p>
           <div className="step-fields">
             <Field label="Loyer mensuel HC" value={v.loyerMensuel} onChange={set("loyerMensuel")} suffix="€"
-              hint="Loyer hors charges récupérables. Vérifiez les annonces similaires dans le secteur." />
+              hint="Loyer hors charges récupérables. Vérifiez les annonces similaires dans le secteur." tooltip="Loyer hors charges, hors provisions pour charges récupérables. Vérifiez les annonces similaires dans votre secteur (Le Bon Coin, SeLoger)." />
             <Field label="Charges non récupérables" value={v.chargesMensuelles} onChange={set("chargesMensuelles")} suffix="€/mois"
               hint="Charges de copropriété à votre charge, entretien courant non refacturé" />
             <Field label="Assurance PNO" value={v.assurancePNO} onChange={set("assurancePNO")} suffix="€/an"

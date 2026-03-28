@@ -275,8 +275,59 @@ button { cursor: pointer; }
 
 /* ─── Field ──────────────────────────────────────────────── */
 .field { display: flex; flex-direction: column; gap: 5px; }
+.field-label-row { display: flex; align-items: center; gap: 5px; }
 .field-label { font-size: 12px; font-weight: 700; color: #334155; letter-spacing: .01em; }
 .field-hint { font-size: 11px; color: var(--muted); line-height: 1.4; }
+.field-warning { font-size: 11.5px; color: #92400e; background: #fef3c7; border: 1px solid #fde68a; border-radius: 7px; padding: 5px 9px; line-height: 1.45; display: flex; align-items: flex-start; gap: 5px; }
+.field-warning::before { content: "⚠️"; font-size: 11px; flex-shrink: 0; }
+
+/* ─── Field tooltip (infobulle) ──────────────────────────── */
+.field-info-wrap { position: relative; display: inline-flex; align-items: center; }
+.field-info-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 18px; height: 18px; border-radius: 50%; border: none; padding: 0;
+  background: none; color: #94a3b8; cursor: pointer; flex-shrink: 0;
+  transition: color .15s;
+}
+.field-info-btn:hover, .field-info-btn:focus-visible { color: var(--blue); }
+.field-info-popup {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 260px;
+  background: #1e293b;
+  color: #f1f5f9;
+  font-size: 12.5px;
+  line-height: 1.6;
+  padding: 10px 13px;
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0,0,0,.22);
+  z-index: 200;
+  pointer-events: none;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+/* Arrow pointing down */
+.field-info-popup::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
+}
+/* Clamp so popup never goes off-screen on mobile */
+@media (max-width: 480px) {
+  .field-info-popup {
+    width: 220px;
+    left: auto;
+    right: -8px;
+    transform: none;
+  }
+  .field-info-popup::after { left: auto; right: 14px; transform: none; }
+}
 
 .input-wrap { position: relative; }
 .input-wrap input {

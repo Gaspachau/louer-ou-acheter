@@ -154,13 +154,13 @@ export default function SimPlusValue() {
           <p className="sim-card-legend">Votre bien</p>
           <div className="step-fields">
             <Field label="Prix d'acquisition" value={v.prixAchat} onChange={set("prixAchat")} suffix="€"
-              hint="Prix payé à l'achat, hors frais de notaire" />
+              hint="Prix payé à l'achat, hors frais de notaire" tooltip="Prix payé lors de l'achat, hors frais de notaire (ceux-ci sont inclus automatiquement)." />
             <Field label="Frais d'achat réels" value={v.fraisAchat} onChange={set("fraisAchat")} suffix="€"
               hint="Frais de notaire payés. Laissez 0 pour appliquer le forfait légal de 7,5 %" />
             <Field label="Travaux réels" value={v.travaux} onChange={set("travaux")} suffix="€"
               hint="Travaux de construction/amélioration justifiables. Laissez 0 pour le forfait 15 % (si détention > 5 ans)" />
             <Field label="Prix de vente" value={v.prixVente} onChange={set("prixVente")} suffix="€"
-              hint="Prix net vendeur — après commission agence éventuellement déduite" />
+              hint="Prix net vendeur — après commission agence éventuellement déduite" tooltip="Prix de vente net vendeur, après commission d'agence si applicable." />
           </div>
 
           <div style={{ marginTop: 16 }}>

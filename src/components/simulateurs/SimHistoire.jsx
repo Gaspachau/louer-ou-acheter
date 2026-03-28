@@ -142,9 +142,9 @@ const TYPE_COLORS = {
 export default function SimHistoire() {
   const [scenario, setScenario] = useState("neutre");
   const [v, setV] = useState({
-    purchasePrice: 280000,
+    purchasePrice: 250000,
     downPayment: 50000,
-    mortgageRate: 3.8,
+    mortgageRate: 3.5,
     mortgageYears: 20,
     monthlyRent: 1000,
     comparisonYears: 20,
@@ -165,11 +165,11 @@ export default function SimHistoire() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre projet</p>
           <div className="step-fields">
-            <Field label="Prix du bien" value={v.purchasePrice} onChange={set("purchasePrice")} suffix="€" />
-            <Field label="Apport" value={v.downPayment} onChange={set("downPayment")} suffix="€" />
-            <Field label="Taux du crédit" value={v.mortgageRate} onChange={set("mortgageRate")} suffix="%" step="0.1" />
-            <Field label="Durée du prêt" value={v.mortgageYears} onChange={set("mortgageYears")} suffix="ans" />
-            <Field label="Loyer actuel" value={v.monthlyRent} onChange={set("monthlyRent")} suffix="€/mois" />
+            <Field label="Prix du bien" value={v.purchasePrice} onChange={set("purchasePrice")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Apport" value={v.downPayment} onChange={set("downPayment")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+            <Field label="Taux du crédit" value={v.mortgageRate} onChange={set("mortgageRate")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée du prêt" value={v.mortgageYears} onChange={set("mortgageYears")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+            <Field label="Loyer actuel" value={v.monthlyRent} onChange={set("monthlyRent")} suffix="€/mois" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
           </div>
 
           <div style={{ marginTop: 16 }}>

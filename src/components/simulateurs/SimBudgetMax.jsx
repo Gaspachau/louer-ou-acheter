@@ -54,7 +54,7 @@ export default function SimBudgetMax() {
     revenus: 3800,
     chargesExist: 0,
     apport: 40000,
-    taux: 3.8,
+    taux: 3.5,
   });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
@@ -110,19 +110,19 @@ export default function SimBudgetMax() {
           <div className="step-fields">
             <div className="field-full">
               <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois"
-                hint="Tous les revenus réguliers du foyer" />
+                hint="Tous les revenus réguliers du foyer" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
             </div>
             <div className="field-full">
               <Field label="Charges mensuelles de crédit" value={v.chargesExist} onChange={set("chargesExist")} suffix="€/mois"
-                hint="Mensualités de crédits en cours (auto, conso…)" />
+                hint="Mensualités de crédits en cours (auto, conso…)" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
             </div>
             <div className="field-full">
               <Field label="Apport personnel disponible" value={v.apport} onChange={set("apport")} suffix="€"
-                hint="Épargne mobilisable pour l'achat" />
+                hint="Épargne mobilisable pour l'achat" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
             </div>
             <div className="field-full">
               <Field label="Taux du crédit envisagé" value={v.taux} onChange={set("taux")} suffix="%" step="0.1"
-                hint="Mars 2026 : entre 3,3 % et 4,0 %" />
+                hint="Mars 2026 : entre 3,3 % et 4,0 %" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
             </div>
           </div>
 

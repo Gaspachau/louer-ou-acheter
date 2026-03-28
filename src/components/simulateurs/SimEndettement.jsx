@@ -103,7 +103,7 @@ function SemiGauge({ value }) {
 }
 
 export default function SimEndettement() {
-  const [v, setV] = useState({ revenus: 3500, chargesExistantes: 300, taux: 3.8, duree: 20 });
+  const [v, setV] = useState({ revenus: 3500, chargesExistantes: 300, taux: 3.5, duree: 20 });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
   const res = useMemo(() => calcEndettement(v), [v]);
@@ -127,17 +127,17 @@ export default function SimEndettement() {
           <p className="sim-card-legend">Votre situation financière</p>
           <div className="step-fields">
             <div className="field-full">
-              <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois" hint="Tous revenus réguliers (salaires, revenus locatifs…)" />
+              <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois" hint="Tous revenus réguliers (salaires, revenus locatifs…)" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
             </div>
             <div className="field-full">
-              <Field label="Charges de crédit existantes" value={v.chargesExistantes} onChange={set("chargesExistantes")} suffix="€/mois" hint="Somme de toutes vos mensualités de crédit en cours" />
+              <Field label="Charges de crédit existantes" value={v.chargesExistantes} onChange={set("chargesExistantes")} suffix="€/mois" hint="Somme de toutes vos mensualités de crédit en cours" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
             </div>
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 16 }}>Nouveau crédit envisagé</p>
           <div className="step-fields">
-            <Field label="Taux annuel" value={v.taux} onChange={set("taux")} suffix="%" hint="~3,5–4,0 % pour un prêt immo" />
-            <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" />
+            <Field label="Taux annuel" value={v.taux} onChange={set("taux")} suffix="%" hint="Taux moyen France 2026 : 3,3–3,7 % sur 20 ans" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
           </div>
         </div>
 

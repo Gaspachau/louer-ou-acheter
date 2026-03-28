@@ -84,7 +84,7 @@ export default function SimTaxeFonciere() {
           <div className="step-fields">
             <div className="field-full">
               <Field label="Surface habitable" value={v.surface} onChange={set("surface")} suffix="m²"
-                hint="Surface en m² inscrite sur votre acte de propriété ou déclaration fiscale" />
+                hint="Surface en m² inscrite sur votre acte de propriété ou déclaration fiscale" tooltip="Surface habitable en m² inscrite sur votre acte de propriété. La taxe foncière est calculée sur la valeur locative cadastrale, elle-même liée à la superficie." />
             </div>
           </div>
 
@@ -119,7 +119,7 @@ export default function SimTaxeFonciere() {
           {v.villeId === "autre" && (
             <div style={{ marginTop: 12 }}>
               <Field label="Taux total de taxe foncière (%)" value={v.taux} onChange={set("taux")} suffix="%"
-                hint="Taux communal + taux intercommunal + taux départemental. Consultez impots.gouv.fr" />
+                hint="Taux communal + taux intercommunal + taux départemental. Consultez impots.gouv.fr" tooltip="Taux total de taxe foncière = taux communal + intercommunal + départemental. Consultez impots.gouv.fr pour votre commune." />
             </div>
           )}
 

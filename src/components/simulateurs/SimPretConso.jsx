@@ -85,10 +85,10 @@ export default function SimPretConso() {
 
           <div className="step-fields" style={{ marginTop: 16 }}>
             <div className="field-full">
-              <Field label="Montant du crédit" value={v.principal} onChange={set("principal")} suffix="€" />
+              <Field label="Montant du crédit" value={v.principal} onChange={set("principal")} suffix="€" tooltip="Somme empruntée. Pour un crédit conso, généralement entre 1 000 € et 75 000 €." />
             </div>
-            <Field label="Taux annuel (TAEG)" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="En général 4–12 % selon profil" />
-            <Field label="Durée" value={v.months} onChange={set("months")} suffix="mois" hint="12 à 84 mois" />
+            <Field label="Taux annuel (TAEG)" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="En général 4–12 % selon profil" tooltip="Taux Annuel Effectif Global — inclut intérêts + frais. Crédit auto : 4–8 %. Crédit perso : 5–12 %. Vérifiez votre offre." />
+            <Field label="Durée" value={v.months} onChange={set("months")} suffix="mois" hint="12 à 84 mois" tooltip="Durée de remboursement en mois. 12 mois = 1 an. Les durées courantes : 24, 36, 48, 60 mois." />
           </div>
         </div>
 

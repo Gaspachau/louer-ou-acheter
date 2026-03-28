@@ -5,12 +5,12 @@ import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
 const CHARGE_FIELDS = [
-  { key: "loyer", label: "Loyer / mensualité", icon: "🏠", hint: "Logement principal", color: "#2563eb" },
-  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration", color: "#0d9488" },
-  { key: "transport", label: "Transport", icon: "🚗", hint: "Voiture, transports en commun", color: "#d97706" },
-  { key: "telecom", label: "Télécom", icon: "📱", hint: "Internet + téléphone", color: "#7c3aed" },
-  { key: "assurances", label: "Assurances", icon: "🛡️", hint: "Habitation, auto, santé…", color: "#0891b2" },
-  { key: "autres", label: "Autres charges", icon: "📦", hint: "Abonnements, loisirs fixes…", color: "#64748b" },
+  { key: "loyer", label: "Loyer / mensualité", icon: "🏠", hint: "Logement principal", color: "#2563eb", tooltip: "Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." },
+  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration", color: "#0d9488", tooltip: "Dépenses alimentaires incluant courses et restaurants. Moyenne France : ~300–400 €/mois pour une personne." },
+  { key: "transport", label: "Transport", icon: "🚗", hint: "Voiture, transports en commun", color: "#d97706", tooltip: "Tous les frais de déplacement : carburant, transports en commun, assurance auto, entretien véhicule." },
+  { key: "telecom", label: "Télécom", icon: "📱", hint: "Internet + téléphone", color: "#7c3aed", tooltip: "Internet fixe + téléphone mobile. Comptez ~30–60 €/mois pour des offres de base." },
+  { key: "assurances", label: "Assurances", icon: "🛡️", hint: "Habitation, auto, santé…", color: "#0891b2", tooltip: "Mutuelle santé, assurance auto, habitation... Vérifiez qu'il n'y a pas de doublons avec les charges saisies séparément." },
+  { key: "autres", label: "Autres charges", icon: "📦", hint: "Abonnements, loisirs fixes…", color: "#64748b", tooltip: undefined },
 ];
 
 export default function SimNiveauDeVie() {
@@ -50,10 +50,10 @@ export default function SimNiveauDeVie() {
           <p className="sim-card-legend">Vos revenus et charges</p>
           <div className="step-fields">
             <div className="field-full">
-              <Field label="Salaire net mensuel" value={v.salaire} onChange={set("salaire")} suffix="€/mois" hint="Après impôts et cotisations" />
+              <Field label="Salaire net mensuel" value={v.salaire} onChange={set("salaire")} suffix="€/mois" hint="Après impôts et cotisations" tooltip="Votre salaire net après prélèvement à la source et cotisations. Regardez votre fiche de paie, ligne 'net à payer avant impôt'." />
             </div>
             {CHARGE_FIELDS.map((f) => (
-              <Field key={f.key} label={`${f.icon} ${f.label}`} value={v[f.key]} onChange={set(f.key)} suffix="€/mois" hint={f.hint} />
+              <Field key={f.key} label={`${f.icon} ${f.label}`} value={v[f.key]} onChange={set(f.key)} suffix="€/mois" hint={f.hint} tooltip={f.tooltip} />
             ))}
           </div>
         </div>

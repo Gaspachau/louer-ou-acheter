@@ -1,5 +1,21 @@
 import Field from "./Field";
 
+const TOOLTIP_LOYER = "Ce que vous payez chaque mois, charges locatives comprises. Moyenne nationale : ~700 €/mois (source : CLAMEUR 2024). À Paris : ~1 400 €, en province : ~600–700 €.";
+const TOOLTIP_HAUSSE = "Taux auquel votre loyer augmente chaque année. Encadré par l'IRL (Indice de Référence des Loyers), il tourne autour de 1,5–2 %/an depuis 2022.";
+const TOOLTIP_RENDEMENT = "Ce que rapporte votre argent placé chaque année, net de frais. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % en moyenne sur 20 ans.";
+const TOOLTIP_EPARGNE = "Montant supplémentaire que vous mettez de côté chaque mois (livret, PEA…), indépendamment de l'achat ou de la location. S'ajoute au capital de l'acheteur ou du locataire.";
+
+function warnLoyer(v) {
+  if (v > 3000) return `La moyenne nationale est ~700 €/mois (Paris ~1 400 €). Votre loyer semble très élevé — vérifiez qu'il s'agit bien du montant mensuel.`;
+  if (v > 0 && v < 200) return "Loyer très bas. Assurez-vous qu'il est bien mensuel et charges comprises.";
+  return null;
+}
+function warnRendement(v) {
+  if (v > 12) return `Un rendement de ${v} %/an est très optimiste. Les ETF monde font ~7–8 % en moyenne sur 20 ans.`;
+  if (v < 0) return "Rendement négatif : votre capital perd de la valeur chaque année.";
+  return null;
+}
+
 function StepRent({ values, set, onNext }) {
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && e.target.tagName === "INPUT") onNext();
@@ -30,7 +46,9 @@ function StepRent({ values, set, onNext }) {
                 value={values.monthlyRent}
                 onChange={set("monthlyRent")}
                 suffix="€"
-                hint="Ce que vous payez chaque mois"
+                hint="Loyer + charges locatives"
+                tooltip={TOOLTIP_LOYER}
+                warning={warnLoyer(values.monthlyRent)}
               />
             </div>
             <Field
@@ -38,14 +56,17 @@ function StepRent({ values, set, onNext }) {
               value={values.annualRentIncrease}
               onChange={set("annualRentIncrease")}
               suffix="%"
-              hint="~1,5–2 % en France"
+              hint="Indice IRL ~1,5–2 %/an"
+              tooltip={TOOLTIP_HAUSSE}
             />
             <Field
               label="Rendement épargne"
               value={values.investmentReturn}
               onChange={set("investmentReturn")}
               suffix="%"
-              hint="Livret A = 3 % · ETF ≈ 6–7 %"
+              hint="Livret A = 2,4 % · ETF ≈ 7–8 %"
+              tooltip={TOOLTIP_RENDEMENT}
+              warning={warnRendement(values.investmentReturn)}
             />
             <div className="field-full">
               <Field
@@ -53,7 +74,8 @@ function StepRent({ values, set, onNext }) {
                 value={values.monthlySavings}
                 onChange={set("monthlySavings")}
                 suffix="€/mois"
-                hint="Montant que vous mettez de côté chaque mois (livret, ETF…). S'ajoute à la simulation locataire."
+                hint="Montant placé chaque mois en plus (Livret A, PEA, assurance-vie…)"
+                tooltip={TOOLTIP_EPARGNE}
               />
             </div>
           </div>

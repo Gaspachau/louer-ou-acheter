@@ -40,7 +40,7 @@ function ChartTooltip({ active, payload, label }) {
 }
 
 export default function SimEpargne() {
-  const [v, setV] = useState({ goal: 50000, initial: 5000, annualReturn: 4, years: 10 });
+  const [v, setV] = useState({ goal: 50000, initial: 5000, annualReturn: 5, years: 10 });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
   const res = useMemo(() => calcEpargne(v), [v]);
@@ -83,10 +83,10 @@ export default function SimEpargne() {
           <p className="sim-card-legend">Votre objectif</p>
           <div className="step-fields">
             <div className="field-full">
-              <Field label="Objectif à atteindre" value={v.goal} onChange={set("goal")} suffix="€" hint="Capital cible (achat, retraite, projet…)" />
+              <Field label="Objectif à atteindre" value={v.goal} onChange={set("goal")} suffix="€" hint="Capital cible (achat, retraite, projet…)" tooltip="Montant total que vous souhaitez accumuler. Ex. : apport immobilier, achat voiture, retraite anticipée." />
             </div>
-            <Field label="Capital de départ" value={v.initial} onChange={set("initial")} suffix="€" hint="Épargne déjà constituée" />
-            <Field label="Rendement annuel" value={v.annualReturn} onChange={set("annualReturn")} suffix="%" hint="Livret A=3 % · ETF≈5–7 %" />
+            <Field label="Capital de départ" value={v.initial} onChange={set("initial")} suffix="€" hint="Épargne déjà constituée" tooltip="Épargne déjà constituée que vous allez placer immédiatement." />
+            <Field label="Rendement annuel" value={v.annualReturn} onChange={set("annualReturn")} suffix="%" hint="Livret A=2,4 % · ETF≈7–8 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
             <div className="field-full">
               <label className="field-label">Horizon</label>
               <div className="horizon-box" style={{ marginTop: 6 }}>

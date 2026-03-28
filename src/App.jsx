@@ -48,19 +48,19 @@ function PageLoader() {
 }
 
 const DEFAULTS = {
-  purchasePrice: 350000,
-  downPayment: 50000,
-  mortgageRate: 3.8,
-  mortgageYears: 25,
-  notaryFeesPct: 8,
-  annualPropertyTax: 1800,
-  annualMaintenancePct: 1,
-  annualInsurance: 300,
-  appreciationRate: 2,
-  saleCostsPct: 5,
-  monthlyRent: 1300,
-  annualRentIncrease: 2,
-  investmentReturn: 4,
+  purchasePrice: 250000,   // prix médian appartement France 2026
+  downPayment: 35000,      // ~14 % du prix — couvre les frais de notaire
+  mortgageRate: 3.5,       // taux moyen 20 ans en France, mars 2026
+  mortgageYears: 20,       // durée la plus courante
+  notaryFeesPct: 8,        // frais de notaire dans l'ancien
+  annualPropertyTax: 1400, // taxe foncière moyenne pour 250 k€
+  annualMaintenancePct: 1, // entretien ~1 %/an du prix
+  annualInsurance: 300,    // assurance habitation propriétaire
+  appreciationRate: 2,     // hausse moyenne des prix immobiliers France
+  saleCostsPct: 5,         // frais de revente (agence + diagnostics)
+  monthlyRent: 900,        // loyer médian hors Paris en 2026
+  annualRentIncrease: 2,   // IRL ~2 %/an
+  investmentReturn: 3.5,   // rendement mixte (Livret A 2,4 % + un peu d'ETF)
   comparisonYears: 10,
   monthlySavings: 0,
 };
@@ -72,7 +72,7 @@ export const PRESETS = [
     name: "Paris / Grande ville",
     desc: "Appartement 2 pièces",
     tag: "380 000 € · Loyer ~1 500 €",
-    values: { purchasePrice: 380000, downPayment: 76000, mortgageRate: 3.8, mortgageYears: 25, monthlyRent: 1500, annualPropertyTax: 2200, comparisonYears: 10, monthlySavings: 200 },
+    values: { purchasePrice: 380000, downPayment: 76000, mortgageRate: 3.5, mortgageYears: 20, monthlyRent: 1500, annualPropertyTax: 2200, comparisonYears: 10, monthlySavings: 200 },
   },
   {
     id: "region",
@@ -80,7 +80,7 @@ export const PRESETS = [
     name: "Ville moyenne",
     desc: "Maison avec jardin",
     tag: "220 000 € · Loyer ~850 €",
-    values: { purchasePrice: 220000, downPayment: 44000, mortgageRate: 3.7, mortgageYears: 20, monthlyRent: 850, annualPropertyTax: 1200, comparisonYears: 10, monthlySavings: 150 },
+    values: { purchasePrice: 200000, downPayment: 40000, mortgageRate: 3.5, mortgageYears: 20, monthlyRent: 750, annualPropertyTax: 1100, comparisonYears: 10, monthlySavings: 150 },
   },
   {
     id: "budget",
@@ -88,7 +88,7 @@ export const PRESETS = [
     name: "Budget serré",
     desc: "Studio ou T2",
     tag: "150 000 € · Loyer ~650 €",
-    values: { purchasePrice: 150000, downPayment: 15000, mortgageRate: 4.0, mortgageYears: 25, monthlyRent: 650, annualPropertyTax: 900, comparisonYears: 8, monthlySavings: 100 },
+    values: { purchasePrice: 130000, downPayment: 15000, mortgageRate: 3.8, mortgageYears: 25, monthlyRent: 580, annualPropertyTax: 800, comparisonYears: 8, monthlySavings: 100 },
   },
 ];
 

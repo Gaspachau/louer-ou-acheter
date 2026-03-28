@@ -56,7 +56,7 @@ export default function SimOptimiseurApport() {
     prixBien: 280000,
     apportActuel: 40000,
     apportCible: 70000,
-    taux: 3.8,
+    taux: 3.5,
     duree: 20,
     epargneParMois: 800,
     loyerActuel: 950,
@@ -108,9 +108,9 @@ export default function SimOptimiseurApport() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre projet</p>
           <div className="step-fields">
-            <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" />
-            <Field label="Taux du crédit" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" hint="Mars 2026 : ~3,3–4,0 %" />
-            <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" />
+            <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Taux du crédit" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" hint="Mars 2026 : ~3,3–4,0 %" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 16 }}>Deux scénarios à comparer</p>
@@ -118,21 +118,21 @@ export default function SimOptimiseurApport() {
             <div className="optim-scenario-card optim-a">
               <p className="optim-scenario-label">Scénario A — Acheter maintenant</p>
               <Field label="Apport disponible" value={v.apportActuel} onChange={set("apportActuel")} suffix="€"
-                hint={res ? `${res.apportActuelPct.toFixed(0)} % du prix` : ""} />
+                hint={res ? `${res.apportActuelPct.toFixed(0)} % du prix` : ""} tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
             </div>
             <div className="optim-scenario-card optim-b">
               <p className="optim-scenario-label">Scénario B — Attendre pour épargner plus</p>
               <Field label="Apport visé" value={v.apportCible} onChange={set("apportCible")} suffix="€"
-                hint={res ? `${res.apportCiblePct.toFixed(0)} % du prix` : ""} />
+                hint={res ? `${res.apportCiblePct.toFixed(0)} % du prix` : ""} tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
             </div>
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 16 }}>Pendant l'attente</p>
           <div className="step-fields">
             <Field label="Épargne mensuelle possible" value={v.epargneParMois} onChange={set("epargneParMois")} suffix="€/mois"
-              hint="Ce que vous pouvez économiser chaque mois" />
+              hint="Ce que vous pouvez économiser chaque mois" tooltip="Ce que vous pouvez mettre de côté chaque mois en attendant d'acheter, pour augmenter votre apport." />
             <Field label="Loyer actuel" value={v.loyerActuel} onChange={set("loyerActuel")} suffix="€/mois"
-              hint="Loyer que vous payez pendant l'attente" />
+              hint="Loyer que vous payez pendant l'attente" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
           </div>
         </div>
 

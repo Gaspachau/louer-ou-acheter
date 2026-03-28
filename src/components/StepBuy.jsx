@@ -25,6 +25,36 @@ function ApportBadge({ pct }) {
   );
 }
 
+// ─── Tooltips ────────────────────────────────────────────────
+const T = {
+  prix: "Prix d'achat affiché par le vendeur, hors frais de notaire. Prix médian France 2026 : ~250 000 € pour un appartement (source : Notaires de France). Paris : ~450 000 €, province : ~180 000 €.",
+  apport: "Somme que vous apportez directement sans l'emprunter. Il faut au minimum couvrir les frais de notaire (~8 % du prix dans l'ancien). Les banques préfèrent 20 % pour les meilleures conditions de crédit.",
+  taux: "Taux d'intérêt annuel fixe de votre prêt. Taux moyens en France en 2026 : 3,3–3,6 % sur 20 ans, 3,5–3,9 % sur 25 ans. Obtenez des simulations auprès de votre banque ou d'un courtier.",
+  duree: "Nombre d'années de remboursement. Plus la durée est longue → mensualité plus basse, mais intérêts totaux bien plus élevés. Exemple sur 200 000 € à 3,5 % : 20 ans coûte ~62 000 € d'intérêts, 25 ans coûte ~79 000 €.",
+  notaire: "Frais versés au notaire lors de la signature de l'acte. Dans l'ancien : ~7–8 % du prix (dont 5,8 % de taxes reversées à l'État). Dans le neuf : ~2–3 %. Non finançables, donc à payer avec votre apport.",
+  taxe: "Impôt local annuel dû par le propriétaire. Varie beaucoup selon les communes (de 600 € à 3 000 €/an pour un appartement standard). Renseignez-vous auprès de la mairie ou du vendeur.",
+  entretien: "Provision pour travaux et maintenance courante. Les experts recommandent ~1 % du prix du bien par an (peintures, robinetterie, chauffe-eau…). En copropriété, s'ajoute aux charges de copro.",
+  assurance: "Assurance multirisque habitation propriétaire. Comptez 200–500 €/an selon la taille du bien et la localisation. Obligatoire en copropriété.",
+  apprec: "Taux de revalorisation annuelle du bien. Moyenne nationale sur 20 ans : +2–3 %/an. Très variable selon la ville (Paris +3 %, villes moyennes +1–2 %). Aucune garantie sur les évolutions futures.",
+  revente: "Frais engagés lors de la revente. Comprend la commission d'agence (3–5 %) et les frais de diagnostics obligatoires. S'il y a une plus-value immobilière, un impôt peut également s'appliquer.",
+};
+
+// ─── Warnings ────────────────────────────────────────────────
+function warnPrix(v) {
+  if (v > 1200000) return "Simulation pour un bien de très haut standing. La plupart des achats en France se font entre 100 000 € et 500 000 €.";
+  if (v > 0 && v < 30000) return "Prix très bas — vérifiez qu'il s'agit bien du prix total du bien et non d'une surface partielle.";
+  return null;
+}
+function warnTaux(v) {
+  if (v > 7) return `Taux inhabituel. Le taux moyen en France en 2026 est de 3,5 % sur 20 ans. Au-delà de 6 %, vérifiez votre offre.`;
+  if (v > 0 && v < 1) return "Taux très bas. Les prêts immobiliers en-dessous de 1 % n'existent plus en France depuis 2022.";
+  return null;
+}
+function warnDuree(v) {
+  if (v > 30) return "La loi HCSF plafonne la durée des prêts immobiliers à 25 ans (27 ans dans le neuf). Vérifiez avec votre banque.";
+  return null;
+}
+
 function StepBuy({ values, set, onNext, onBack }) {
   const [showAdvanced, setShowAdvanced] = useState(false);
 
@@ -33,7 +63,7 @@ function StepBuy({ values, set, onNext, onBack }) {
   const apportPct = values.purchasePrice > 0
     ? (values.downPayment / values.purchasePrice) * 100
     : 0;
-  const monthlySaving = values.monthlyRent - total; // positive = rent cheaper
+  const monthlySaving = values.monthlyRent - total;
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && e.target.tagName === "INPUT") onNext();
@@ -88,6 +118,8 @@ function StepBuy({ values, set, onNext, onBack }) {
               value={values.purchasePrice}
               onChange={set("purchasePrice")}
               suffix="€"
+              tooltip={T.prix}
+              warning={warnPrix(values.purchasePrice)}
             />
             <div>
               <Field
@@ -96,6 +128,7 @@ function StepBuy({ values, set, onNext, onBack }) {
                 onChange={set("downPayment")}
                 suffix="€"
                 hint={`Montant emprunté : ${formatCurrency(loanAmount)}`}
+                tooltip={T.apport}
               />
               {values.purchasePrice > 0 && (
                 <ApportBadge pct={apportPct} />
@@ -106,7 +139,9 @@ function StepBuy({ values, set, onNext, onBack }) {
               value={values.mortgageRate}
               onChange={set("mortgageRate")}
               suffix="%"
-              hint="Mars 2025 : ~3,7–4,0 % sur 25 ans · ~3,5–3,7 % sur 20 ans"
+              hint="Taux moyen 2026 : ~3,5 % sur 20 ans"
+              tooltip={T.taux}
+              warning={warnTaux(values.mortgageRate)}
             />
             <Field
               label="Durée du prêt"
@@ -114,6 +149,8 @@ function StepBuy({ values, set, onNext, onBack }) {
               onChange={set("mortgageYears")}
               suffix="ans"
               hint="20 ou 25 ans sont les plus courants"
+              tooltip={T.duree}
+              warning={warnDuree(values.mortgageYears)}
             />
           </div>
         </fieldset>
@@ -165,12 +202,12 @@ function StepBuy({ values, set, onNext, onBack }) {
           <fieldset id="advanced-fields" className="step-fieldset">
             <legend className="step-legend">Paramètres avancés</legend>
             <div className="step-fields advanced-fields">
-              <Field label="Frais de notaire" value={values.notaryFeesPct} onChange={set("notaryFeesPct")} suffix="%" hint="~8 % dans l'ancien · ~3 % dans le neuf" />
-              <Field label="Taxe foncière" value={values.annualPropertyTax} onChange={set("annualPropertyTax")} suffix="€/an" hint="Variable selon la commune" />
-              <Field label="Entretien annuel" value={values.annualMaintenancePct} onChange={set("annualMaintenancePct")} suffix="%" hint="~1 % du prix du bien / an" />
-              <Field label="Assurance habitation" value={values.annualInsurance} onChange={set("annualInsurance")} suffix="€/an" />
-              <Field label="Hausse du bien / an" value={values.appreciationRate} onChange={set("appreciationRate")} suffix="%" hint="Moyenne France : ~2–3 %/an sur 20 ans" />
-              <Field label="Frais de revente" value={values.saleCostsPct} onChange={set("saleCostsPct")} suffix="%" hint="Agence (~3–5 %) + diagnostics" />
+              <Field label="Frais de notaire" value={values.notaryFeesPct} onChange={set("notaryFeesPct")} suffix="%" hint="~8 % dans l'ancien · ~3 % dans le neuf" tooltip={T.notaire} />
+              <Field label="Taxe foncière" value={values.annualPropertyTax} onChange={set("annualPropertyTax")} suffix="€/an" hint="Variable selon la commune" tooltip={T.taxe} />
+              <Field label="Entretien annuel" value={values.annualMaintenancePct} onChange={set("annualMaintenancePct")} suffix="%" hint="~1 % du prix du bien/an" tooltip={T.entretien} />
+              <Field label="Assurance habitation" value={values.annualInsurance} onChange={set("annualInsurance")} suffix="€/an" tooltip={T.assurance} />
+              <Field label="Hausse du bien / an" value={values.appreciationRate} onChange={set("appreciationRate")} suffix="%" hint="Moyenne France : ~2 %/an" tooltip={T.apprec} />
+              <Field label="Frais de revente" value={values.saleCostsPct} onChange={set("saleCostsPct")} suffix="%" hint="Agence (~3–5 %) + diagnostics" tooltip={T.revente} />
             </div>
           </fieldset>
         )}

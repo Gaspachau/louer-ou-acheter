@@ -48,7 +48,7 @@ export default function SimPTZ() {
   const [nbPersonnes, setNbPersonnes] = useState(2);
   const [revenus, setRevenus] = useState(42000);
   const [prixAchat, setPrixAchat] = useState(220000);
-  const [tauxCredit, setTauxCredit] = useState(3.8);
+  const [tauxCredit, setTauxCredit] = useState(3.5);
   const [dureeCredit, setDureeCredit] = useState(20);
 
   const res = useMemo(() => {
@@ -116,11 +116,11 @@ export default function SimPTZ() {
                 </button>
               </div>
             </div>
-            <Field label="Personnes dans le foyer" value={nbPersonnes} onChange={setNbPersonnes} suffix="pers." step={1} min={1} max={6} hint="Emprunteur(s) + personnes à charge" />
-            <Field label="Revenus annuels nets du foyer" value={revenus} onChange={setRevenus} suffix="€" hint="Revenus fiscaux N-2 de tous les co-emprunteurs" />
-            <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" />
-            <Field label="Taux du crédit classique" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} />
-            <Field label="Durée du crédit classique" value={dureeCredit} onChange={setDureeCredit} suffix="ans" step={1} min={10} max={25} />
+            <Field label="Personnes dans le foyer" value={nbPersonnes} onChange={setNbPersonnes} suffix="pers." step={1} min={1} max={6} hint="Emprunteur(s) + personnes à charge" tooltip="Nombre de personnes composant le foyer (emprunteurs + personnes à charge). Détermine le plafond de revenus PTZ applicable." />
+            <Field label="Revenus annuels nets du foyer" value={revenus} onChange={setRevenus} suffix="€" hint="Revenus fiscaux N-2 de tous les co-emprunteurs" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
+            <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Taux du crédit classique" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée du crédit classique" value={dureeCredit} onChange={setDureeCredit} suffix="ans" step={1} min={10} max={25} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
           </div>
         </div>
 

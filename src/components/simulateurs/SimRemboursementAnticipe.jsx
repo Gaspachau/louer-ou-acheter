@@ -119,11 +119,11 @@ export default function SimRemboursementAnticipe() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre crédit actuel</p>
           <div className="step-fields">
-            <Field label="Capital restant dû" value={capitalRestant} onChange={setCapitalRestant} suffix="€" />
-            <Field label="Taux d'intérêt actuel" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} />
-            <Field label="Durée restante" value={dureeRestante} onChange={setDureeRestante} suffix="ans" step={1} min={1} max={30} />
-            <Field label="Montant du remboursement anticipé" value={montantRA} onChange={setMontantRA} suffix="€" />
-            <Field label="Rendement épargne alternatif" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Assurance-vie fonds euro, PEA…" />
+            <Field label="Capital restant dû" value={capitalRestant} onChange={setCapitalRestant} suffix="€" tooltip="Montant qu'il vous reste à rembourser à votre banque. Retrouvez ce chiffre sur votre tableau d'amortissement ou votre dernier relevé de prêt." />
+            <Field label="Taux d'intérêt actuel" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée restante" value={dureeRestante} onChange={setDureeRestante} suffix="ans" step={1} min={1} max={30} tooltip="Nombre d'années restantes avant la fin du crédit. Disponible sur votre tableau d'amortissement." />
+            <Field label="Montant du remboursement anticipé" value={montantRA} onChange={setMontantRA} suffix="€" tooltip="Somme que vous souhaitez rembourser par anticipation. Les IRA sont plafonnées à 3 % du capital ou 6 mois d'intérêts." />
+            <Field label="Rendement épargne alternatif" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Assurance-vie fonds euro, PEA…" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 20 }}>Option de remboursement</p>

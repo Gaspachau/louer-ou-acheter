@@ -92,12 +92,12 @@ const DIM_ACTIONS = {
 
 export default function SimScoreAcheteur() {
   const [v, setV] = useState({
-    prixBien: 280000,
-    apport: 50000,
+    prixBien: 250000,
+    apport: 35000,
     revenus: 4200,
     chargesActuelles: 0,
     autresCharges: 400,
-    taux: 3.8,
+    taux: 3.5,
     duree: 20,
     statutScore: 100,
     horizon: 10,
@@ -123,22 +123,22 @@ export default function SimScoreAcheteur() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre projet</p>
           <div className="step-fields">
-            <Field label="Prix du bien visé" value={v.prixBien} onChange={set("prixBien")} suffix="€" hint="Incluant les frais de notaire (~8%)" />
-            <Field label="Apport disponible" value={v.apport} onChange={set("apport")} suffix="€" hint="Épargne que vous allez mobiliser" />
+            <Field label="Prix du bien visé" value={v.prixBien} onChange={set("prixBien")} suffix="€" hint="Incluant les frais de notaire (~8%)" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Apport disponible" value={v.apport} onChange={set("apport")} suffix="€" hint="Épargne que vous allez mobiliser" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 16 }}>Votre situation financière</p>
           <div className="step-fields">
-            <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€" hint="Tous foyers : salaires + revenus réguliers" />
-            <Field label="Crédits en cours" value={v.chargesActuelles} onChange={set("chargesActuelles")} suffix="€/mois" hint="Mensualités de crédits existants" />
+            <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€" hint="Tous foyers : salaires + revenus réguliers" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
+            <Field label="Crédits en cours" value={v.chargesActuelles} onChange={set("chargesActuelles")} suffix="€/mois" hint="Mensualités de crédits existants" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
             <Field label="Autres charges fixes" value={v.autresCharges} onChange={set("autresCharges")} suffix="€/mois" hint="Transport, abonnements, assurances..." />
-            <Field label="Épargne de réserve" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€" hint="Argent conservé après l'achat" />
+            <Field label="Épargne de réserve" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€" hint="Argent conservé après l'achat" tooltip="Argent disponible après l'achat pour faire face aux imprévus. Minimum recommandé : 3 à 6 mois de mensualités." />
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 16 }}>Crédit envisagé</p>
           <div className="step-fields">
-            <Field label="Taux du prêt" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" />
-            <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" />
+            <Field label="Taux du prêt" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
           </div>
 
           <div style={{ marginTop: 16 }}>

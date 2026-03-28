@@ -74,11 +74,11 @@ function ScoreMeter({ score }) {
 
 export default function SimStressTest() {
   const [v, setV] = useState({
-    prixBien: 280000,
-    apport: 50000,
-    taux: 3.8,
+    prixBien: 250000,
+    apport: 35000,
+    taux: 3.5,
     duree: 20,
-    revenus: 4200,
+    revenus: 3500,
     epargneReserve: 12000,
   });
 
@@ -138,13 +138,13 @@ export default function SimStressTest() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre projet de base</p>
           <div className="step-fields">
-            <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" />
-            <Field label="Apport personnel" value={v.apport} onChange={set("apport")} suffix="€" />
-            <Field label="Taux actuel" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" />
-            <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" />
-            <Field label="Revenus mensuels nets" value={v.revenus} onChange={set("revenus")} suffix="€" />
+            <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Apport personnel" value={v.apport} onChange={set("apport")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+            <Field label="Taux actuel" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+            <Field label="Revenus mensuels nets" value={v.revenus} onChange={set("revenus")} suffix="€" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
             <Field label="Réserve d'épargne" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€"
-              hint="Capital disponible après achat" />
+              hint="Capital disponible après achat" tooltip="Capital liquide disponible après achat (livret, épargne de précaution). À ne pas confondre avec l'apport investi dans le bien." />
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 20 }}>Scénarios de stress — ajustez l'intensité</p>

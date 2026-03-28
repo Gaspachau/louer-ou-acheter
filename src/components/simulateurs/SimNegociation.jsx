@@ -24,7 +24,7 @@ const CONSEILS = [
 export default function SimNegociation() {
   const [prixAffiche, setPrixAffiche] = useState(280000);
   const [loyer, setLoyer] = useState(950);
-  const [taux, setTaux] = useState(3.8);
+  const [taux, setTaux] = useState(3.5);
   const [duree, setDuree] = useState(20);
   const [apport, setApport] = useState(40000);
   const [horizon, setHorizon] = useState(7);
@@ -145,13 +145,13 @@ export default function SimNegociation() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre projet</p>
           <div className="step-fields">
-            <Field label="Prix affiché" value={prixAffiche} onChange={setPrixAffiche} suffix="€" />
-            <Field label="Loyer mensuel équivalent" value={loyer} onChange={setLoyer} suffix="€" hint="Loyer d'un bien similaire dans le même secteur" />
-            <Field label="Apport personnel" value={apport} onChange={setApport} suffix="€" />
-            <Field label="Taux du crédit" value={taux} onChange={setTaux} suffix="%" step={0.1} />
-            <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} />
+            <Field label="Prix affiché" value={prixAffiche} onChange={setPrixAffiche} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Loyer mensuel équivalent" value={loyer} onChange={setLoyer} suffix="€" hint="Loyer d'un bien similaire dans le même secteur" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
+            <Field label="Apport personnel" value={apport} onChange={setApport} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+            <Field label="Taux du crédit" value={taux} onChange={setTaux} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+            <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
             <Field label="Horizon de détention" value={horizon} onChange={setHorizon} suffix="ans" step={1} min={3} max={20} />
-            <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 3%, PEA = 5-7%" />
+            <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 3%, PEA = 5-7%" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
           </div>
         </div>
 

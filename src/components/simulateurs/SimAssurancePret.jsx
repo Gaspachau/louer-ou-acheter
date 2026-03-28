@@ -19,7 +19,7 @@ export default function SimAssurancePret() {
   const [duree, setDuree] = useState(20);
   const [tauxBanque, setTauxBanque] = useState(0.36);
   const [tauxDelegue, setTauxDelegue] = useState(0.14);
-  const [tauxCredit, setTauxCredit] = useState(3.8);
+  const [tauxCredit, setTauxCredit] = useState(3.5);
 
   const res = useMemo(() => {
     // Cotisations mensuelles sur capital initial (méthode simplifiée)
@@ -82,9 +82,9 @@ export default function SimAssurancePret() {
         <div className="sim-card">
           <p className="sim-card-legend">Votre crédit</p>
           <div className="step-fields">
-            <Field label="Montant emprunté" value={montant} onChange={setMontant} suffix="€" />
-            <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} min={5} max={30} />
-            <Field label="Taux du crédit" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} />
+            <Field label="Montant emprunté" value={montant} onChange={setMontant} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+            <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} min={5} max={30} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+            <Field label="Taux du crédit" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
           </div>
 
           <p className="sim-card-legend" style={{ marginTop: 20 }}>Assurances (TAEA en % du capital initial/an)</p>
@@ -96,6 +96,7 @@ export default function SimAssurancePret() {
               suffix="%"
               step={0.01}
               hint="Moyen : 0,25–0,45 % selon profil et banque"
+              tooltip="Taux Annuel Effectif d'Assurance proposé par votre banque. Souvent entre 0,25 % et 0,45 % du capital initial."
             />
             <Field
               label="Taux assurance déléguée (TAEA)"
@@ -104,6 +105,7 @@ export default function SimAssurancePret() {
               suffix="%"
               step={0.01}
               hint="Moyen : 0,08–0,25 % selon profil et assureur"
+              tooltip="Taux d'une assurance externe (Comparateur en ligne, courtier). Souvent 2× moins cher que l'assurance banque pour les profils sains."
             />
           </div>
 
