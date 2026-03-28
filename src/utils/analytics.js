@@ -23,6 +23,10 @@ export function initAnalytics() {
     autocapture: false, // only manual events — no accidental PII capture
     persistence: "localStorage",
     sanitize_properties: sanitize,
+    session_recording: {
+      maskAllInputs: false,
+      maskInputOptions: { password: true },
+    },
   });
 
   _initialized = true;
@@ -45,14 +49,33 @@ export function track(event, props = {}) {
 
 // ─── Specific event helpers ───────────────────────────────────
 
-/** Fired when a simulator page mounts */
+/** Fired when a simulator page mounts (alias kept for SimLayout.jsx) */
 export function trackSimulatorOpened(name, path) {
-  track("simulator_opened", { simulator: name, path });
+  track("simulator_started", { simulator: name, path });
+}
+
+/** Fired when a simulator page mounts */
+export function trackSimulatorStarted(name, path) {
+  track("simulator_started", { simulator: name, path });
 }
 
 /** Fired on unmount with how long the user stayed */
 export function trackSimulatorClosed(name, durationSeconds) {
   track("simulator_closed", { simulator: name, duration_seconds: durationSeconds });
+}
+
+/** Fired on unmount when user left without completing a full simulation */
+export function trackSimulatorAbandoned(name, durationSeconds) {
+  track("simulator_abandoned", { simulator: name, duration_seconds: durationSeconds });
+}
+
+/** Fired when user has filled all fields and result is computed */
+export function trackSimulatorCompleted(name, inputs, results) {
+  track("simulator_completed", {
+    simulator: name,
+    ...sanitize(inputs),
+    ...sanitizeResults(results),
+  });
 }
 
 /** Fired (debounced) when a field value changes */

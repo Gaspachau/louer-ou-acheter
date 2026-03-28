@@ -86,7 +86,7 @@ export default function SimEpargne() {
               <Field label="Objectif à atteindre" value={v.goal} onChange={set("goal")} suffix="€" hint="Capital cible (achat, retraite, projet…)" tooltip="Montant total que vous souhaitez accumuler. Ex. : apport immobilier, achat voiture, retraite anticipée." />
             </div>
             <Field label="Capital de départ" value={v.initial} onChange={set("initial")} suffix="€" hint="Épargne déjà constituée" tooltip="Épargne déjà constituée que vous allez placer immédiatement." />
-            <Field label="Rendement annuel" value={v.annualReturn} onChange={set("annualReturn")} suffix="%" hint="Livret A=2,4 % · ETF≈7–8 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
+            <Field label="Rendement annuel" value={v.annualReturn} onChange={set("annualReturn")} suffix="%" hint="Livret A=1,5 % · ETF≈7–8 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
             <div className="field-full">
               <label className="field-label">Horizon</label>
               <div className="horizon-box" style={{ marginTop: 6 }}>

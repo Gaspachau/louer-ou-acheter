@@ -151,7 +151,7 @@ export default function SimNegociation() {
             <Field label="Taux du crédit" value={taux} onChange={setTaux} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
             <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
             <Field label="Horizon de détention" value={horizon} onChange={setHorizon} suffix="ans" step={1} min={3} max={20} />
-            <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 3%, PEA = 5-7%" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
+            <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 1,5 %, PEA = 5–7 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
           </div>
         </div>
 

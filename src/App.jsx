@@ -60,7 +60,7 @@ const DEFAULTS = {
   saleCostsPct: 5,         // frais de revente (agence + diagnostics)
   monthlyRent: 900,        // loyer médian hors Paris en 2026
   annualRentIncrease: 2,   // IRL ~2 %/an
-  investmentReturn: 3.5,   // rendement mixte (Livret A 2,4 % + un peu d'ETF)
+  investmentReturn: 3.5,   // rendement mixte (Livret A 1,5 % + un peu d'ETF)
   comparisonYears: 10,
   monthlySavings: 0,
 };

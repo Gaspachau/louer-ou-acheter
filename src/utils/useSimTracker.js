@@ -1,25 +1,39 @@
 // ─── useSimTracker ────────────────────────────────────────────
-// Tracks simulator open/close (with time spent) and field changes
+// Tracks simulator open/close (with time spent), field changes,
+// completion, and abandonment.
 // Usage:
-//   const { trackField } = useSimTracker("Prêt immobilier");
-//   <Field onChange={(v) => { set("prix")(v); trackField("prix", v); }} />
+//   const { trackField, trackCompleted } = useSimTracker("Prêt immobilier");
+//   <Field onChange={(v) => { set(v); trackField("prix", v); }} />
+//   // Call trackCompleted(inputs, results) when final result is ready
 
 import { useEffect, useRef, useCallback } from "react";
-import { trackSimulatorOpened, trackSimulatorClosed, trackFieldChanged } from "./analytics";
+import {
+  trackSimulatorStarted,
+  trackSimulatorClosed,
+  trackSimulatorAbandoned,
+  trackSimulatorCompleted,
+  trackFieldChanged,
+} from "./analytics";
 
 const DEBOUNCE_MS = 1500;
 
 export function useSimTracker(simulatorName) {
   const openedAt = useRef(Date.now());
   const timers = useRef({});
+  const completedRef = useRef(false);
 
   useEffect(() => {
-    trackSimulatorOpened(simulatorName, window.location.pathname);
+    trackSimulatorStarted(simulatorName, window.location.pathname);
     openedAt.current = Date.now();
+    completedRef.current = false;
 
     return () => {
       const seconds = Math.round((Date.now() - openedAt.current) / 1000);
-      trackSimulatorClosed(simulatorName, seconds);
+      if (completedRef.current) {
+        trackSimulatorClosed(simulatorName, seconds);
+      } else {
+        trackSimulatorAbandoned(simulatorName, seconds);
+      }
     };
   }, [simulatorName]);
 
@@ -33,5 +47,14 @@ export function useSimTracker(simulatorName) {
     [simulatorName]
   );
 
-  return { trackField };
+  /** Call this once results are fully computed and displayed */
+  const trackCompleted = useCallback(
+    (inputs = {}, results = {}) => {
+      completedRef.current = true;
+      trackSimulatorCompleted(simulatorName, inputs, results);
+    },
+    [simulatorName]
+  );
+
+  return { trackField, trackCompleted };
 }

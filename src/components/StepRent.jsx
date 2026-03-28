@@ -2,7 +2,7 @@ import Field from "./Field";
 
 const TOOLTIP_LOYER = "Ce que vous payez chaque mois, charges locatives comprises. Moyenne nationale : ~700 €/mois (source : CLAMEUR 2024). À Paris : ~1 400 €, en province : ~600–700 €.";
 const TOOLTIP_HAUSSE = "Taux auquel votre loyer augmente chaque année. Encadré par l'IRL (Indice de Référence des Loyers), il tourne autour de 1,5–2 %/an depuis 2022.";
-const TOOLTIP_RENDEMENT = "Ce que rapporte votre argent placé chaque année, net de frais. Livret A en 2026 : 2,4 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % en moyenne sur 20 ans.";
+const TOOLTIP_RENDEMENT = "Ce que rapporte votre argent placé chaque année, net de frais. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % en moyenne sur 20 ans.";
 const TOOLTIP_EPARGNE = "Montant supplémentaire que vous mettez de côté chaque mois (livret, PEA…), indépendamment de l'achat ou de la location. S'ajoute au capital de l'acheteur ou du locataire.";
 
 function warnLoyer(v) {
@@ -64,7 +64,7 @@ function StepRent({ values, set, onNext }) {
               value={values.investmentReturn}
               onChange={set("investmentReturn")}
               suffix="%"
-              hint="Livret A = 2,4 % · ETF ≈ 7–8 %"
+              hint="Livret A = 1,5 % · ETF ≈ 7–8 %"
               tooltip={TOOLTIP_RENDEMENT}
               warning={warnRendement(values.investmentReturn)}
             />

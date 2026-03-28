@@ -36,7 +36,7 @@ function ChartTooltip({ active, payload }) {
 }
 
 const RENDEMENT_REFS = [
-  { name: "Livret A (3%)", v: 3, color: "#94a3b8" },
+  { name: "Livret A (1,5%)", v: 1.5, color: "#94a3b8" },
   { name: "SCPI (5%)",     v: 5, color: "#0d9488" },
   { name: "Excellent (7%)", v: 7, color: "#059669" },
 ];
@@ -66,7 +66,7 @@ export default function SimRentabiliteLocative() {
   const barData = [
     { name: "Brut",     value: parseFloat(res.rendementBrut.toFixed(2)), fill: "#1a56db" },
     { name: "Net",      value: parseFloat(Math.max(0, res.rendementNet).toFixed(2)), fill: rendColor === "green" ? "#059669" : rendColor === "amber" ? "#d97706" : "#dc2626" },
-    { name: "Livret A", value: 3,   fill: "#5e6e88" },
+    { name: "Livret A", value: 1.5, fill: "#5e6e88" },
     { name: "SCPI",     value: 5,   fill: "#0d9488" },
   ];
 

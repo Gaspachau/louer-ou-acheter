@@ -377,7 +377,7 @@ export const ARTICLES = [
             à prêt. Idéal si l'horizon d'achat est dans 4 ans ou plus.
           </li>
           <li>
-            <strong>Livret A</strong> : 3 % en 2026, totalement liquide et sans risque. Parfait pour la
+            <strong>Livret A</strong> : 1,5 % en 2026, totalement liquide et sans risque. Parfait pour la
             partie "précaution" de votre épargne.
           </li>
           <li>

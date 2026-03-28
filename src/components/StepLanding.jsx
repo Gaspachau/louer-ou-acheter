@@ -1,8 +1,131 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { trackPresetSelected, trackSimulationStarted } from "../utils/analytics";
 import { PRESETS } from "../App";
 import { ARTICLES } from "../data/articles";
+import { computeComparison } from "../utils/finance";
+
+// Real 2026 data per city (prix médian/m², surface type, loyer mensuel, taxe foncière/an)
+const CITY_DATA = [
+  { id: "paris",     name: "Paris",     emoji: "🗼", pricePerM2: 9500, surface: 42, loyer: 1400, taxe: 2200, apport: 80000 },
+  { id: "lyon",      name: "Lyon",      emoji: "🦁", pricePerM2: 4800, surface: 55, loyer: 890,  taxe: 1400, apport: 40000 },
+  { id: "bordeaux",  name: "Bordeaux",  emoji: "🍷", pricePerM2: 4300, surface: 55, loyer: 860,  taxe: 1200, apport: 35000 },
+  { id: "marseille", name: "Marseille", emoji: "☀️", pricePerM2: 3500, surface: 58, loyer: 760,  taxe: 1100, apport: 30000 },
+  { id: "nantes",    name: "Nantes",    emoji: "🏰", pricePerM2: 4100, surface: 55, loyer: 820,  taxe: 1300, apport: 35000 },
+];
+
+const fmtK = (v) => {
+  if (Math.abs(v) >= 1000) return `${Math.round(v / 1000)} k€`;
+  return `${Math.round(v)} €`;
+};
+
+function CityMockup() {
+  const [cityId, setCityId] = useState("lyon");
+  const city = CITY_DATA.find((c) => c.id === cityId);
+
+  const res = useMemo(() => {
+    const prix = city.pricePerM2 * city.surface;
+    return computeComparison({
+      purchasePrice: prix,
+      downPayment: city.apport,
+      mortgageRate: 3.5,
+      mortgageYears: 20,
+      notaryFeesPct: 8,
+      annualPropertyTax: city.taxe,
+      annualMaintenancePct: 1,
+      annualInsurance: 600,
+      appreciationRate: 2,
+      saleCostsPct: 6,
+      monthlyRent: city.loyer,
+      annualRentIncrease: 1.5,
+      investmentReturn: 3.5,
+      comparisonYears: 10,
+    });
+  }, [city]);
+
+  const isBuying = res.isBuyingBetter;
+  const total = Math.abs(res.ownerNetWorth) + Math.abs(res.renterPortfolio);
+  const buyPct = total > 0 ? Math.round((res.ownerNetWorth / total) * 100) : 50;
+  const rentPct = 100 - buyPct;
+
+  return (
+    <div className="lp-mockup" aria-label="Aperçu simulateur par ville">
+      <div className="lp-mockup-header">
+        <span className="lp-mockup-dot lp-dot-red" />
+        <span className="lp-mockup-dot lp-dot-yellow" />
+        <span className="lp-mockup-dot lp-dot-green" />
+        <span className="lp-mockup-title">Simulation 10 ans · {city.name}</span>
+      </div>
+      <div className="lp-mockup-body">
+        {/* City selector */}
+        <div className="lp-city-btns" role="group" aria-label="Choisir une ville">
+          {CITY_DATA.map((c) => (
+            <button
+              key={c.id}
+              type="button"
+              className={`lp-city-btn${cityId === c.id ? " active" : ""}`}
+              onClick={() => setCityId(c.id)}
+              aria-pressed={cityId === c.id}
+            >
+              {c.emoji} {c.name}
+            </button>
+          ))}
+        </div>
+
+        {/* Verdict */}
+        <div className="lp-mockup-verdict">
+          <span className="lp-mockup-verdict-icon">{isBuying ? "🏠" : "🏢"}</span>
+          <div>
+            <div className="lp-mockup-verdict-label">Recommandation</div>
+            <div className="lp-mockup-verdict-text">
+              {isBuying ? "Achat avantageux" : "Location avantageuse"} sur 10 ans
+            </div>
+          </div>
+        </div>
+
+        {/* Stats */}
+        <div className="lp-mockup-stats">
+          <div className="lp-mockup-stat">
+            <span className="lp-mockup-stat-label">Mensualité crédit</span>
+            <span className="lp-mockup-stat-val">{fmtK(res.monthlyPayment)}/mois</span>
+          </div>
+          <div className="lp-mockup-stat">
+            <span className="lp-mockup-stat-label">Patrimoine achat</span>
+            <span className={`lp-mockup-stat-val${isBuying ? " lp-mockup-stat-green" : ""}`}>{fmtK(res.ownerNetWorth)}</span>
+          </div>
+          <div className="lp-mockup-stat">
+            <span className="lp-mockup-stat-label">Patrimoine location</span>
+            <span className={`lp-mockup-stat-val${!isBuying ? " lp-mockup-stat-green" : ""}`}>{fmtK(res.renterPortfolio)}</span>
+          </div>
+          <div className="lp-mockup-stat">
+            <span className="lp-mockup-stat-label">Avantage net</span>
+            <span className="lp-mockup-stat-val lp-mockup-stat-blue">
+              {fmtK(Math.abs(res.advantage))} en faveur {isBuying ? "achat" : "loc."}
+            </span>
+          </div>
+        </div>
+
+        {/* Bars */}
+        <div className="lp-mockup-bar-section">
+          <div className="lp-mockup-bar-label">
+            <span>Achat</span><span className="lp-mockup-bar-pct">{buyPct > 0 ? buyPct : 0} %</span>
+          </div>
+          <div className="lp-mockup-bar-track">
+            <div className={`lp-mockup-bar-fill${isBuying ? " lp-mockup-bar-green" : " lp-mockup-bar-blue"}`} style={{ width: `${Math.max(5, buyPct)}%`, transition: "width 0.4s ease" }} />
+          </div>
+          <div className="lp-mockup-bar-label" style={{ marginTop: "6px" }}>
+            <span>Location</span><span className="lp-mockup-bar-pct">{rentPct > 0 ? rentPct : 0} %</span>
+          </div>
+          <div className="lp-mockup-bar-track">
+            <div className={`lp-mockup-bar-fill${!isBuying ? " lp-mockup-bar-green" : " lp-mockup-bar-blue"}`} style={{ width: `${Math.max(5, rentPct)}%`, transition: "width 0.4s ease" }} />
+          </div>
+        </div>
+
+        <div className="lp-mockup-cta">Simuler votre situation →</div>
+      </div>
+    </div>
+  );
+}
 
 const TRUST_ITEMS = [
   {
@@ -226,52 +349,7 @@ export default function StepLanding({ onStart, onPreset }) {
             </div>
           </div>
 
-          <div className="lp-mockup" aria-hidden="true">
-            <div className="lp-mockup-header">
-              <span className="lp-mockup-dot lp-dot-red" />
-              <span className="lp-mockup-dot lp-dot-yellow" />
-              <span className="lp-mockup-dot lp-dot-green" />
-              <span className="lp-mockup-title">Résultat de simulation</span>
-            </div>
-            <div className="lp-mockup-body">
-              <div className="lp-mockup-verdict">
-                <span className="lp-mockup-verdict-icon">📍</span>
-                <div>
-                  <div className="lp-mockup-verdict-label">Recommandation</div>
-                  <div className="lp-mockup-verdict-text">Location avantageuse sur 10 ans</div>
-                </div>
-              </div>
-              <div className="lp-mockup-stats">
-                <div className="lp-mockup-stat">
-                  <span className="lp-mockup-stat-label">Patrimoine location</span>
-                  <span className="lp-mockup-stat-val lp-mockup-stat-green">+284 000 €</span>
-                </div>
-                <div className="lp-mockup-stat">
-                  <span className="lp-mockup-stat-label">Patrimoine achat</span>
-                  <span className="lp-mockup-stat-val">+261 000 €</span>
-                </div>
-                <div className="lp-mockup-stat">
-                  <span className="lp-mockup-stat-label">Différence nette</span>
-                  <span className="lp-mockup-stat-val lp-mockup-stat-blue">23 000 € en faveur loc.</span>
-                </div>
-              </div>
-              <div className="lp-mockup-bar-section">
-                <div className="lp-mockup-bar-label">
-                  <span>Location</span><span className="lp-mockup-bar-pct">52 %</span>
-                </div>
-                <div className="lp-mockup-bar-track">
-                  <div className="lp-mockup-bar-fill lp-mockup-bar-green" style={{width: "52%"}} />
-                </div>
-                <div className="lp-mockup-bar-label" style={{marginTop: "6px"}}>
-                  <span>Achat</span><span className="lp-mockup-bar-pct">48 %</span>
-                </div>
-                <div className="lp-mockup-bar-track">
-                  <div className="lp-mockup-bar-fill lp-mockup-bar-blue" style={{width: "48%"}} />
-                </div>
-              </div>
-              <div className="lp-mockup-cta">Voir l'analyse complète →</div>
-            </div>
-          </div>
+          <CityMockup />
         </div>
       </section>
 

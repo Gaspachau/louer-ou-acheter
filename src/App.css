@@ -1779,6 +1779,21 @@ input[type="range"]::-moz-range-thumb {
 .lp-mockup-bar-blue  { background: linear-gradient(90deg, #38bdf8, #818cf8); }
 .lp-mockup-cta { font-size: 12px; font-weight: 700; color: #38bdf8; text-align: right; }
 
+/* City selector in mockup */
+.lp-city-btns {
+  display: flex; flex-wrap: wrap; gap: 5px;
+}
+.lp-city-btn {
+  padding: 4px 9px; border-radius: 20px; border: 1px solid rgba(255,255,255,.2);
+  background: rgba(255,255,255,.07); color: rgba(255,255,255,.65);
+  font-size: 11px; font-weight: 600; cursor: pointer; transition: all .18s;
+  white-space: nowrap;
+}
+.lp-city-btn:hover { background: rgba(255,255,255,.14); color: rgba(255,255,255,.9); }
+.lp-city-btn.active {
+  background: rgba(56,189,248,.22); border-color: #38bdf8; color: #38bdf8;
+}
+
 /* Trust bar */
 .lp-trust-bar {
   display: flex; align-items: stretch; justify-content: center; flex-wrap: wrap;
