@@ -350,6 +350,27 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
           </div>
 
           <CityMockup onSelect={onCityChange} />
+
+          {/* Mobile-only simple verdict card (mockup hidden on mobile) */}
+          <div className="lp-mobile-verdict-box" aria-label="Aperçu rapide">
+            <div className="lp-mvb-row">
+              <span className="lp-mvb-stat">
+                <span className="lp-mvb-num">2 min</span>
+                <span className="lp-mvb-label">pour simuler</span>
+              </span>
+              <span className="lp-mvb-sep" />
+              <span className="lp-mvb-stat">
+                <span className="lp-mvb-num">10+</span>
+                <span className="lp-mvb-label">villes françaises</span>
+              </span>
+              <span className="lp-mvb-sep" />
+              <span className="lp-mvb-stat">
+                <span className="lp-mvb-num">100%</span>
+                <span className="lp-mvb-label">gratuit</span>
+              </span>
+            </div>
+            <p className="lp-mvb-hint">Loyer, crédit, patrimoine — tout est comparé sur la durée exacte que vous choisissez.</p>
+          </div>
         </div>
       </section>
 

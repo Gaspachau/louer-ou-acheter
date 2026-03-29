@@ -4495,3 +4495,517 @@ input[type="range"]::-moz-range-thumb {
 .hub-guide-banner-perso .hub-guide-arrow {
   color: #fff;
 }
+
+/* ═══════════════════════════════════════════════════════════
+   MOBILE RESPONSIVE OVERHAUL
+   Tested at 390px (iPhone 15) and 375px (iPhone SE)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Global overflow & box-sizing guard ───────────────────── */
+* { box-sizing: border-box; }
+html, body {
+  overflow-x: hidden;
+  max-width: 100vw;
+  -webkit-text-size-adjust: 100%;
+}
+.page, #root {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
+/* ── Minimum touch target for all interactive elements ──── */
+@media (max-width: 768px) {
+  button, [role="button"], a.btn, input[type="submit"],
+  .topbar-nav-pill, .hub-filter-btn, .lp-preset-card,
+  .lp-custom-btn, .btn-hero-primary, .btn-hero-secondary,
+  .sim-progress-step, .city-select-btn, .guide-quiz-option,
+  .hub-guide-banner, .sim-hub-card {
+    min-height: 48px;
+  }
+  .field-info-btn {
+    min-height: 32px;
+    min-width: 32px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* ── TopBar hamburger menu ────────────────────────────────── */
+.topbar-mobile-right { display: none; }
+.topbar-hamburger {
+  background: none; border: none;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 5px; padding: 10px; cursor: pointer;
+  width: 48px; height: 48px; border-radius: 10px;
+  transition: background .15s;
+  flex-shrink: 0;
+}
+.topbar-hamburger:hover { background: rgba(255,255,255,.1); }
+.hamburger-bar {
+  display: block; width: 20px; height: 2px;
+  background: rgba(255,255,255,.85); border-radius: 2px;
+  transition: transform .25s ease, opacity .25s ease;
+  transform-origin: center;
+}
+.topbar-hamburger.is-open .hamburger-bar:nth-child(1) {
+  transform: translateY(7px) rotate(45deg);
+}
+.topbar-hamburger.is-open .hamburger-bar:nth-child(2) {
+  opacity: 0; transform: scaleX(0);
+}
+.topbar-hamburger.is-open .hamburger-bar:nth-child(3) {
+  transform: translateY(-7px) rotate(-45deg);
+}
+
+.topbar-mobile-menu {
+  position: absolute; top: 60px; left: 0; right: 0;
+  background: #0a1428;
+  border-top: 1px solid rgba(255,255,255,.1);
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  padding: 8px 12px 16px;
+  display: flex; flex-direction: column; gap: 4px;
+  z-index: 200;
+  box-shadow: 0 12px 40px rgba(0,0,0,.5);
+}
+.topbar-mobile-link {
+  display: flex; align-items: center; gap: 12px;
+  padding: 13px 16px; border-radius: 12px;
+  color: rgba(255,255,255,.75); text-decoration: none;
+  font-size: 15px; font-weight: 700;
+  transition: background .15s, color .15s;
+  min-height: 48px;
+}
+.topbar-mobile-link:hover { background: rgba(255,255,255,.08); color: #fff; }
+.topbar-mobile-link.active {
+  background: rgba(37,99,235,.25); color: #bae6fd;
+}
+.topbar-mobile-link-icon {
+  display: flex; align-items: center;
+  color: inherit; opacity: .7; flex-shrink: 0;
+}
+
+@media (max-width: 680px) {
+  .topbar-right { display: none !important; }
+  .topbar-mobile-right { display: flex; align-items: center; gap: 6px; }
+  .topbar-stepper-mobile .sim-progress { padding: 0; }
+  .topbar-stepper-mobile .sim-progress-label { display: none; }
+  .topbar-stepper-mobile .sim-progress-dot { width: 18px; height: 18px; font-size: 10px; }
+}
+@media (min-width: 681px) {
+  .topbar-mobile-menu { display: none !important; }
+}
+
+/* ── Info tooltip → fixed bottom sheet on mobile ──────────── */
+@media (max-width: 680px) {
+  .field-info-popup {
+    position: fixed !important;
+    left: 12px !important;
+    right: 12px !important;
+    bottom: 20px !important;
+    top: auto !important;
+    width: auto !important;
+    max-width: none !important;
+    transform: none !important;
+    border-radius: 18px;
+    padding: 18px 20px;
+    font-size: 14px;
+    line-height: 1.6;
+    z-index: 1000;
+    box-shadow: 0 -8px 48px rgba(0,0,0,.35), 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .field-info-popup::after { display: none !important; }
+}
+
+/* ── LP Hero on mobile ────────────────────────────────────── */
+@media (max-width: 390px) {
+  .lp-hero { padding: 36px 16px 48px; }
+  .lp-hero-title { font-size: clamp(34px, 9vw, 46px); }
+  .lp-hero-sub { font-size: 15px; }
+  .lp-hero-social-proof { font-size: 11px; }
+  .btn-hero-primary { font-size: 15px; padding: 14px 22px; }
+  .btn-hero-secondary { font-size: 14px; padding: 13px 18px; }
+}
+
+/* Mobile verdict card (replaces hidden mockup) */
+.lp-mobile-verdict-box {
+  display: none;
+}
+@media (max-width: 640px) {
+  .lp-mobile-verdict-box {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 18px;
+    padding: 20px;
+    width: 100%;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  .lp-mvb-row {
+    display: flex; align-items: center; justify-content: space-around;
+  }
+  .lp-mvb-stat {
+    display: flex; flex-direction: column; align-items: center; gap: 2px;
+    flex: 1;
+  }
+  .lp-mvb-num {
+    font-size: 22px; font-weight: 900; color: #fff;
+    letter-spacing: -0.04em;
+  }
+  .lp-mvb-label {
+    font-size: 11px; color: rgba(255,255,255,.48); font-weight: 600;
+  }
+  .lp-mvb-sep {
+    width: 1px; height: 36px; background: rgba(255,255,255,.12); flex-shrink: 0;
+  }
+  .lp-mvb-hint {
+    margin: 0; font-size: 13px; color: rgba(255,255,255,.52); text-align: center;
+    line-height: 1.5;
+  }
+}
+
+/* ── Trust bar on mobile ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .lp-trust-bar { flex-direction: column; }
+  .lp-trust-item {
+    border-right: none;
+    border-bottom: 1px solid var(--line);
+    min-width: unset;
+    width: 100%;
+    padding: 12px 20px;
+  }
+  .lp-trust-item:last-child { border-bottom: none; }
+  .lp-trust-label { font-size: 13px; }
+}
+
+/* ── Why / Testimonials / FAQ sections ───────────────────── */
+@media (max-width: 480px) {
+  .lp-why-section { padding: 36px 16px; }
+  .lp-why-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .lp-why-card { padding: 16px 12px; }
+  .lp-section-title { font-size: clamp(22px, 6vw, 32px); }
+  .lp-section-sub { font-size: 14px; }
+
+  .lp-testimonials-section { padding: 36px 16px; }
+  .lp-testimonials-grid { grid-template-columns: 1fr; }
+
+  .lp-faq-section { padding: 36px 16px; }
+  .lp-faq-q { font-size: 14px; }
+
+  .lp-presets-section { padding: 40px 16px; }
+  .lp-preset-card { padding: 14px 16px; gap: 12px; min-height: 64px; }
+  .lp-preset-name { font-size: 15px; }
+  .lp-custom-btn { width: 100%; justify-content: center; }
+
+  .lp-sims-section { padding: 40px 16px; }
+  .lp-sims-grid { grid-template-columns: 1fr; }
+
+  .lp-how { padding: 40px 16px; }
+  .lp-how-cta { width: 100%; justify-content: center; }
+
+  .lp-blog-section { padding: 36px 16px; }
+  .lp-blog-grid { grid-template-columns: 1fr; }
+
+  .lp-disclaimer { padding: 0 16px 36px; }
+}
+
+/* ── Simulator hub ───────────────────────────────────────── */
+@media (max-width: 480px) {
+  .sim-hub-grid { grid-template-columns: 1fr; }
+  .sim-hub-card { padding: 16px 18px; }
+  .sim-hub-page { padding: 20px 14px 60px; gap: 20px; }
+  .hub-guide-banner { padding: 14px 16px; gap: 12px; }
+  .hub-guide-title { font-size: 13px; }
+  .hub-guide-sub { font-size: 12px; }
+  .hub-filters { gap: 6px; }
+  .hub-filter-btn { font-size: 12px; padding: 6px 12px; min-height: 40px; }
+}
+@media (max-width: 560px) {
+  .sim-hub-grid { grid-template-columns: 1fr; }
+}
+
+/* ── Simulator pages (sim-layout) ────────────────────────── */
+@media (max-width: 720px) {
+  .sim-layout { grid-template-columns: 1fr; }
+  .sim-layout-full { grid-template-columns: 1fr; }
+  .comparateur-controls { position: static; }
+  .sim-card { padding: 18px 16px; }
+  .sim-results-panel { padding: 18px 16px; }
+  .sim-page { padding: 14px 12px 60px; }
+}
+@media (max-width: 480px) {
+  .sim-card { padding: 14px 14px; border-radius: 18px; }
+  .sim-results-panel { padding: 14px 14px; border-radius: 18px; }
+  .sim-stats-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .sim-stat-hero { padding: 16px 16px; }
+  .sim-stat-value { font-size: clamp(22px, 7vw, 32px); }
+  .sim-hero-icon { font-size: 32px; }
+  .sim-hero-title { font-size: clamp(18px, 5vw, 26px); }
+  .step-fields { grid-template-columns: 1fr; }
+}
+
+/* ── Recharts responsive: max 200px height on mobile ─────── */
+@media (max-width: 640px) {
+  .sim-chart-wrap .recharts-responsive-container,
+  .recharts-responsive-container {
+    max-height: 200px !important;
+    min-height: 160px;
+  }
+  .sim-chart-wrap { overflow: hidden; }
+  .recharts-wrapper { max-height: 200px !important; overflow: hidden; }
+}
+
+/* ── Form fields: full width, readable size ──────────────── */
+@media (max-width: 680px) {
+  .field { width: 100%; }
+  .input-wrap input { font-size: 16px; } /* prevent iOS zoom */
+  .step-fields { grid-template-columns: 1fr; gap: 12px; }
+  .field-full { grid-column: 1; }
+}
+
+/* ── Buttons: minimum 48px height on mobile ──────────────── */
+@media (max-width: 680px) {
+  .btn-primary, .btn-secondary, .btn-share,
+  .res-restart-btn, .lp-custom-btn, .btn-hero-primary, .btn-hero-secondary {
+    min-height: 48px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .res-actions { flex-direction: column; gap: 10px; }
+  .res-actions .btn-share,
+  .res-actions .res-restart-btn { width: 100%; justify-content: center; text-align: center; }
+  .step-actions { flex-direction: column; gap: 10px; }
+  .step-actions .btn-primary,
+  .step-actions .btn-secondary { width: 100%; justify-content: center; }
+}
+
+/* ── Footer on mobile ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .site-footer { padding: 36px 16px 0; }
+  .footer-inner { grid-template-columns: 1fr; gap: 28px; padding-bottom: 28px; }
+  .footer-bottom { padding: 12px 0; font-size: 11px; justify-content: center; }
+  .footer-links a { min-height: 40px; display: flex; align-items: center; }
+}
+
+/* ── Blog pages ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .blog-page { padding: 24px 14px 60px; gap: 32px; }
+  .blog-hero { flex-direction: column; }
+  .blog-stats { align-self: stretch; justify-content: space-around; padding: 16px 12px; }
+  .blog-stat { padding: 0 12px; }
+  .featured-card { flex-direction: column; min-height: auto; }
+  .featured-card-body { padding: 20px 18px; }
+  .featured-card-accent { display: none; }
+  .featured-card-title { font-size: 18px; }
+  .articles-grid { grid-template-columns: 1fr; }
+  .article-page { padding: 20px 14px 60px; }
+  .article-h1 { font-size: clamp(22px, 6vw, 32px); }
+}
+
+/* ── Comparateur cities cards ────────────────────────────── */
+@media (max-width: 480px) {
+  .comparateur-cards { grid-template-columns: 1fr; }
+  .loan-type-grid { grid-template-columns: repeat(2, 1fr); }
+  .loan-type-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  .budget-duree-grid { grid-template-columns: repeat(2, 1fr); }
+  .budget-cities-grid { grid-template-columns: 1fr; }
+}
+
+/* ── SimScoreAcheteur on mobile ──────────────────────────── */
+@media (max-width: 480px) {
+  .score-overall-number { font-size: 40px; }
+  .optim-scenario-grid { grid-template-columns: 1fr; }
+  .optim-compare-grid { grid-template-columns: 1fr; }
+  .optim-compare-sep { display: none; }
+}
+
+/* ── Heritage options ────────────────────────────────────── */
+@media (max-width: 480px) {
+  .heritage-options { grid-template-columns: 1fr; }
+}
+
+/* ── Calendrier acheteur ─────────────────────────────────── */
+@media (max-width: 480px) {
+  .cal-step-title { font-size: 13px; }
+  .cal-step-desc { font-size: 12px; }
+  .cal-step-icon { width: 34px; height: 34px; font-size: 16px; }
+  .cal-step-left { width: 34px; }
+}
+
+/* ── Pouvoir achat m2 table ──────────────────────────────── */
+@media (max-width: 480px) {
+  .pam2-row { grid-template-columns: 20px 1fr auto; gap: 8px; padding: 8px 10px; }
+  .pam2-bar-wrap { display: none; }
+  .pam2-m2 { font-size: 14px; }
+  .pam2-months { font-size: 9px; }
+  .pam2-city-name { font-size: 12px; }
+  .pam2-price-m2 { font-size: 10px; }
+}
+
+/* ── Guide personnalisé ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .guide-perso-hero { padding: 40px 16px 28px; }
+  .guide-perso-title { font-size: 26px; }
+  .guide-perso-content { padding: 28px 14px 60px; }
+  .guide-quiz-card { padding: 20px 16px; }
+  .guide-quiz-question { font-size: 17px; }
+  .guide-quiz-option { padding: 12px 14px; }
+  .guide-result-step { padding: 14px 12px; gap: 10px; }
+  .guide-result-step-arrow { display: none; }
+}
+
+/* ── Carte mondiale on mobile ────────────────────────────── */
+@media (max-width: 680px) {
+  .cm-page { flex-direction: column !important; }
+  /* Detail panel slides up as bottom sheet */
+  .cm-panel {
+    position: fixed !important;
+    bottom: 0 !important; left: 0 !important; right: 0 !important;
+    top: auto !important;
+    border-radius: 20px 20px 0 0 !important;
+    max-height: 70vh;
+    overflow-y: auto;
+    z-index: 300;
+    box-shadow: 0 -8px 40px rgba(0,0,0,.25);
+    width: auto !important;
+  }
+  /* Zoom controls: top-right on mobile */
+  .cm-zoom-controls {
+    bottom: auto !important;
+    top: 10px !important; right: 10px !important;
+    left: auto !important;
+  }
+  .cm-zoom-btn { width: 44px !important; height: 44px !important; font-size: 20px !important; }
+  /* Sidebar legend: below map, scrollable row */
+  .cm-sidebar {
+    width: 100% !important;
+    max-height: 40vh;
+    overflow-y: auto;
+    border-left: none !important;
+    border-top: 1px solid var(--line);
+  }
+}
+
+/* ── SimulateurHub: make guide banners stack nicely ────────── */
+@media (max-width: 480px) {
+  .hub-guide-banner { flex-direction: column; align-items: flex-start; min-height: auto; padding: 16px; }
+  .hub-guide-steps { display: none; }
+  .hub-guide-arrow { display: none; }
+  .hub-guide-title { font-size: 14px; }
+  .hub-guide-sub { font-size: 12px; }
+}
+
+/* ── Result page: hero verdict on mobile ─────────────────── */
+@media (max-width: 480px) {
+  .res-verdict-hero { flex-direction: column; gap: 14px; padding: 18px 16px; border-radius: 20px; }
+  .res-verdict-delta { flex-direction: row; justify-content: space-between; align-self: stretch; }
+  .res-metric-card { padding: 12px 14px; }
+  .res-chart-section { padding: 14px 12px; border-radius: 18px; }
+  .result-page { padding: 12px 12px 60px; gap: 12px; }
+  .res-metrics { grid-template-columns: 1fr 1fr; gap: 8px; }
+}
+
+/* ── Funnel steps ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .funnel-step { padding: 16px 12px 60px; }
+  .step-card { padding: 18px 14px; border-radius: 20px; }
+  .step-title { font-size: 20px; }
+  .step-sub { font-size: 14px; }
+  .monthly-preview { flex-direction: column; }
+  .mp-divider { width: 100%; height: 1px; }
+  .mp-left, .mp-right { padding: 14px 16px; }
+}
+
+/* ── Horizon slider box ──────────────────────────────────── */
+@media (max-width: 480px) {
+  .horizon-box { padding: 12px 14px; }
+  .horizon-value { font-size: 20px; }
+  .horizon-explain { font-size: 13px; }
+}
+
+/* ── City select grid (SimMachineTemps) ──────────────────── */
+@media (max-width: 480px) {
+  .city-select-grid { gap: 5px; }
+  .city-select-btn { padding: 5px 10px; font-size: 11.5px; min-height: 36px; }
+}
+
+/* ── Newsletter box on mobile ────────────────────────────── */
+@media (max-width: 480px) {
+  .newsletter-box { padding: 16px; }
+  .newsletter-form { flex-direction: column; gap: 8px; }
+  .newsletter-input { min-width: 0; width: 100%; }
+  .newsletter-btn { width: 100%; min-height: 48px; }
+}
+
+/* ── Smart suggestions ───────────────────────────────────── */
+@media (max-width: 480px) {
+  .smart-sug-grid { grid-template-columns: 1fr; gap: 8px; }
+  .smart-sug-card { padding: 12px; }
+}
+
+/* ── Sim progress (stepper) ──────────────────────────────── */
+@media (max-width: 480px) {
+  .sim-progress-step { padding: 4px 6px; }
+  .sim-progress-label { font-size: 11px; }
+  .sim-progress-dot { width: 20px; height: 20px; font-size: 10px; }
+}
+
+/* ── Step city badge ─────────────────────────────────────── */
+@media (max-width: 480px) {
+  .step-city-badge { font-size: 10.5px; padding: 2px 8px; }
+  .step-pill { font-size: 11px; padding: 3px 10px; }
+}
+
+/* ── Amortization table: horizontal scroll only ──────────── */
+.amort-table-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+@media (max-width: 480px) {
+  .amort-table { font-size: 12px; }
+  .amort-table thead th, .amort-table tbody td { padding: 8px 10px; }
+}
+
+/* ── Key figures block ───────────────────────────────────── */
+@media (max-width: 390px) {
+  .key-figures { grid-template-columns: 1fr 1fr; gap: 8px; padding: 14px; }
+  .kf-value { font-size: 20px; }
+  .kf-label { font-size: 11px; }
+}
+
+/* ── Score Acheteur ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .scoreboard { grid-template-columns: 1fr; gap: 12px; }
+  .score-vs { flex-direction: row; justify-content: center; }
+}
+
+/* ── About page ──────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .abt-values-grid { grid-template-columns: 1fr; }
+  .abt-cta-actions { align-items: stretch; }
+}
+
+/* ── Fix potential horizontal overflow caused by animations ─ */
+@media (max-width: 680px) {
+  .lp-hero-orb { display: none; } /* orbs can cause overflow on narrow screens */
+  .lp-preset-card:hover { transform: translateX(2px); } /* reduce hover shift on mobile */
+}
+
+/* ── Ensure no element causes body scroll on 375px ─────────── */
+@media (max-width: 375px) {
+  .top-bar { padding: 0 12px; }
+  .lp-hero { padding: 32px 14px 44px; }
+  .lp-hero-title { font-size: 32px; }
+  .sim-page { padding: 12px 10px 60px; }
+  .blog-page { padding: 16px 10px 60px; }
+  .article-page { padding: 16px 10px 60px; }
+  .sim-card, .sim-results-panel { padding: 12px; border-radius: 16px; }
+  .footer-inner { padding-bottom: 24px; }
+  .guide-perso-content { padding: 20px 12px 60px; }
+}
