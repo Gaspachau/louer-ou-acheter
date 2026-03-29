@@ -64,7 +64,7 @@ function CityMockup({ onSelect }) {
               key={c.id}
               type="button"
               className={`lp-city-btn${cityId === c.id ? " active" : ""}`}
-              onClick={() => { setCityId(c.id); onSelect?.(c.id); }}
+              onClick={() => setCityId(c.id)}
               aria-pressed={cityId === c.id}
             >
               {c.emoji} {c.name}
@@ -237,20 +237,32 @@ const FAQ_ITEMS = [
     a: "Il n'y a pas de réponse universelle. Tout dépend de votre horizon de détention, de l'écart entre votre loyer actuel et la mensualité d'un crédit équivalent, et du rendement que vous pouvez obtenir sur votre épargne. Notre simulateur calcule le point d'équilibre précis selon votre situation.",
   },
   {
+    q: "Quel salaire faut-il pour emprunter 200 000 euros en 2026 ?",
+    a: "Avec un taux de 3,7 % sur 20 ans, la mensualité est d'environ 1 185 €. La règle HCSF fixe l'endettement à 35 % maximum : il faut donc environ 3 385 €/mois net seul, ou ~2 400 €/mois à deux. Notre simulateur de capacité d'emprunt calcule votre montant exact.",
+  },
+  {
     q: "Quel apport minimum faut-il pour acheter ?",
     a: "Les banques exigent généralement 10 % du prix d'achat minimum — idéalement 20 % pour obtenir les meilleures conditions. Ce montant doit couvrir les frais de notaire (7–8 % dans l'ancien, 2–3 % dans le neuf) et laisser une réserve d'urgence après l'achat.",
   },
   {
     q: "Comment calculer sa capacité d'emprunt ?",
-    a: "La règle HCSF 2022 fixe le taux d'endettement maximum à 35 % de vos revenus nets mensuels. Avec 3 500 €/mois, vous pouvez rembourser jusqu'à 1 225 €/mois, soit environ 207 000 € sur 20 ans à 3,8 %. Notre simulateur de capacité d'emprunt fait ce calcul instantanément.",
+    a: "La règle HCSF fixe le taux d'endettement maximum à 35 % de vos revenus nets mensuels. Avec 3 500 €/mois, vous pouvez rembourser jusqu'à 1 225 €/mois, soit environ 207 000 € sur 20 ans à 3,8 %. Notre simulateur de capacité d'emprunt fait ce calcul instantanément.",
+  },
+  {
+    q: "Est-ce le bon moment d'acheter en 2026 ?",
+    a: "Les taux de crédit se stabilisent autour de 3,5–4 % après avoir culminé à 4,5 % en 2023. Dans certaines villes (Lille, Toulouse, Nantes), la correction des prix + la baisse des taux créent une fenêtre favorable. À Paris et Nice, le ratio prix/loyer reste très défavorable à l'achat sur moins de 12 ans.",
   },
   {
     q: "Les frais de notaire sont-ils vraiment obligatoires ?",
-    a: "Oui, ils sont dus lors de toute transaction immobilière. Dans l'ancien, ils représentent 7 à 8 % du prix (dont 5,8 % de taxes collectées pour l'État). Dans le neuf, ils descendent à 2–3 %. Seul un achat entre particuliers sans intermédiaire peut parfois les réduire légèrement.",
+    a: "Oui, ils sont dus lors de toute transaction immobilière. Dans l'ancien, ils représentent 7 à 8 % du prix (dont 5,8 % de taxes collectées pour l'État). Dans le neuf, ils descendent à 2–3 %. Ils ne sont pas finançables par le crédit — prévoyez-les dans votre apport.",
+  },
+  {
+    q: "C'est quoi le PTZ et qui peut en bénéficier en 2026 ?",
+    a: "Le Prêt à Taux Zéro (PTZ) est un prêt complémentaire sans intérêts réservé aux primo-accédants. En 2026, il est élargi aux logements anciens avec travaux sur tout le territoire. Les plafonds de revenus varient de 28 000 à 37 000 €/an selon la taille du foyer et la zone géographique.",
   },
   {
     q: "Quand vaut-il mieux louer plutôt qu'acheter ?",
-    a: "Louer est souvent plus avantageux si : vous restez moins de 5 ans dans le logement, le ratio prix/loyer dépasse 20 (ex. Paris), vous n'avez pas d'apport suffisant, ou votre situation professionnelle est incertaine. Notre simulateur calcule exactement à partir de combien d'années l'achat devient gagnant.",
+    a: "Louer est souvent plus avantageux si vous restez moins de 5 ans dans le logement, si le ratio prix/loyer dépasse 25 (comme à Paris), si vous n'avez pas d'apport suffisant, ou si votre situation professionnelle est incertaine. Notre simulateur calcule exactement à partir de combien d'années l'achat devient gagnant.",
   },
 ];
 
@@ -349,7 +361,7 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
             </div>
           </div>
 
-          <CityMockup onSelect={onCityChange} />
+          <CityMockup />
 
           {/* Mobile-only simple verdict card (mockup hidden on mobile) */}
           <div className="lp-mobile-verdict-box" aria-label="Aperçu rapide">
@@ -546,10 +558,30 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
       <section className="lp-section lp-faq-section" aria-label="Questions fréquentes">
         <div className="lp-section-header">
           <h2 className="lp-section-title">Questions fréquentes</h2>
-          <p className="lp-section-sub">Les réponses aux 5 questions les plus posées sur l'immobilier</p>
+          <p className="lp-section-sub">Les vraies questions que les gens posent sur Google — avec des réponses chiffrées</p>
         </div>
         <div className="lp-faq">
           {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
+        </div>
+      </section>
+
+      {/* ── CITY PAGES ────────────────────────────────────────── */}
+      <section className="lp-section lp-cities-section" aria-label="Analyse par ville">
+        <div className="lp-section-header">
+          <h2 className="lp-section-title">Louer ou acheter par ville</h2>
+          <p className="lp-section-sub">Analyse du marché local, simulation pré-remplie et FAQ immobilière pour chaque ville</p>
+        </div>
+        <div className="lp-cities-grid">
+          {CITY_LIST.map((c) => (
+            <Link key={c.id} to={`/villes/${c.id}`} className="lp-city-card">
+              <span className="lp-city-card-emoji" aria-hidden="true">{c.emoji}</span>
+              <div className="lp-city-card-body">
+                <strong className="lp-city-card-name">{c.name}</strong>
+                <span className="lp-city-card-price">{c.pricePerM2.toLocaleString("fr-FR")} €/m²</span>
+              </div>
+              <span className="lp-city-card-arrow" aria-hidden="true">→</span>
+            </Link>
+          ))}
         </div>
       </section>
 

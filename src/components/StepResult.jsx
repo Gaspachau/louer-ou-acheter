@@ -80,17 +80,42 @@ function SmartSuggestions({ isBuyingBetter, values, result }) {
     { href: "/simulateurs/calendrier-acheteur", icon: "📅", title: "Votre feuille de route", desc: "Un calendrier personnalisé des étapes vers votre achat selon votre situation." },
   ];
 
-  const suggestions = (isBuyingBetter ? buySuggestions : rentSuggestions).slice(0, 3);
+  const profile = values.profile;
+  const primoSuggestions = [
+    { href: "/simulateurs/ptz", icon: "🏗️", title: "Vérifiez votre éligibilité PTZ", desc: "Prêt à Taux Zéro 2026 : économisez jusqu'à 50 000 € selon votre profil primo-accédant." },
+    { href: "/simulateurs/frais-notaire", icon: "📋", title: "Calculez vos frais de notaire", desc: "Estimez précisément les frais selon le barème légal 2026 — ancien ou neuf." },
+    { href: "/guide-achat", icon: "📖", title: "Guide acheteur complet", desc: "Toutes les étapes de votre premier achat, de la recherche à la signature." },
+  ];
+  const investisseurSuggestions = [
+    { href: "/simulateurs/rentabilite-locative", icon: "💹", title: "Rentabilité locative", desc: "Calculez le rendement brut, net et net-net de votre investissement locatif." },
+    { href: "/simulateurs/plus-value", icon: "📈", title: "Simulation de plus-value", desc: "Estimez votre gain net après impôts selon la durée de détention." },
+    { href: "/simulateurs/impact-dpe", icon: "🏚️", title: "Impact du DPE sur la valeur", desc: "Quantifiez la décote ou la prime selon le classement énergétique du bien." },
+  ];
+  const suggestions = profile === "primo" ? primoSuggestions
+    : profile === "investisseur" ? investisseurSuggestions
+    : (isBuyingBetter ? buySuggestions : rentSuggestions).slice(0, 3);
+
+  const profileKicker = profile === "primo" ? "Prochaines étapes — Primo-accédant"
+    : profile === "investisseur" ? "Prochaines étapes — Investisseur"
+    : "Étape suivante";
+
+  const profileTitle = profile === "primo"
+    ? (isBuyingBetter ? "Vous êtes prêt(e) à acheter — voici les étapes" : "Préparez votre premier achat")
+    : profile === "investisseur"
+    ? (isBuyingBetter ? "Optimisez votre investissement" : "Affinez votre stratégie")
+    : (isBuyingBetter ? "Concrétisez votre achat" : "Préparez votre projet");
 
   return (
     <div className="smart-suggestions">
       <div className="smart-sug-header">
-        <p className="smart-sug-kicker">Étape suivante</p>
-        <h2 className="smart-sug-title">
-          {isBuyingBetter ? "Concrétisez votre achat" : "Préparez votre projet"}
-        </h2>
+        <p className="smart-sug-kicker">{profileKicker}</p>
+        <h2 className="smart-sug-title">{profileTitle}</h2>
         <p className="smart-sug-desc">
-          {isBuyingBetter
+          {profile === "primo" && isBuyingBetter
+            ? "L'achat est avantageux selon votre simulation. Voici les outils essentiels pour un primo-accédant."
+            : profile === "investisseur"
+            ? "Voici les simulateurs pour maximiser le rendement de votre investissement."
+            : isBuyingBetter
             ? "L'achat est avantageux. Voici les simulateurs pour bien préparer votre dossier."
             : "La location est plus rentable maintenant. Préparez-vous à acheter quand le moment sera idéal."}
         </p>

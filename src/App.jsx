@@ -7,11 +7,13 @@ import { initAnalytics } from "./utils/analytics";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
 import StepLanding from "./components/StepLanding";
+import StepProfile from "./components/StepProfile";
 import StepRent from "./components/StepRent";
 import StepBuy from "./components/StepBuy";
 import StepResult from "./components/StepResult";
 import { computeComparison } from "./utils/finance";
 import { getDefaultsForCity } from "./data/cityData";
+const PageVille = lazy(() => import("./components/PageVille"));
 
 const BlogList = lazy(() => import("./components/BlogList"));
 const BlogArticle = lazy(() => import("./components/BlogArticle"));
@@ -58,6 +60,7 @@ function PageLoader() {
 
 const DEFAULTS = {
   city: null,
+  profile: null,
   purchasePrice: 250000,
   downPayment: 35000,
   mortgageRate: 3.5,
@@ -102,7 +105,7 @@ export const PRESETS = [
   },
 ];
 
-const STEP_LABELS = ["Location", "Achat", "Résultat"];
+const STEP_LABELS = ["Profil", "Location", "Achat", "Résultat"];
 
 function Simulator() {
   const [searchParams] = useSearchParams();
@@ -119,10 +122,10 @@ function Simulator() {
     try { sessionStorage.setItem("sim_values", JSON.stringify(values)); } catch {}
   }, [values]);
 
-  const step = Math.max(0, Math.min(3, parseInt(searchParams.get("step") ?? "0", 10) || 0));
+  const step = Math.max(0, Math.min(4, parseInt(searchParams.get("step") ?? "0", 10) || 0));
   const setStep = (n) => navigate(n === 0 ? "/" : `/?step=${n}`);
   const set = (key) => (val) => setValues((v) => ({ ...v, [key]: val }));
-  const applyPreset = (preset) => { setValues({ ...DEFAULTS, ...preset.values }); setStep(1); };
+  const applyPreset = (preset) => { setValues({ ...DEFAULTS, ...preset.values }); setStep(2); };
   const applyCity = (cityId) => {
     const cityDefaults = getDefaultsForCity(cityId);
     if (cityDefaults) setValues((v) => ({ ...v, ...cityDefaults }));
@@ -160,10 +163,11 @@ function Simulator() {
     <div className="page">
       <TopBar onBrandClick={() => setStep(0)} rightContent={progressContent} />
       <main id="main-content">
-        {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} onCityChange={applyCity} city={values.city} />}
-        {step === 1 && <StepRent values={values} set={set} onNext={() => setStep(2)} city={values.city} />}
-        {step === 2 && <StepBuy values={values} set={set} onNext={() => setStep(3)} onBack={() => navigate(-1)} city={values.city} />}
-        {step === 3 && <StepResult result={result} values={values} onEdit={() => setStep(1)} />}
+        {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} city={values.city} />}
+        {step === 1 && <StepProfile values={values} set={set} onNext={() => setStep(2)} applyCity={applyCity} />}
+        {step === 2 && <StepRent values={values} set={set} onNext={() => setStep(3)} city={values.city} />}
+        {step === 3 && <StepBuy values={values} set={set} onNext={() => setStep(4)} onBack={() => navigate(-1)} city={values.city} />}
+        {step === 4 && <StepResult result={result} values={values} onEdit={() => setStep(2)} />}
       </main>
       {step === 0 && <Footer />}
     </div>
@@ -219,6 +223,7 @@ export default function App() {
         <Route path="/simulateurs/impact-dpe" element={<SimImpactDPE />} />
         <Route path="/simulateurs/remboursement-anticipe" element={<SimRemboursementAnticipe />} />
         <Route path="/simulateurs/assurance-pret" element={<SimAssurancePret />} />
+        <Route path="/villes/:cityId" element={<PageVille />} />
       </Routes>
     </Suspense>
     </>

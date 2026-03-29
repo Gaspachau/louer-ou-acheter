@@ -963,4 +963,126 @@ export const ARTICLES = [
       </>
     ),
   },
+
+  {
+    slug: "salaire-emprunt-200000",
+    title: "Quel salaire pour emprunter 200 000 euros ?",
+    description: "Taux d'endettement, durée, apport : combien faut-il gagner pour décrocher un crédit de 200 000 € en 2026 ? Analyse chiffrée et conseils pour optimiser votre dossier.",
+    date: "Mars 2026",
+    readTime: "4 min",
+    tag: "Crédit",
+    tagClass: "tag-purple",
+    intro: "Emprunter 200 000 euros est l'un des montants les plus courants pour l'achat d'un premier bien en France. Mais quel revenu net faut-il vraiment pour convaincre une banque en 2026 ? Les réponses dépendent du taux, de la durée et de votre apport.",
+    Content: () => (
+      <>
+        <p>Avec un prix médian autour de <strong>2 500 à 3 500 €/m²</strong> dans les villes moyennes, un budget de 200 000 € permet d'acheter un T2 à T3 confortable hors grandes métropoles. Mais avant de visiter le premier appartement, il faut s'assurer que le financement est accessible.</p>
+        <h2>La règle des 35 % : le point de départ</h2>
+        <div className="callout callout-info"><span className="callout-icon">📐</span><div className="callout-body">Le HCSF impose un <strong>taux d'endettement maximum de 35 %</strong> de vos revenus nets, assurance comprise. Formule : <strong>Revenu minimum = Mensualité ÷ 0,35</strong></div></div>
+        <h2>Combien faut-il gagner selon la durée ?</h2>
+        <p>Simulation pour 200 000 € empruntés (hors apport) à différentes durées en 2026 :</p>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Durée</th><th>Taux indicatif</th><th>Mensualité</th><th>Revenu net minimum</th></tr></thead><tbody><tr><td>15 ans</td><td>3,5 %</td><td>~1 430 €</td><td>~4 090 €/mois</td></tr><tr><td>20 ans</td><td>3,7 %</td><td>~1 185 €</td><td>~3 385 €/mois</td></tr><tr><td>25 ans</td><td>3,8 %</td><td>~1 030 €</td><td>~2 945 €/mois</td></tr></tbody></table></div>
+        <div className="key-figures"><div className="key-figure"><span className="kf-value">~2 945 €</span><span className="kf-label">Revenu min. sur 25 ans</span></div><div className="key-figure"><span className="kf-value">~3 385 €</span><span className="kf-label">Revenu min. sur 20 ans</span></div><div className="key-figure"><span className="kf-value">+45 %</span><span className="kf-label">Coût total sur 25 vs 15 ans</span></div></div>
+        <h2>L'impact de l'apport sur le revenu requis</h2>
+        <p>Si votre apport couvre les frais de notaire (~15 000 € pour un bien à 200 000 €) et une partie du prix, le capital à emprunter diminue — et avec lui la mensualité et le revenu minimum requis.</p>
+        <div className="callout callout-ok"><span className="callout-icon">👥</span><div className="callout-body"><strong>Emprunter à deux change tout.</strong> Un couple avec 1 600 € + 1 800 € nets (3 400 €/mois) peut tout à fait emprunter 200 000 € sur 20 ans, là où un célibataire devrait gagner 3 385 € seul.</div></div>
+        <h2>Les charges existantes réduisent votre capacité</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Situation</th><th>Revenu net</th><th>Charges existantes</th><th>Mensualité max. disponible</th></tr></thead><tbody><tr><td>Célibataire, sans crédit</td><td>3 400 €</td><td>0 €</td><td>1 190 €</td></tr><tr><td>Célibataire, crédit auto 250 €</td><td>3 400 €</td><td>250 €</td><td>940 €</td></tr><tr><td>Couple, sans crédit</td><td>5 000 €</td><td>0 €</td><td>1 750 €</td></tr><tr><td>Couple, crédit conso 400 €</td><td>5 000 €</td><td>400 €</td><td>1 350 €</td></tr></tbody></table></div>
+        <h2>Comment améliorer sa capacité d'emprunt</h2>
+        <ul><li><strong>Rembourser les crédits en cours</strong> avant de déposer votre dossier</li><li><strong>Augmenter l'apport</strong> : réduire le capital emprunté est le levier le plus direct</li><li><strong>Allonger la durée</strong> : passer de 20 à 25 ans réduit la mensualité de ~13 %</li><li><strong>Passer par un courtier</strong> pour obtenir des conditions inaccessibles en direct</li><li><strong>Vérifier le PTZ</strong> : pour les primo-accédants, ce prêt sans intérêt allège la mensualité principale</li></ul>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">Pour emprunter 200 000 € sur 20 ans en 2026, visez un revenu net d'au moins 3 400 €/mois seul, ou 2 800 € à deux. Un apport solide et l'absence de crédits en cours sont vos meilleurs atouts.</blockquote>
+      </>
+    ),
+  },
+
+  {
+    slug: "ptz-2026-conditions",
+    title: "PTZ 2026 : les nouvelles conditions pour les primo-accédants",
+    description: "Le PTZ a été réformé en profondeur pour 2026. Nouveaux plafonds, zones élargies, biens éligibles : tout ce qui change pour les primo-accédants cette année.",
+    date: "Mars 2026",
+    readTime: "5 min",
+    tag: "Primo-accédant",
+    tagClass: "tag-blue",
+    intro: "Le Prêt à Taux Zéro 2026 sort renforcé d'une réforme majeure : extension aux logements anciens avec travaux sur tout le territoire, relèvement des plafonds de revenus et hausse des quotités. Pour les primo-accédants, c'est une opportunité à ne pas manquer.",
+    Content: () => (
+      <>
+        <p>Depuis le 1er janvier 2026, le PTZ s'applique à un périmètre beaucoup plus large. L'objectif : relancer l'accession à la propriété après deux années de marché atone. Pour les primo-accédants, le PTZ peut représenter une économie de <strong>15 000 à 40 000 €</strong> sur la durée totale du crédit.</p>
+        <h2>Les principales nouveautés du PTZ 2026</h2>
+        <div className="callout callout-ok"><span className="callout-icon">🎯</span><div className="callout-body">Grande nouveauté : le PTZ est désormais accessible à l'<strong>achat dans l'ancien avec travaux dans toutes les zones</strong>, y compris les zones C et B2 rurales.</div></div>
+        <h2>Conditions d'éligibilité en 2026</h2>
+        <ul><li><strong>Primo-accédant</strong> : ne pas avoir été propriétaire de sa résidence principale au cours des 2 dernières années</li><li><strong>Résidence principale</strong> : le bien doit être occupé dans les 12 mois suivant l'acquisition ou la fin des travaux</li><li><strong>Travaux obligatoires dans l'ancien</strong> : au moins 25 % du coût total de l'opération</li></ul>
+        <h2>Plafonds de revenus 2026 par zone</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Zone</th><th>1 personne</th><th>2 personnes</th><th>4 personnes</th></tr></thead><tbody><tr><td><strong>Zone A bis</strong> (Paris, cœur IDF)</td><td>37 000 €</td><td>51 800 €</td><td>74 000 €</td></tr><tr><td><strong>Zone A</strong> (grandes agglomérations)</td><td>37 000 €</td><td>51 800 €</td><td>74 000 €</td></tr><tr><td><strong>Zone B1</strong> (villes &gt; 250k hab.)</td><td>32 000 €</td><td>44 800 €</td><td>64 000 €</td></tr><tr><td><strong>Zones B2 &amp; C</strong></td><td>28 000 €</td><td>39 200 €</td><td>56 000 €</td></tr></tbody></table></div>
+        <h2>Quotités maximales</h2>
+        <div className="key-figures"><div className="key-figure"><span className="kf-value">50 %</span><span className="kf-label">Quotité max. zones A/A bis (neuf)</span></div><div className="key-figure"><span className="kf-value">40 %</span><span className="kf-label">Quotité max. zones B1 (neuf)</span></div><div className="key-figure"><span className="kf-value">40 %</span><span className="kf-label">Quotité max. ancien avec travaux</span></div></div>
+        <div className="callout callout-warn"><span className="callout-icon">⚠️</span><div className="callout-body">Le PTZ ne finance pas la totalité de l'achat : il doit être complété par un <strong>prêt principal</strong>. Son montant maximum est plafonné selon la zone et la composition du foyer.</div></div>
+        <h2>Exemple concret : achat dans l'ancien avec travaux</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Élément</th><th>Montant</th></tr></thead><tbody><tr><td>Prix du bien (T3, 70 m²)</td><td>180 000 €</td></tr><tr><td>Travaux éligibles</td><td>45 000 €</td></tr><tr><td>Coût total</td><td>225 000 €</td></tr><tr><td>PTZ (40 %)</td><td>90 000 €</td></tr><tr><td>Économie d'intérêts PTZ</td><td>~22 000 €</td></tr></tbody></table></div>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">En 2026, le PTZ est accessible à plus de Français que jamais. Vérifiez votre éligibilité avant même de choisir votre bien : cela peut changer radicalement votre plan de financement.</blockquote>
+      </>
+    ),
+  },
+
+  {
+    slug: "villes-achat-rentable-2026",
+    title: "Les 5 villes où acheter est plus rentable que louer en 2026",
+    description: "Dans ces 5 villes, les prix ont suffisamment corrigé et les loyers suffisamment monté pour que l'achat batte la location sur 10 ans. Analyse chiffrée ville par ville.",
+    date: "Mars 2026",
+    readTime: "5 min",
+    tag: "Marché",
+    tagClass: "tag-green",
+    intro: "Partout en France, la question louer ou acheter n'a pas la même réponse. Dans certaines villes, la correction des prix conjuguée à la hausse des loyers a rendu l'achat clairement gagnant sur 10 ans. Voici les 5 marchés à privilégier en 2026.",
+    Content: () => (
+      <>
+        <p>Pour comparer honnêtement location et achat, il faut intégrer tous les paramètres : prix d'achat, loyers de marché, frais annexes, et surtout l'horizon de détention. En 2026, la correction des prix dans plusieurs marchés fait basculer la balance en faveur de l'achat bien avant les 15 ans généralement évoqués.</p>
+        <h2>Notre méthode de comparaison</h2>
+        <div className="callout callout-info"><span className="callout-icon">📐</span><div className="callout-body">Nous comparons le <strong>coût total propriétaire sur 10 ans</strong> (mensualité + charges + taxe foncière + frais d'entrée) au <strong>coût total locataire</strong> (loyers cumulés + épargne investie en ETF à 5 %/an). L'apport est supposé à 20 %, taux à 3,7 % sur 20 ans.</div></div>
+        <h2>1. Lille — Le retour en grâce du Nord</h2>
+        <p>Lille affiche des prix stables autour de <strong>3 200 €/m²</strong>. Avec des loyers moyens de <strong>13 €/m²</strong>, le rendement locatif brut dépasse 4,5 %. Un T3 de 65 m² s'achète pour 208 000 € et se loue 845 €/mois. L'achat devient rentable dès la 7e année.</p>
+        <h2>2. Toulouse — La métropole qui résiste</h2>
+        <p>Toulouse maintient une pression locative forte grâce à son tissu étudiant et aéronautique. Les prix oscillent autour de <strong>3 600 €/m²</strong>. Le point de bascule achat/location se situe à environ 8 ans.</p>
+        <h2>3. Nantes — Correction marquée, loyers solides</h2>
+        <p>Après un pic à 4 500 €/m² en 2022, Nantes est redescendu à <strong>3 400–3 700 €/m²</strong>. Les loyers ont continué de progresser (+6 % entre 2023 et 2026). Le ratio prix/loyer s'est nettement amélioré.</p>
+        <h2>4. Rennes — La ville étudiante sous-estimée</h2>
+        <p>Rennes combine une demande locative forte (2e ville étudiante de l'Ouest) et des prix stabilisés autour de <strong>3 300 €/m²</strong>. L'achat devient rentable dès 8 ans.</p>
+        <h2>5. Strasbourg — L'eurodistrict attractif</h2>
+        <p>Strasbourg bénéficie d'une attractivité institutionnelle rare. Les prix, autour de <strong>3 100 €/m²</strong>, restent modérés face à des loyers de <strong>12 €/m²</strong>.</p>
+        <h2>Comparatif des 5 villes</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Ville</th><th>Prix/m²</th><th>Loyer/m²</th><th>Rendement brut</th><th>Seuil rentabilité</th></tr></thead><tbody><tr><td><strong>Lille</strong></td><td>3 200 €</td><td>13,0 €</td><td>4,9 %</td><td>~7 ans</td></tr><tr><td><strong>Rennes</strong></td><td>3 300 €</td><td>13,0 €</td><td>4,7 %</td><td>~8 ans</td></tr><tr><td><strong>Toulouse</strong></td><td>3 600 €</td><td>12,5 €</td><td>4,2 %</td><td>~8 ans</td></tr><tr><td><strong>Nantes</strong></td><td>3 550 €</td><td>12,0 €</td><td>4,1 %</td><td>~10 ans</td></tr><tr><td><strong>Strasbourg</strong></td><td>3 100 €</td><td>12,0 €</td><td>4,6 %</td><td>~8 ans</td></tr></tbody></table></div>
+        <div className="callout callout-warn"><span className="callout-icon">⚠️</span><div className="callout-body">Ces calculs supposent un apport de 20 %, un taux de 3,7 % sur 20 ans et une revalorisation du bien de 1,5 %/an. Votre situation personnelle peut modifier ces résultats. Utilisez notre simulateur pour une estimation personnalisée.</div></div>
+        <h2>Les villes à éviter pour l'achat en 2026</h2>
+        <p>À l'inverse, Paris (seuil de rentabilité à 15+ ans) et Nice (prix élevés, rendements faibles) restent défavorables à l'achat sur 10 ans. Dans ces villes, louer et investir la différence reste souvent la stratégie optimale.</p>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">En 2026, Lille, Rennes et Toulouse offrent les meilleures fenêtres d'achat de France. La correction des prix combinée à des loyers dynamiques crée des conditions qu'on n'avait pas vues depuis 2017.</blockquote>
+      </>
+    ),
+  },
+
+  {
+    slug: "optimiser-apport-2026",
+    title: "Comment optimiser son apport immobilier : stratégies 2026",
+    description: "Constituer, maximiser, bien placer : tout ce qu'il faut savoir pour présenter le meilleur apport possible à votre banque en 2026 et décrocher les meilleures conditions de crédit.",
+    date: "Mars 2026",
+    readTime: "5 min",
+    tag: "Stratégie",
+    tagClass: "tag-amber",
+    intro: "L'apport immobilier est bien plus qu'une mise de départ : c'est le signal le plus fort que vous envoyez à votre banque. En 2026, avec des taux encore élevés, un apport optimisé peut faire économiser plusieurs milliers d'euros sur la durée du crédit.",
+    Content: () => (
+      <>
+        <p>La règle non écrite des banques : plus votre apport est élevé, plus elles vous font confiance — et plus le taux proposé est bas. Passer de 10 % à 20 % d'apport peut faire gagner <strong>0,2 à 0,4 point de taux</strong>, soit plusieurs milliers d'euros d'économie sur 20 ans.</p>
+        <h2>Apport minimum vs apport optimal</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Apport</th><th>Profil perçu</th><th>Taux indicatif 2026</th><th>Mensualité (200 k€, 20 ans)</th></tr></thead><tbody><tr><td>0 % (sans apport)</td><td>Dossier fragile</td><td>4,2 %+</td><td>~1 235 €</td></tr><tr><td>10 % (minimum)</td><td>Acceptable</td><td>3,9 %</td><td>~1 205 €</td></tr><tr><td>20 % (recommandé)</td><td>Bon dossier</td><td>3,6 %</td><td>~1 170 €</td></tr><tr><td>30 %+</td><td>Dossier premium</td><td>3,3 %</td><td>~1 135 €</td></tr></tbody></table></div>
+        <div className="callout callout-warn"><span className="callout-icon">⚠️</span><div className="callout-body"><strong>Piège classique :</strong> confondre apport et frais de notaire. Les frais de notaire (7–8 % dans l'ancien) sont <strong>non finançables par le crédit</strong>. Votre vrai apport = épargne disponible − frais de notaire − réserve de précaution.</div></div>
+        <h2>Les meilleures enveloppes pour constituer son apport</h2>
+        <ul><li><strong>Plan Épargne Logement (PEL)</strong> : taux garanti à 2,25 % brut en 2026, ouvre des droits à un prêt complémentaire. Idéal pour un achat dans 3 à 5 ans.</li><li><strong>Livret A / LDDS</strong> : 1,5 % net, totalement liquide. Parfait pour les derniers mois avant l'achat.</li><li><strong>Assurance-vie fonds euros</strong> : 2,5 à 3,5 % selon les contrats en 2025. Pour les horizons 5 ans et plus.</li></ul>
+        <h2>Faut-il tout mettre en apport ?</h2>
+        <div className="callout callout-tip"><span className="callout-icon">💡</span><div className="callout-body"><strong>Non.</strong> Conservez impérativement <strong>3 à 6 mois de dépenses courantes</strong> en épargne liquide après l'achat. Un chauffe-eau qui lâche ou un licenciement ne préviennent pas.</div></div>
+        <h2>Les aides qui complètent l'apport</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Dispositif</th><th>Montant possible</th><th>Conditions clés</th></tr></thead><tbody><tr><td>PTZ 2026</td><td>Jusqu'à 50 % du prix</td><td>Primo-accédant, plafonds revenus</td></tr><tr><td>Action Logement</td><td>Jusqu'à 40 000 €</td><td>Salarié d'entreprise &gt; 10 salariés</td></tr><tr><td>Prêt PEL</td><td>Jusqu'à 92 000 €</td><td>PEL ouvert depuis 4 ans min.</td></tr><tr><td>Donation familiale</td><td>100 k€/parent exonéré</td><td>Achat résidence principale</td></tr></tbody></table></div>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">En 2026, l'apport idéal se situe entre 20 et 25 % du prix — suffisant pour décrocher un bon taux sans s'exposer à un manque de liquidité post-achat. Commencez à l'optimiser 2 à 3 ans avant votre projet.</blockquote>
+      </>
+    ),
+  },
 ];
