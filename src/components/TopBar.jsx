@@ -49,6 +49,17 @@ const NAV_LINKS = [
       </svg>
     ),
   },
+  {
+    to: "/jeu",
+    label: "Jeu",
+    match: (p) => p === "/jeu",
+    icon: (
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden="true">
+        <rect x="1" y="3" width="12" height="8" rx="2"/>
+        <path d="M4 7h2M5 6v2M9 7h.01M10.5 7h.01" strokeLinecap="round"/>
+      </svg>
+    ),
+  },
 ];
 
 export default function TopBar({ onBrandClick, rightContent }) {

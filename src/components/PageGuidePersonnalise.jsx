@@ -347,16 +347,17 @@ export default function PageGuidePersonnalise() {
       <div className="guide-perso-hero">
         <div className="guide-perso-hero-inner">
           <div className="guide-perso-hero-top">
-            <span className="guide-perso-badge">Parcours personnalisé</span>
+            <span className="guide-perso-badge">✨ Mon projet immobilier</span>
             <div className="guide-perso-hero-links">
               <Link to="/simulateurs" className="guide-hero-link">Simulateurs</Link>
               <Link to="/blog" className="guide-hero-link">Blog</Link>
+              <Link to="/jeu" className="guide-hero-link">🎮 Jeu</Link>
               <Link to="/guide-achat" className="guide-hero-link guide-hero-link-primary">Guide achat →</Link>
             </div>
           </div>
-          <h1 className="guide-perso-title">Votre guide immobilier sur mesure</h1>
+          <h1 className="guide-perso-title">Mon projet immobilier</h1>
           <p className="guide-perso-subtitle">
-            3 questions pour obtenir le parcours de simulateurs le plus adapté à votre situation et vos objectifs.
+            Répondez à 3 questions et recevez un parcours de simulateurs personnalisé selon votre situation et vos objectifs.
           </p>
         </div>
       </div>

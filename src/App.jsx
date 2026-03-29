@@ -49,6 +49,7 @@ const SimNegociation = lazy(() => import("./components/simulateurs/SimNegociatio
 const SimImpactDPE = lazy(() => import("./components/simulateurs/SimImpactDPE"));
 const SimRemboursementAnticipe = lazy(() => import("./components/simulateurs/SimRemboursementAnticipe"));
 const SimAssurancePret = lazy(() => import("./components/simulateurs/SimAssurancePret"));
+const PageJeu = lazy(() => import("./components/PageJeu"));
 
 function PageLoader() {
   return (
@@ -217,6 +218,7 @@ export default function App() {
         <Route path="/carte-mondiale" element={<PageCarteMondiale />} />
         <Route path="/guide-achat" element={<PageGuideAchat />} />
         <Route path="/guide-personnalise" element={<PageGuidePersonnalise />} />
+        <Route path="/jeu" element={<PageJeu />} />
         <Route path="/simulateurs/pouvoir-achat-m2" element={<SimPouvoirAchatM2 />} />
         <Route path="/simulateurs/simulateur-couple" element={<SimCouple />} />
         <Route path="/simulateurs/machine-temps" element={<SimMachineTemps />} />

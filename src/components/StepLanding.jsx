@@ -424,7 +424,7 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
       </section>
 
       {/* ── HOW IT WORKS ─────────────────────────────────────── */}
-      <section className="lp-section lp-how" aria-label="Comment ça marche">
+      <section className="lp-section lp-how lp-section-dark" aria-label="Comment ça marche">
         <div className="lp-section-header">
           <h2 className="lp-section-title">Comment ça marche ?</h2>
           <p className="lp-section-sub">3 étapes, 2 minutes, une réponse chiffrée</p>
@@ -467,7 +467,7 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
       </section>
 
       {/* ── TESTIMONIALS ─────────────────────────────────────── */}
-      <section className="lp-section lp-testimonials-section" aria-label="Témoignages">
+      <section className="lp-section lp-testimonials-section lp-section-tint" aria-label="Témoignages">
         <div className="lp-section-header">
           <h2 className="lp-section-title">Ils ont tranché grâce au simulateur</h2>
           <p className="lp-section-sub">Des situations réelles, des décisions éclairées</p>
@@ -509,7 +509,7 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
       </section>
 
       {/* ── BLOG PREVIEW ─────────────────────────────────────── */}
-      <section className="lp-section lp-blog-section" aria-label="Derniers articles">
+      <section className="lp-section lp-blog-section lp-section-dark" aria-label="Derniers articles">
         <div className="lp-section-header">
           <h2 className="lp-section-title">Le blog immobilier</h2>
           <p className="lp-section-sub">Analyses du marché et conseils pratiques</p>
@@ -550,6 +550,33 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
         </div>
         <div className="lp-faq">
           {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
+        </div>
+      </section>
+
+      {/* ── GAME PROMO ───────────────────────────────────────── */}
+      <section className="lp-section lp-game-section lp-section-tint" aria-label="Jeu éducatif">
+        <div className="lp-game-inner">
+          <div className="lp-game-text">
+            <span className="lp-game-badge">🎮 Nouveau</span>
+            <h2 className="lp-game-title">Testez votre instinct immobilier</h2>
+            <p className="lp-game-sub">5 scénarios réels — devinez si Marie, Thomas ou Sophie devrait louer ou acheter. Le simulateur révèle la vraie réponse avec les calculs.</p>
+            <Link to="/jeu" className="btn-hero-primary lp-game-cta">
+              Jouer maintenant →
+            </Link>
+          </div>
+          <div className="lp-game-preview" aria-hidden="true">
+            <div className="lp-game-card">
+              <div className="lp-game-card-header">
+                <span>👩‍⚕️ Marie, 32 ans</span>
+                <span className="lp-game-score">Score : 2/3</span>
+              </div>
+              <p className="lp-game-card-q">Devrait-elle acheter à Lyon pour 280 000 € ?</p>
+              <div className="lp-game-card-btns">
+                <span className="lp-game-btn-preview lp-game-btn-rent">🏢 Louer</span>
+                <span className="lp-game-btn-preview lp-game-btn-buy">🏠 Acheter</span>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

@@ -346,6 +346,7 @@ export default function SimulateurHub() {
         (s) => s.title.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)
       );
     }
+    if (!activeTheme) return SIMS.filter((s) => !s.featured);
     return SIMS.filter((s) => !s.featured && s.themes.includes(activeTheme));
   }, [activeTheme, search]);
 
@@ -441,7 +442,7 @@ export default function SimulateurHub() {
                   role="tab"
                   className={`shub-tab${activeTheme === t.id ? " shub-tab-active" : ""}`}
                   style={activeTheme === t.id ? { "--tab-color": t.color, "--tab-bg": t.bg, "--tab-border": t.border } : {}}
-                  onClick={() => setActiveTheme(t.id)}
+                  onClick={() => setActiveTheme((prev) => prev === t.id ? null : t.id)}
                   aria-selected={activeTheme === t.id}
                 >
                   <span className="shub-tab-emoji">{t.emoji}</span>

@@ -259,8 +259,8 @@ export default function StepResult({ result, values, onEdit }) {
             </span>
           </div>
         </div>
-        <ResponsiveContainer width="100%" height={260}>
-          <AreaChart data={yearlyData} margin={{ top: 10, right: 16, bottom: 0, left: 0 }}>
+        <ResponsiveContainer width="100%" height={260} style={{ overflow: "visible" }}>
+          <AreaChart data={yearlyData} margin={{ top: 32, right: 20, bottom: 0, left: 0 }}>
             <defs>
               <linearGradient id="gradOwner" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="#2563eb" stopOpacity={0.18}/>
@@ -290,7 +290,7 @@ export default function StepResult({ result, values, onEdit }) {
                 x={breakevenYear}
                 stroke="#94a3b8"
                 strokeDasharray="4 3"
-                label={{ value: `Équilibre ${breakevenYear}a`, position: "top", fontSize: 10, fill: "#94a3b8" }}
+                label={{ value: `⚖ Équilibre ${breakevenYear}a`, position: "insideTopLeft", offset: 6, fontSize: 10, fill: "#64748b", fontWeight: 600 }}
               />
             )}
             <Area
@@ -410,15 +410,39 @@ export default function StepResult({ result, values, onEdit }) {
         </div>
       )}
 
-      {/* ══ 9 — SMART SUGGESTIONS ════════════════════════════ */}
-      <SmartSuggestions isBuyingBetter={isBuyingBetter} values={values} result={result} />
+      {/* ══ 9 — NEXT ACTIONS ═════════════════════════════════ */}
+      <div className="res-next-section">
+        <p className="res-next-title">Et maintenant ?</p>
+        <div className="res-next-btns">
+          <button className="res-next-btn res-next-primary" onClick={onEdit} type="button">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <path d="M3 9a6 6 0 1 1 6 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+              <path d="M3 9L1 7l2-2" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Relancer une simulation
+          </button>
+          <Link className="res-next-btn res-next-secondary" to="/simulateurs">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <rect x="1" y="10" width="4" height="7" rx="1" fill="currentColor" opacity=".5"/>
+              <rect x="7" y="5" width="4" height="12" rx="1" fill="currentColor" opacity=".75"/>
+              <rect x="13" y="1" width="4" height="16" rx="1" fill="currentColor"/>
+            </svg>
+            Voir tous les simulateurs
+          </Link>
+          <button className="res-next-btn res-next-ghost" onClick={handleShare} type="button">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="14" cy="3" r="2" stroke="currentColor" strokeWidth="1.8"/>
+              <circle cx="14" cy="15" r="2" stroke="currentColor" strokeWidth="1.8"/>
+              <circle cx="4" cy="9" r="2" stroke="currentColor" strokeWidth="1.8"/>
+              <path d="M6 8l6-4M6 10l6 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+            </svg>
+            {copied ? "✓ Copié !" : "Partager mon résultat"}
+          </button>
+        </div>
+      </div>
 
       <div className="post-sim-section" style={{ marginTop: 0 }}>
         <NewsletterBox />
-      </div>
-
-      <div className="result-footer">
-        <button className="btn-secondary" onClick={onEdit} type="button">← Modifier mes données</button>
       </div>
     </div>
   );
@@ -443,10 +467,10 @@ function NewsletterBox() {
   return (
     <div className="newsletter-box">
       <div className="newsletter-box-inner">
-        <span className="newsletter-icon" aria-hidden="true">📬</span>
+        <span className="newsletter-icon" aria-hidden="true">📊</span>
         <div className="newsletter-text">
-          <p className="newsletter-title">Recevez les mises à jour des taux</p>
-          <p className="newsletter-desc">Taux immobiliers, modifications HCSF, nouvelles aides — on vous prévient dès que ça change. Pas de spam, désinscription en un clic.</p>
+          <p className="newsletter-title">Tendances du marché immobilier dans votre boîte mail</p>
+          <p className="newsletter-desc">Chaque mois : évolutions des taux, prix par ville, nouvelles aides à l'achat. 500 lecteurs actifs. Pas de spam, désinscription en un clic.</p>
         </div>
       </div>
       {status === "success" ? (

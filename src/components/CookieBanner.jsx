@@ -116,16 +116,17 @@ export default function CookieBanner() {
       )}
 
       {!showCustomize && (
-        <div className="cookie-banner" role="region" aria-label="Paramètres de confidentialité">
+        <div className="cookie-banner" role="region" aria-label="Amélioration de l'expérience">
           <div className="cookie-banner-inner">
             <div className="cookie-banner-text">
               <p className="cookie-banner-title">
-                <span className="cookie-icon" aria-hidden="true">🍪</span>
-                Ce site utilise des cookies
+                <span className="cookie-icon" aria-hidden="true">✨</span>
+                Améliorons votre expérience
               </p>
               <p className="cookie-banner-desc">
-                Nous utilisons des cookies analytiques <strong>anonymisés</strong> pour améliorer nos simulateurs.
-                Aucune donnée personnelle n'est collectée ou revendue.{" "}
+                Nous analysons anonymement votre utilisation des simulateurs pour améliorer
+                l'expérience et personnaliser les recommandations. Aucune donnée personnelle
+                n'est collectée.{" "}
                 <button type="button" className="cookie-banner-link" onClick={() => setShowCustomize(true)}>
                   En savoir plus
                 </button>
@@ -133,13 +134,10 @@ export default function CookieBanner() {
             </div>
             <div className="cookie-banner-actions">
               <button type="button" className="cookie-btn-ghost" onClick={handleRejectAll}>
-                Tout refuser
-              </button>
-              <button type="button" className="cookie-btn-outline" onClick={() => setShowCustomize(true)}>
-                Personnaliser
+                Non merci
               </button>
               <button type="button" className="cookie-btn-primary" onClick={handleAcceptAll}>
-                Tout accepter
+                Accepter
               </button>
             </div>
           </div>
