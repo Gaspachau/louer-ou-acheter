@@ -90,6 +90,21 @@ function StepRent({ values, set, onNext, city }) {
           </div>
         </fieldset>
 
+        {values.monthlyRent >= 300 && (() => {
+          const r = 3.5 / 100 / 12;
+          const n = 240;
+          const equiv = Math.round(values.monthlyRent * ((Math.pow(1 + r, n) - 1) / (r * Math.pow(1 + r, n))));
+          return (
+            <div className="info-box info-box-context" role="note">
+              <p className="info-box-title">💡 Comparaison rapide</p>
+              <p className="info-box-text">
+                Avec {values.monthlyRent.toLocaleString("fr-FR")} €/mois, vous pourriez rembourser un crédit immobilier de{" "}
+                <strong>{equiv.toLocaleString("fr-FR")} €</strong> sur 20 ans (taux 3,5 %).
+              </p>
+            </div>
+          );
+        })()}
+
         <div className="info-box" role="note">
           <p className="info-box-title">Comment ça marche ?</p>
           <p className="info-box-text">

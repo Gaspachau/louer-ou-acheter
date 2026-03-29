@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import SimLayout from "./SimLayout";
+import CityPicker from "../CityPicker";
 import { CITY_LIST, PRICE_INDEX, CITY_INDEX_MULTIPLIER } from "../../data/cityData";
 
 const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
@@ -114,6 +115,14 @@ export default function SimMachineTemps() {
   const [surface, setSurface] = useState(50);
   const [investReturn, setInvestReturn] = useState(3.5);
 
+  const saveValues = { cityId, yearBought, surface, investReturn };
+  const handleRestore = (v) => {
+    if (v.cityId) setCityId(v.cityId);
+    if (v.yearBought) setYearBought(v.yearBought);
+    if (v.surface) setSurface(v.surface);
+    if (v.investReturn) setInvestReturn(v.investReturn);
+  };
+
   const res = useMemo(() => calc({ cityId, yearBought, surface, investReturn }), [cityId, yearBought, surface, investReturn]);
 
   const isBuyingBetter = res && res.advantage >= 0;
@@ -124,26 +133,14 @@ export default function SimMachineTemps() {
       icon="⏳"
       title="Machine à remonter le temps"
       description="Et si vous aviez acheté en 2010, 2015 ou 2018 ? Calculez le gain ou la perte réelle selon la date et la ville."
+      saveValues={saveValues}
+      onRestore={handleRestore}
     >
       <div className="sim-layout">
         <div className="sim-card">
           <p className="sim-card-legend">Paramètres de la simulation historique</p>
 
-          <div className="field" style={{ marginBottom: 16 }}>
-            <label className="field-label">Ville</label>
-            <div className="city-select-grid" style={{ marginTop: 8 }}>
-              {CITY_LIST.map((c) => (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`city-select-btn${cityId === c.id ? " active" : ""}`}
-                  onClick={() => setCityId(c.id)}
-                >
-                  {c.emoji} {c.name}
-                </button>
-              ))}
-            </div>
-          </div>
+          <CityPicker cityId={cityId} onChange={setCityId} label="Ville d'achat hypothétique" />
 
           <div className="field">
             <label className="field-label">Année d'achat hypothétique</label>

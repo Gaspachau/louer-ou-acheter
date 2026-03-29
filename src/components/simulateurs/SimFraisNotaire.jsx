@@ -4,7 +4,7 @@ import Field from "../Field";
 import SimLayout from "./SimLayout";
 import { formatCurrency } from "../../utils/finance";
 
-/** Calcul des émoluments proportionnels du notaire (barème 2024, hors TVA) */
+/** Calcul des émoluments proportionnels du notaire (barème 2026, hors TVA) */
 function calcEmolumentsHT(prix) {
   const tranches = [
     { max: 6500,     rate: 0.03945 },
@@ -113,7 +113,7 @@ export default function SimFraisNotaire() {
     <SimLayout
       icon="📋"
       title="Calculateur de frais de notaire"
-      description="Calculez les frais de notaire au centime près selon le barème légal 2024, pour un achat dans l'ancien ou le neuf."
+      description="Calculez les frais de notaire au centime près selon le barème légal 2026, pour un achat dans l'ancien ou le neuf."
     >
       <div className="sim-layout">
         <div className="sim-card">

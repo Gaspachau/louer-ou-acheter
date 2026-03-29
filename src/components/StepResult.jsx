@@ -65,7 +65,7 @@ function SmartSuggestions({ isBuyingBetter, values, result }) {
   const apportPct = values.downPayment / values.purchasePrice;
 
   const buySuggestions = [
-    { href: "/simulateurs/frais-notaire", icon: "📋", title: "Calculez vos frais de notaire", desc: "Estimez précisément les frais selon le barème légal 2024 — ancien ou neuf." },
+    { href: "/simulateurs/frais-notaire", icon: "📋", title: "Calculez vos frais de notaire", desc: "Estimez précisément les frais selon le barème légal 2026 — ancien ou neuf." },
     { href: "/simulateurs/pret-immobilier", icon: "🏦", title: "Tableau d'amortissement", desc: "Votre mensualité, le coût total et le tableau d'amortissement année par année." },
     apportPct < 0.15
       ? { href: "/simulateurs/ptz", icon: "🏗️", title: "Vérifiez votre éligibilité PTZ", desc: "Prêt à Taux Zéro 2026 : économisez jusqu'à 50 000 € selon votre profil." }

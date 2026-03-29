@@ -249,7 +249,7 @@ export default function PageCarteMondiale() {
             </div>
             <div className="cm-hero-stat cm-hero-stat-low">
               <span className="cm-hero-stat-val">36 %</span>
-              <span className="cm-hero-stat-label">Suisse<br/>moins de l'UE</span>
+              <span className="cm-hero-stat-label">Suisse<br/>taux le plus bas</span>
             </div>
           </div>
         </div>

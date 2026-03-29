@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import TopBar from "../TopBar";
 import Footer from "../Footer";
+import SaveSimulation from "../SaveSimulation";
 import { trackSimulatorOpened, trackSimulatorClosed } from "../../utils/analytics";
 
 const CONSEILS_GENERAUX = [
@@ -67,7 +68,7 @@ function ShareButton() {
   );
 }
 
-export default function SimLayout({ children, title, description, icon, backLabel = "← Tous les simulateurs", conseils }) {
+export default function SimLayout({ children, title, description, icon, backLabel = "← Tous les simulateurs", conseils, saveValues, onRestore }) {
   const conseil = getConseil(conseils);
   const openedAt = useRef(Date.now());
   useEffect(() => {
@@ -87,7 +88,12 @@ export default function SimLayout({ children, title, description, icon, backLabe
           <nav className="sim-breadcrumb" aria-label="Navigation">
             <Link to="/simulateurs">{backLabel}</Link>
           </nav>
-          <ShareButton />
+          <div className="sim-topbar-actions">
+            {saveValues !== undefined && (
+              <SaveSimulation values={saveValues} onRestore={onRestore} simTitle={title} />
+            )}
+            <ShareButton />
+          </div>
         </div>
         <div className="sim-hero">
           <div className="sim-hero-icon-wrap" aria-hidden="true">

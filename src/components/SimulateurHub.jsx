@@ -1,256 +1,489 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 
-/* ── Simulateurs triés dans l'ordre du parcours acheteur ── */
+/* ── Thèmes ───────────────────────────────────────────────── */
+const THEMES = [
+  {
+    id: "acheter",
+    emoji: "🏠",
+    label: "Je veux acheter",
+    color: "#1a56db",
+    bg: "#eff6ff",
+    border: "#bfdbfe",
+  },
+  {
+    id: "investir",
+    emoji: "📈",
+    label: "Je veux investir",
+    color: "#059669",
+    bg: "#f0fdf4",
+    border: "#a7f3d0",
+  },
+  {
+    id: "epargner",
+    emoji: "💰",
+    label: "Je veux épargner",
+    color: "#d97706",
+    bg: "#fffbeb",
+    border: "#fde68a",
+  },
+  {
+    id: "comprendre",
+    emoji: "🧭",
+    label: "Je veux comprendre",
+    color: "#7c3aed",
+    bg: "#f5f3ff",
+    border: "#ddd6fe",
+  },
+];
+
+/* ── Simulateurs avec thèmes et durées ───────────────────── */
 const SIMS = [
-  /* Featured */
   {
     href: "/",
-    icon: "🏠",
-    title: "Louer ou Acheter",
-    desc: "Comparez les deux scénarios chiffres à l'appui : mensualité, patrimoine net, point d'équilibre.",
-    tag: "Immobilier",
-    tagClass: "tag-blue",
+    icon: "⚖️",
+    title: "Louer ou Acheter ?",
+    desc: "Comparez les deux scénarios sur 5 à 25 ans : mensualité, patrimoine net et point d'équilibre exact.",
+    duration: "2 min",
+    themes: ["acheter", "comprendre"],
     featured: true,
+    color: "#1a56db",
   },
-
-  /* Étape 1 — Puis-je acheter ? */
-  { href: "/simulateurs/endettement",    icon: "📉", title: "Capacité d'emprunt",      desc: "Taux d'endettement et montant maximum que vous pouvez emprunter selon vos revenus.", tag: "Crédit",       tagClass: "tag-teal",   step: 1 },
-  { href: "/simulateurs/budget-maximum", icon: "🏆", title: "Budget maximum",           desc: "Jusqu'où pouvez-vous aller ? Budget par durée + carte des 12 villes accessibles.",  tag: "Crédit",       tagClass: "tag-purple", step: 1 },
-  { href: "/simulateurs/score-acheteur", icon: "🎯", title: "Score de préparation",     desc: "Êtes-vous vraiment prêt à acheter ? Radar sur 5 dimensions clés + plan d'action.", tag: "Immobilier",  tagClass: "tag-blue",   step: 1 },
-
-  /* Étape 2 — Est-ce le bon moment ? */
-  { href: "/simulateurs/comparateur-villes", icon: "🗺️", title: "Comparateur de villes",     desc: "Loyer vs mensualité dans 12 grandes villes françaises — pour T1, T2 ou T3.",        tag: "Immobilier", tagClass: "tag-blue", step: 2 },
-  { href: "/simulateurs/negociation",        icon: "🤝", title: "Simulateur de négociation", desc: "À quel prix négocier pour que l'achat batte la location ? Point d'équilibre chiffré.", tag: "Stratégie",  tagClass: "tag-teal", step: 2 },
-  { href: "/simulateurs/histoire",           icon: "📖", title: "Votre histoire financière", desc: "Votre vie de propriétaire ou locataire racontée année par année.",                    tag: "Immobilier", tagClass: "tag-blue", step: 2 },
-
-  /* Étape 3 — Quel bien puis-je acheter ? */
-  { href: "/simulateurs/frais-notaire",  icon: "📋", title: "Frais de notaire",      desc: "Calcul au centime près selon le barème légal 2024 — ancien et neuf.",                tag: "Immobilier", tagClass: "tag-blue",   step: 3 },
-  { href: "/simulateurs/pret-immobilier",icon: "🏦", title: "Prêt immobilier",        desc: "Mensualité, coût total du crédit et tableau d'amortissement annuel.",                tag: "Crédit",     tagClass: "tag-purple", step: 3 },
-  { href: "/simulateurs/ptz",            icon: "🏗️", title: "PTZ 2026",              desc: "Êtes-vous éligible au Prêt à Taux Zéro ? Montant, conditions et économie calculés.", tag: "Crédit",     tagClass: "tag-purple", step: 3 },
-  { href: "/simulateurs/charges-copro",  icon: "🏢", title: "Charges de copropriété",desc: "Quote-part mensuelle et annuelle selon vos tantièmes, avec comparaison nationale.",  tag: "Immobilier", tagClass: "tag-blue",   step: 3 },
-  { href: "/simulateurs/taxe-fonciere",  icon: "🏛️", title: "Taxe foncière",          desc: "Estimation de la taxe foncière annuelle dans 12 villes françaises.",                tag: "Fiscalité",  tagClass: "tag-purple", step: 3 },
-
-  /* Étape 4 — Est-ce rentable ? */
-  { href: "/simulateurs/rentabilite-locative", icon: "🏘️", title: "Rentabilité locative",     desc: "Rendement brut, net et cashflow mensuel pour un investissement locatif.",            tag: "Investissement", tagClass: "tag-green",  step: 4 },
-  { href: "/simulateurs/plus-value",           icon: "📈", title: "Plus-value immobilière",    desc: "Impôt à la revente selon la durée de détention et les abattements légaux.",          tag: "Fiscalité",      tagClass: "tag-purple", step: 4 },
-  { href: "/simulateurs/impact-dpe",           icon: "♻️", title: "Impact DPE & rénovation",   desc: "Décote d'une passoire thermique, économies de charges et ROI des travaux.",          tag: "Immobilier",     tagClass: "tag-blue",   step: 4 },
-
-  /* Étape 5 — Comment financer ? */
-  { href: "/simulateurs/optimiser-apport",       icon: "💡", title: "Optimiseur d'apport",    desc: "Acheter maintenant ou épargner encore ? ROI chiffré de chaque option.",               tag: "Stratégie", tagClass: "tag-teal",   step: 5 },
-  { href: "/simulateurs/epargne",                icon: "💰", title: "Simulateur d'épargne",   desc: "Calculez l'épargne mensuelle nécessaire pour atteindre votre objectif financier.",   tag: "Épargne",   tagClass: "tag-green",  step: 5 },
-  { href: "/simulateurs/assurance-pret",         icon: "🛡️", title: "Assurance emprunteur",  desc: "Comparez banque vs délégation. Économie loi Lemoine calculée.",                      tag: "Crédit",    tagClass: "tag-purple", step: 5 },
-  { href: "/simulateurs/remboursement-anticipe", icon: "⚡", title: "Remboursement anticipé", desc: "Rembourser par anticipation ou placer l'argent ? Décision optimale chiffrée.",       tag: "Stratégie", tagClass: "tag-teal",   step: 5 },
-  { href: "/simulateurs/pret-conso",             icon: "💳", title: "Prêt à la consommation",desc: "Simulez votre crédit auto, travaux ou personnel : mensualité et coût réel.",         tag: "Crédit",    tagClass: "tag-purple", step: 5 },
-
-  /* Outils transverses */
-  { href: "/simulateurs/stress-test",  icon: "🛡️", title: "Test de résistance", desc: "Votre projet face à 3 crises : hausse des taux, chute du marché, perte de revenus.",  tag: "Stratégie", tagClass: "tag-teal"  },
-  { href: "/simulateurs/niveau-de-vie",icon: "📊", title: "Niveau de vie",      desc: "Visualisez votre revenu disponible après toutes vos charges fixes du mois.",         tag: "Budget",    tagClass: "tag-amber" },
-
-  /* Fonctionnalités créatives */
-  { href: "/simulateurs/pouvoir-achat-m2",    icon: "🗺️", title: "Pouvoir d'achat par ville",       desc: "Combien de m² pouvez-vous acheter dans 10 grandes villes françaises avec votre budget ?",            tag: "Immobilier",  tagClass: "tag-blue",   step: 2 },
-  { href: "/simulateurs/simulateur-couple",   icon: "👫", title: "Simulateur d'achat à deux",       desc: "Combinez vos revenus pour calculer votre capacité d'emprunt en couple et votre budget immobilier.",   tag: "Crédit",      tagClass: "tag-purple", step: 1 },
-  { href: "/simulateurs/machine-temps",       icon: "⏳", title: "Machine à remonter le temps",     desc: "Et si vous aviez acheté en 2010, 2015 ou 2018 ? Calculez le gain ou la perte réelle selon la ville.", tag: "Stratégie",   tagClass: "tag-teal",   step: 2 },
-  { href: "/simulateurs/calendrier-acheteur", icon: "📅", title: "Calendrier acheteur personnalisé",desc: "Votre feuille de route complète vers les clés — étapes, délais et conseils selon votre situation.",   tag: "Immobilier",  tagClass: "tag-blue",   step: 5 },
-  { href: "/simulateurs/heritage-immobilier", icon: "🏛️", title: "Héritage : garder ou vendre ?",  desc: "Héritez d'un bien ou en possédez un en trop ? Calculez la stratégie optimale sur le long terme.",     tag: "Investissement", tagClass: "tag-green" },
+  {
+    href: "/simulateurs/endettement",
+    icon: "📊",
+    title: "Capacité d'emprunt",
+    desc: "Calculez votre taux d'endettement et le montant maximum que vous pouvez emprunter.",
+    duration: "1 min",
+    themes: ["acheter"],
+    color: "#0d9488",
+  },
+  {
+    href: "/simulateurs/simulateur-couple",
+    icon: "👫",
+    title: "Achat en couple",
+    desc: "Combinez vos revenus pour calculer votre capacité d'emprunt commune et votre budget total.",
+    duration: "2 min",
+    themes: ["acheter"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/budget-maximum",
+    icon: "🏆",
+    title: "Budget maximum",
+    desc: "Découvrez jusqu'où vous pouvez aller : budget par durée et villes accessibles avec votre profil.",
+    duration: "2 min",
+    themes: ["acheter"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/score-acheteur",
+    icon: "🎯",
+    title: "Score de préparation",
+    desc: "Êtes-vous vraiment prêt à acheter ? Évaluation sur 5 dimensions clés avec un plan d'action.",
+    duration: "3 min",
+    themes: ["acheter"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/pouvoir-achat-m2",
+    icon: "🗺️",
+    title: "Pouvoir d'achat par ville",
+    desc: "Combien de m² pouvez-vous acheter avec votre budget dans 10 grandes villes françaises ?",
+    duration: "1 min",
+    themes: ["acheter", "comprendre"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/frais-notaire",
+    icon: "📋",
+    title: "Frais de notaire",
+    desc: "Calcul précis selon le barème officiel 2026 pour un bien ancien ou neuf.",
+    duration: "1 min",
+    themes: ["acheter"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/pret-immobilier",
+    icon: "🏦",
+    title: "Simulateur de prêt",
+    desc: "Calculez votre mensualité, le coût total du crédit et consultez le tableau d'amortissement.",
+    duration: "2 min",
+    themes: ["acheter", "epargner"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/ptz",
+    icon: "🏗️",
+    title: "Prêt à Taux Zéro (PTZ)",
+    desc: "Vérifiez votre éligibilité au PTZ 2026 et calculez le montant auquel vous avez droit.",
+    duration: "2 min",
+    themes: ["acheter"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/calendrier-acheteur",
+    icon: "📅",
+    title: "Calendrier d'achat",
+    desc: "Votre feuille de route personnalisée jusqu'aux clés : étapes, délais et conseils.",
+    duration: "2 min",
+    themes: ["acheter"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/negociation",
+    icon: "🤝",
+    title: "Simulateur de négociation",
+    desc: "À quel prix négocier pour que l'achat soit rentable ? Calculez le point d'équilibre.",
+    duration: "2 min",
+    themes: ["acheter", "investir"],
+    color: "#0d9488",
+  },
+  {
+    href: "/simulateurs/charges-copro",
+    icon: "🏢",
+    title: "Charges de copropriété",
+    desc: "Estimez votre quote-part mensuelle selon vos tantièmes, comparée aux moyennes nationales.",
+    duration: "1 min",
+    themes: ["acheter"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/taxe-fonciere",
+    icon: "🏛️",
+    title: "Taxe foncière",
+    desc: "Estimation de la taxe foncière annuelle dans 12 grandes villes françaises.",
+    duration: "1 min",
+    themes: ["acheter"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/rentabilite-locative",
+    icon: "🏘️",
+    title: "Rentabilité locative",
+    desc: "Calculez le rendement brut, net et le cashflow mensuel de votre investissement locatif.",
+    duration: "3 min",
+    themes: ["investir"],
+    color: "#059669",
+  },
+  {
+    href: "/simulateurs/plus-value",
+    icon: "📈",
+    title: "Plus-value immobilière",
+    desc: "Calculez l'impôt sur la plus-value à la revente selon la durée de détention.",
+    duration: "2 min",
+    themes: ["investir"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/impact-dpe",
+    icon: "♻️",
+    title: "Impact DPE & rénovation",
+    desc: "Mesurez la décote d'une passoire thermique et calculez le retour sur investissement des travaux.",
+    duration: "3 min",
+    themes: ["investir", "acheter"],
+    color: "#059669",
+  },
+  {
+    href: "/simulateurs/heritage-immobilier",
+    icon: "🏛️",
+    title: "Héritage : garder ou vendre ?",
+    desc: "Analysez s'il vaut mieux conserver un bien hérité, le louer ou le vendre.",
+    duration: "3 min",
+    themes: ["investir"],
+    color: "#059669",
+  },
+  {
+    href: "/simulateurs/machine-temps",
+    icon: "⏳",
+    title: "Machine à remonter le temps",
+    desc: "Et si vous aviez acheté en 2010, 2015 ou 2018 ? Calculez le gain ou la perte réelle.",
+    duration: "2 min",
+    themes: ["investir", "comprendre"],
+    color: "#0d9488",
+  },
+  {
+    href: "/simulateurs/epargne",
+    icon: "💰",
+    title: "Simulateur d'épargne",
+    desc: "Calculez l'épargne mensuelle nécessaire pour atteindre votre objectif financier.",
+    duration: "1 min",
+    themes: ["epargner"],
+    color: "#d97706",
+  },
+  {
+    href: "/simulateurs/optimiser-apport",
+    icon: "💡",
+    title: "Optimiser son apport",
+    desc: "Acheter maintenant ou épargner encore 12 mois ? Comparez le retour sur investissement.",
+    duration: "2 min",
+    themes: ["epargner", "acheter"],
+    color: "#0d9488",
+  },
+  {
+    href: "/simulateurs/assurance-pret",
+    icon: "🛡️",
+    title: "Assurance emprunteur",
+    desc: "Comparez l'assurance de votre banque avec la délégation d'assurance et calculez l'économie.",
+    duration: "2 min",
+    themes: ["epargner", "acheter"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/remboursement-anticipe",
+    icon: "⚡",
+    title: "Remboursement anticipé",
+    desc: "Rembourser par anticipation ou placer l'argent sur un livret ? Trouvez la meilleure option.",
+    duration: "2 min",
+    themes: ["epargner"],
+    color: "#0d9488",
+  },
+  {
+    href: "/simulateurs/pret-conso",
+    icon: "💳",
+    title: "Prêt à la consommation",
+    desc: "Simulez votre crédit auto, travaux ou personnel : mensualité et coût total réel.",
+    duration: "1 min",
+    themes: ["epargner"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/niveau-de-vie",
+    icon: "📊",
+    title: "Niveau de vie",
+    desc: "Visualisez votre revenu disponible chaque mois après toutes vos charges fixes.",
+    duration: "2 min",
+    themes: ["epargner", "comprendre"],
+    color: "#d97706",
+  },
+  {
+    href: "/simulateurs/comparateur-villes",
+    icon: "🌆",
+    title: "Comparateur de villes",
+    desc: "Loyer contre mensualité dans 12 grandes villes françaises, pour T1, T2 ou T3.",
+    duration: "2 min",
+    themes: ["comprendre", "acheter"],
+    color: "#1a56db",
+  },
+  {
+    href: "/simulateurs/histoire",
+    icon: "📖",
+    title: "Votre histoire financière",
+    desc: "Votre vie de propriétaire ou de locataire racontée et chiffrée année par année.",
+    duration: "3 min",
+    themes: ["comprendre"],
+    color: "#7c3aed",
+  },
+  {
+    href: "/simulateurs/stress-test",
+    icon: "🛡️",
+    title: "Test de résistance",
+    desc: "Votre projet face à 3 scénarios de crise : hausse des taux, chute du marché, perte d'emploi.",
+    duration: "3 min",
+    themes: ["comprendre", "acheter"],
+    color: "#0d9488",
+  },
 ];
 
-const STEP_LABELS = {
-  1: { label: "Étape 1 · Puis-je acheter ?",        color: "#0f766e" },
-  2: { label: "Étape 2 · Est-ce le bon moment ?",    color: "#1e40af" },
-  3: { label: "Étape 3 · Quel bien puis-je acheter ?",color: "#6d28d9" },
-  4: { label: "Étape 4 · Est-ce rentable ?",          color: "#b45309" },
-  5: { label: "Étape 5 · Comment financer ?",         color: "#9d174d" },
-};
-
-const CATEGORIES = [
-  { label: "Tous",           filter: null },
-  { label: "Immobilier",     filter: "Immobilier" },
-  { label: "Stratégie",      filter: "Stratégie" },
-  { label: "Crédit",         filter: "Crédit" },
-  { label: "Investissement", filter: "Investissement" },
-  { label: "Épargne",        filter: "Épargne" },
-  { label: "Fiscalité",      filter: "Fiscalité" },
-  { label: "Budget",         filter: "Budget" },
+/* ── Stat du jour (rotation par jour de l'année) ─────────── */
+const STATS_DU_JOUR = [
+  { stat: "10 %", label: "C'est l'apport minimum exigé par les banques françaises en 2026.", source: "Banque de France" },
+  { stat: "35 %", label: "Le taux d'endettement maximum autorisé par le HCSF depuis 2022.", source: "HCSF 2022" },
+  { stat: "19 ans", label: "La durée moyenne d'un crédit immobilier en France en 2025.", source: "Observatoire Crédit Logement" },
+  { stat: "7–8 %", label: "Les frais de notaire représentent 7 à 8 % du prix d'achat dans l'ancien.", source: "Notaires de France" },
+  { stat: "65 %", label: "Des ménages français sont propriétaires de leur résidence principale.", source: "INSEE 2024" },
+  { stat: "+ 47 %", label: "La hausse des prix immobiliers en France entre 2015 et 2024.", source: "Notaires de France" },
+  { stat: "3,5 %", label: "Le taux moyen d'un crédit immobilier sur 20 ans au 1er trimestre 2026.", source: "Banque de France" },
 ];
+
+function getStatDuJour() {
+  const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0)) / 86400000);
+  return STATS_DU_JOUR[dayOfYear % STATS_DU_JOUR.length];
+}
+
+/* ── Composant carte simulateur ──────────────────────────── */
+function SimCard({ sim, theme }) {
+  const accentColor = theme?.color || sim.color || "#1a56db";
+  return (
+    <Link to={sim.href} className="shub-card" style={{ "--card-accent": accentColor }}>
+      <div className="shub-card-top">
+        <div className="shub-card-icon" style={{ background: accentColor + "18", color: accentColor }}>
+          {sim.icon}
+        </div>
+        <span className="shub-card-duration">
+          <svg width="11" height="11" viewBox="0 0 12 12" fill="currentColor" aria-hidden="true">
+            <circle cx="6" cy="6" r="5.25" stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            <path d="M6 3.5V6l1.5 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none"/>
+          </svg>
+          {sim.duration}
+        </span>
+      </div>
+      <h3 className="shub-card-title">{sim.title}</h3>
+      <p className="shub-card-desc">{sim.desc}</p>
+      <span className="shub-card-cta">
+        Ouvrir le simulateur
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+          <path d="M3 7h8M8 4l3 3-3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+        </svg>
+      </span>
+    </Link>
+  );
+}
 
 export default function SimulateurHub() {
-  const [catFilter, setCatFilter] = useState(null);
-  const [featured, ...rest] = SIMS;
+  const [activeTheme, setActiveTheme] = useState("acheter");
+  const [search, setSearch] = useState("");
+  const stat = getStatDuJour();
 
-  /* When filtering, show flat list. When showing all, show with step badges */
-  const filtered = catFilter ? rest.filter((s) => s.tag === catFilter) : rest;
+  const theme = THEMES.find((t) => t.id === activeTheme);
+
+  const filteredSims = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (q) {
+      return SIMS.filter(
+        (s) => s.title.toLowerCase().includes(q) || s.desc.toLowerCase().includes(q)
+      );
+    }
+    return SIMS.filter((s) => !s.featured && s.themes.includes(activeTheme));
+  }, [activeTheme, search]);
+
+  const featuredSim = SIMS.find((s) => s.featured);
 
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="blog-page">
+      <main id="main-content" className="shub-page">
 
-        {/* Hero */}
-        <div className="blog-hero">
-          <div className="blog-hero-text">
-            <span className="blog-kicker">Outils gratuits</span>
-            <h1 className="blog-title">Tous nos simulateurs</h1>
-            <p className="blog-subtitle">
-              {SIMS.length} calculateurs précis pour prendre les meilleures décisions
-              immobilières et financières — sans inscription, sans publicité.
+        {/* ── Hero ── */}
+        <div className="shub-hero">
+          <div className="shub-hero-text">
+            <span className="shub-hero-badge">
+              <span className="shub-hero-badge-dot" />
+              {SIMS.length} simulateurs gratuits
+            </span>
+            <h1 className="shub-hero-title">Tous nos simulateurs</h1>
+            <p className="shub-hero-sub">
+              Des calculateurs précis pour chaque décision immobilière et financière — sans publicité, sans inscription.
             </p>
           </div>
-          <div className="blog-stats">
-            <div className="blog-stat">
-              <span className="blog-stat-num">{SIMS.length}</span>
-              <span className="blog-stat-label">outils</span>
-            </div>
-            <div className="blog-stat-divider" />
-            <div className="blog-stat">
-              <span className="blog-stat-num">100%</span>
-              <span className="blog-stat-label">gratuit</span>
-            </div>
-            <div className="blog-stat-divider" />
-            <div className="blog-stat">
-              <span className="blog-stat-num">5</span>
-              <span className="blog-stat-label">étapes</span>
-            </div>
+
+          {/* Stat du jour */}
+          <div className="shub-stat-jour">
+            <p className="shub-stat-jour-label">💡 Chiffre du jour</p>
+            <p className="shub-stat-jour-val">{stat.stat}</p>
+            <p className="shub-stat-jour-desc">{stat.label}</p>
+            <p className="shub-stat-jour-source">Source : {stat.source}</p>
           </div>
         </div>
 
-        {/* Guide personnalisé banner */}
-        <Link to="/guide-personnalise" className="hub-guide-banner hub-guide-banner-perso" style={{ marginBottom: 12 }}>
-          <div className="hub-guide-steps">
-            {["?", "?", "?"].map((n, i) => (
-              <span key={i} className="hub-guide-step-dot" style={{ fontSize: 14 }}>{n}</span>
-            ))}
+        {/* ── Featured: main simulator ── */}
+        <Link to={featuredSim.href} className="shub-featured">
+          <div className="shub-featured-left">
+            <span className="shub-featured-badge">⭐ Simulateur principal</span>
+            <h2 className="shub-featured-title">{featuredSim.icon} {featuredSim.title}</h2>
+            <p className="shub-featured-desc">{featuredSim.desc}</p>
+            <span className="shub-featured-cta">Lancer la simulation →</span>
           </div>
-          <div className="hub-guide-text">
-            <p className="hub-guide-title">🎯 Guide personnalisé — 3 questions pour votre parcours sur mesure</p>
-            <p className="hub-guide-sub">Dites-nous votre situation et vos objectifs. On sélectionne les bons simulateurs pour vous.</p>
-          </div>
-          <span className="hub-guide-arrow">→</span>
-        </Link>
-
-        {/* Guide banner */}
-        <Link to="/guide-achat" className="hub-guide-banner">
-          <div className="hub-guide-steps">
-            {[1,2,3,4,5].map((n) => (
-              <span key={n} className="hub-guide-step-dot">{n}</span>
-            ))}
-          </div>
-          <div className="hub-guide-text">
-            <p className="hub-guide-title">Suivre le parcours acheteur en 5 étapes</p>
-            <p className="hub-guide-sub">De "puis-je acheter ?" à "comment financer ?" — les bons outils au bon moment.</p>
-          </div>
-          <span className="hub-guide-arrow">→</span>
-        </Link>
-
-        {/* Featured */}
-        <Link to={featured.href} className="featured-card" aria-label={featured.title}>
-          <div className="featured-card-body">
-            <div className="featured-card-top">
-              <span className={`article-tag ${featured.tagClass}`}>{featured.tag}</span>
-              <span className="article-read-time">Simulateur principal</span>
-            </div>
-            <h2 className="featured-card-title">{featured.title}</h2>
-            <p className="featured-card-intro">{featured.desc}</p>
-            <div className="featured-card-footer">
-              <span className="article-cta-link">Lancer le simulateur →</span>
+          <div className="shub-featured-right" aria-hidden="true">
+            <div className="shub-featured-preview">
+              <div className="shub-fp-bar shub-fp-buy">
+                <span>Achat</span><div className="shub-fp-fill" style={{ width: "58%" }} />
+              </div>
+              <div className="shub-fp-bar shub-fp-rent">
+                <span>Location</span><div className="shub-fp-fill" style={{ width: "42%" }} />
+              </div>
             </div>
           </div>
-          <div className="featured-card-accent" aria-hidden="true">
-            <span className="featured-card-icon">{featured.icon}</span>
-          </div>
         </Link>
 
-        {/* Category filters */}
-        <div className="hub-filters" role="group" aria-label="Filtrer par catégorie">
-          {CATEGORIES.map((c) => (
-            <button
-              key={c.label}
-              type="button"
-              className={`hub-filter-btn${catFilter === c.filter ? " hub-filter-active" : ""}`}
-              onClick={() => setCatFilter(c.filter)}
-            >
-              {c.label}
-              {c.filter && (
-                <span className="hub-filter-count">
-                  {SIMS.filter((s) => s.tag === c.filter && !s.featured).length}
-                </span>
-              )}
+        {/* ── Guide personnalisé banner ── */}
+        <Link to="/guide-personnalise" className="shub-guide-banner">
+          <span className="shub-guide-emoji">🎯</span>
+          <div className="shub-guide-text">
+            <strong>Pas sûr par où commencer ?</strong>
+            <span>Répondez à 3 questions — on sélectionne les simulateurs les plus adaptés à votre situation.</span>
+          </div>
+          <span className="shub-guide-cta">Mon parcours →</span>
+        </Link>
+
+        {/* ── Search bar ── */}
+        <div className="shub-search-wrap">
+          <svg className="shub-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <circle cx="7" cy="7" r="5.5" stroke="currentColor" strokeWidth="1.8"/>
+            <path d="M11 11l3 3" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+          </svg>
+          <input
+            type="search"
+            className="shub-search"
+            placeholder="Rechercher un simulateur… (ex : épargne, notaire, couple)"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label="Rechercher un simulateur"
+          />
+          {search && (
+            <button type="button" className="shub-search-clear" onClick={() => setSearch("")} aria-label="Effacer la recherche">
+              ✕
             </button>
-          ))}
-        </div>
-
-        {/* Grid — with step section headers when not filtered */}
-        <div className="articles-section">
-          {!catFilter ? (
-            /* Grouped by step */
-            <div className="sim-hub-journey">
-              {Object.entries(STEP_LABELS).map(([stepNum, meta]) => {
-                const stepSims = filtered.filter((s) => s.step === Number(stepNum));
-                if (stepSims.length === 0) return null;
-                return (
-                  <div key={stepNum} className="sim-hub-journey-section">
-                    <p className="sim-hub-step-label" style={{ color: meta.color }}>
-                      <span className="sim-hub-step-dot" style={{ background: meta.color }} />
-                      {meta.label}
-                    </p>
-                    <div className="sim-hub-grid">
-                      {stepSims.map((sim) => (
-                        <SimCard key={sim.href} sim={sim} />
-                      ))}
-                    </div>
-                  </div>
-                );
-              })}
-              {/* Transversal tools (no step) */}
-              {(() => {
-                const misc = filtered.filter((s) => !s.step);
-                if (!misc.length) return null;
-                return (
-                  <div className="sim-hub-journey-section">
-                    <p className="sim-hub-step-label" style={{ color: "var(--muted)" }}>
-                      <span className="sim-hub-step-dot" style={{ background: "var(--muted)" }} />
-                      Outils transverses
-                    </p>
-                    <div className="sim-hub-grid">
-                      {misc.map((sim) => <SimCard key={sim.href} sim={sim} />)}
-                    </div>
-                  </div>
-                );
-              })()}
-            </div>
-          ) : (
-            /* Flat grid when filtering by category */
-            <div className="sim-hub-grid">
-              {filtered.map((sim) => <SimCard key={sim.href} sim={sim} />)}
-            </div>
           )}
         </div>
 
-        {/* Blog CTA */}
-        <div className="blog-cta-banner">
-          <div className="blog-cta-inner">
-            <p className="blog-cta-title">Besoin de comprendre avant de calculer ?</p>
-            <p className="blog-cta-sub">Nos articles expliquent les concepts clés de l'immobilier et des finances personnelles.</p>
+        {/* ── Theme tabs ── */}
+        {!search && (
+          <div className="shub-tabs" role="tablist" aria-label="Thèmes de simulateurs">
+            {THEMES.map((t) => {
+              const count = SIMS.filter((s) => !s.featured && s.themes.includes(t.id)).length;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  className={`shub-tab${activeTheme === t.id ? " shub-tab-active" : ""}`}
+                  style={activeTheme === t.id ? { "--tab-color": t.color, "--tab-bg": t.bg, "--tab-border": t.border } : {}}
+                  onClick={() => setActiveTheme(t.id)}
+                  aria-selected={activeTheme === t.id}
+                >
+                  <span className="shub-tab-emoji">{t.emoji}</span>
+                  <span className="shub-tab-label">{t.label}</span>
+                  <span className="shub-tab-count">{count}</span>
+                </button>
+              );
+            })}
           </div>
-          <Link to="/blog" className="btn-primary blog-cta-btn">Lire le blog →</Link>
-        </div>
+        )}
+
+        {/* ── Theme description ── */}
+        {!search && theme && (
+          <div className="shub-theme-intro" style={{ borderColor: theme.border, background: theme.bg }}>
+            <span className="shub-theme-intro-emoji">{theme.emoji}</span>
+            <p className="shub-theme-intro-text" style={{ color: theme.color }}>
+              {activeTheme === "acheter" && "Évaluez votre capacité d'achat, calculez vos frais et planifiez votre projet immobilier."}
+              {activeTheme === "investir" && "Analysez la rentabilité d'un investissement locatif, anticipez la fiscalité et optimisez votre patrimoine."}
+              {activeTheme === "epargner" && "Calculez votre effort d'épargne, comparez les options de financement et optimisez vos remboursements."}
+              {activeTheme === "comprendre" && "Explorez les mécanismes du marché, testez des scénarios et construisez votre culture immobilière."}
+            </p>
+          </div>
+        )}
+
+        {/* ── Simulator grid ── */}
+        {filteredSims.length > 0 ? (
+          <div className="shub-grid">
+            {filteredSims.map((sim) => (
+              <SimCard key={sim.href} sim={sim} theme={!search ? theme : null} />
+            ))}
+          </div>
+        ) : (
+          <div className="shub-no-results">
+            <p>Aucun simulateur trouvé pour « {search} »</p>
+            <button type="button" onClick={() => setSearch("")} className="shub-no-results-btn">
+              Voir tous les simulateurs
+            </button>
+          </div>
+        )}
 
       </main>
       <Footer />
     </div>
-  );
-}
-
-function SimCard({ sim }) {
-  return (
-    <Link to={sim.href} className="sim-hub-card">
-      <div className="sim-hub-icon" aria-hidden="true">{sim.icon}</div>
-      <span className={`article-tag ${sim.tagClass}`}>{sim.tag}</span>
-      <h3 className="sim-hub-title">{sim.title}</h3>
-      <p className="sim-hub-desc">{sim.desc}</p>
-      <span className="article-read-more">Ouvrir →</span>
-    </Link>
   );
 }
