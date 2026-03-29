@@ -6,10 +6,10 @@
 export const CITIES = {
   paris: {
     id: "paris", name: "Paris", emoji: "🗼", region: "Île-de-France",
-    pricePerM2: 10200,    // €/m² médian (Notaires, T1 2026)
+    pricePerM2: 9800,     // €/m² médian (Notaires, T1 2026 — correction des prix)
     rentT2: 1500,         // loyer mensuel charges comprises T2 50m²
-    taxeFonciere: 2200,   // taxe foncière annuelle (hausse 52% en 2024)
-    chargesCopro: 180,    // charges copro mensuelles (quote-part)
+    taxeFonciere: 2300,   // taxe foncière annuelle (hausses 2025-2026)
+    chargesCopro: 185,    // charges copro mensuelles (quote-part)
     salaryMedian: 2800,   // salaire médian net mensuel (INSEE 2024)
     appreciationRate: 2.0,// +%/an historique 10 ans
     notaryPct: 8,         // frais de notaire % (ancien)
@@ -19,9 +19,9 @@ export const CITIES = {
   },
   lyon: {
     id: "lyon", name: "Lyon", emoji: "🦁", region: "Auvergne-Rhône-Alpes",
-    pricePerM2: 4900,
-    rentT2: 970,
-    taxeFonciere: 1450,
+    pricePerM2: 4600,
+    rentT2: 950,
+    taxeFonciere: 1480,
     chargesCopro: 140,
     salaryMedian: 2350,
     appreciationRate: 2.5,
@@ -45,9 +45,9 @@ export const CITIES = {
   },
   bordeaux: {
     id: "bordeaux", name: "Bordeaux", emoji: "🍷", region: "Nouvelle-Aquitaine",
-    pricePerM2: 4500,
-    rentT2: 900,
-    taxeFonciere: 1300,
+    pricePerM2: 4200,
+    rentT2: 880,
+    taxeFonciere: 1320,
     chargesCopro: 130,
     salaryMedian: 2250,
     appreciationRate: 1.8,
@@ -58,9 +58,9 @@ export const CITIES = {
   },
   nantes: {
     id: "nantes", name: "Nantes", emoji: "🏰", region: "Pays de la Loire",
-    pricePerM2: 4100,
-    rentT2: 840,
-    taxeFonciere: 1250,
+    pricePerM2: 3900,
+    rentT2: 820,
+    taxeFonciere: 1270,
     chargesCopro: 125,
     salaryMedian: 2200,
     appreciationRate: 2.2,
@@ -71,9 +71,9 @@ export const CITIES = {
   },
   toulouse: {
     id: "toulouse", name: "Toulouse", emoji: "🌸", region: "Occitanie",
-    pricePerM2: 3800,
-    rentT2: 820,
-    taxeFonciere: 1150,
+    pricePerM2: 3600,
+    rentT2: 800,
+    taxeFonciere: 1170,
     chargesCopro: 120,
     salaryMedian: 2150,
     appreciationRate: 2.3,
@@ -84,9 +84,9 @@ export const CITIES = {
   },
   lille: {
     id: "lille", name: "Lille", emoji: "🏟️", region: "Hauts-de-France",
-    pricePerM2: 3300,
-    rentT2: 770,
-    taxeFonciere: 1050,
+    pricePerM2: 3200,
+    rentT2: 760,
+    taxeFonciere: 1080,
     chargesCopro: 110,
     salaryMedian: 2150,
     appreciationRate: 1.9,
@@ -97,9 +97,9 @@ export const CITIES = {
   },
   strasbourg: {
     id: "strasbourg", name: "Strasbourg", emoji: "🥨", region: "Grand Est",
-    pricePerM2: 3600,
-    rentT2: 790,
-    taxeFonciere: 1100,
+    pricePerM2: 3500,
+    rentT2: 780,
+    taxeFonciere: 1120,
     chargesCopro: 115,
     salaryMedian: 2200,
     appreciationRate: 1.8,
@@ -110,9 +110,9 @@ export const CITIES = {
   },
   nice: {
     id: "nice", name: "Nice", emoji: "🌊", region: "Provence-Alpes-Côte d'Azur",
-    pricePerM2: 5400,
-    rentT2: 1050,
-    taxeFonciere: 1600,
+    pricePerM2: 5200,
+    rentT2: 1030,
+    taxeFonciere: 1640,
     chargesCopro: 150,
     salaryMedian: 2300,
     appreciationRate: 2.4,
@@ -123,9 +123,9 @@ export const CITIES = {
   },
   rennes: {
     id: "rennes", name: "Rennes", emoji: "⚓", region: "Bretagne",
-    pricePerM2: 3900,
-    rentT2: 810,
-    taxeFonciere: 1200,
+    pricePerM2: 3700,
+    rentT2: 790,
+    taxeFonciere: 1220,
     chargesCopro: 120,
     salaryMedian: 2200,
     appreciationRate: 2.1,

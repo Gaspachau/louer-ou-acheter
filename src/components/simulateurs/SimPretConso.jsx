@@ -12,6 +12,13 @@ const LOAN_TYPES = [
   { id: "autre",    label: "Autre",    icon: "💳" },
 ];
 
+const TYPE_DEFAULTS = {
+  auto:     { annualRate: 5.5,  months: 48, rateHint: "Crédit auto : 4–7 % selon profil", durationHint: "24 à 72 mois" },
+  travaux:  { annualRate: 4.5,  months: 84, rateHint: "Crédit travaux : 3–6 % selon montant", durationHint: "36 à 120 mois" },
+  vacances: { annualRate: 7.5,  months: 24, rateHint: "Crédit perso court : 6–10 %", durationHint: "12 à 36 mois" },
+  autre:    { annualRate: 8.0,  months: 36, rateHint: "Crédit perso : 5–12 % selon profil", durationHint: "12 à 84 mois" },
+};
+
 function calcPretConso({ principal, annualRate, months }) {
   if (!principal || principal <= 0 || months <= 0) return null;
   const r = annualRate / 100 / 12;
@@ -41,6 +48,8 @@ function ChartTooltip({ active, payload }) {
 export default function SimPretConso() {
   const [v, setV] = useState({ principal: 10000, annualRate: 5.5, months: 48, type: "auto" });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+  const selectType = (id) => setV((s) => ({ ...s, type: id, ...TYPE_DEFAULTS[id] }));
+  const typeDefaults = TYPE_DEFAULTS[v.type] || TYPE_DEFAULTS.autre;
 
   const res = useMemo(() => calcPretConso(v), [v]);
   const costPct = res ? Math.round((res.totalInterest / res.totalCost) * 100) : 0;
@@ -75,7 +84,7 @@ export default function SimPretConso() {
                 key={t.id}
                 type="button"
                 className={`loan-type-btn ${v.type === t.id ? "loan-type-active" : ""}`}
-                onClick={() => set("type")(t.id)}
+                onClick={() => selectType(t.id)}
               >
                 <span>{t.icon}</span>
                 <span>{t.label}</span>
@@ -87,8 +96,8 @@ export default function SimPretConso() {
             <div className="field-full">
               <Field label="Montant du crédit" value={v.principal} onChange={set("principal")} suffix="€" tooltip="Somme empruntée. Pour un crédit conso, généralement entre 1 000 € et 75 000 €." />
             </div>
-            <Field label="Taux annuel (TAEG)" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="En général 4–12 % selon profil" tooltip="Taux Annuel Effectif Global — inclut intérêts + frais. Crédit auto : 4–8 %. Crédit perso : 5–12 %. Vérifiez votre offre." />
-            <Field label="Durée" value={v.months} onChange={set("months")} suffix="mois" hint="12 à 84 mois" tooltip="Durée de remboursement en mois. 12 mois = 1 an. Les durées courantes : 24, 36, 48, 60 mois." />
+            <Field label="Taux annuel (TAEG)" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint={typeDefaults.rateHint} tooltip="Taux Annuel Effectif Global — inclut intérêts + frais. Vérifiez l'offre de votre établissement." />
+            <Field label="Durée" value={v.months} onChange={set("months")} suffix="mois" hint={typeDefaults.durationHint} tooltip="Durée de remboursement en mois. 12 mois = 1 an." />
           </div>
         </div>
 

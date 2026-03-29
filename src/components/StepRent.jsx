@@ -64,7 +64,12 @@ function StepRent({ values, set, onNext, city }) {
               value={values.annualRentIncrease}
               onChange={set("annualRentIncrease")}
               suffix="%"
-              hint={cityData ? `IRL local à ${cityData.name} ≈ ${cityData.rentIndexGrowth} %/an` : "Indice IRL ~1,5–2 %/an"}
+              hint={(() => {
+                const yr10 = Math.round(values.monthlyRent * Math.pow(1 + values.annualRentIncrease / 100, 10));
+                return cityData
+                  ? `IRL ${cityData.name} ≈ ${cityData.rentIndexGrowth} %/an · loyer dans 10 ans : ${yr10.toLocaleString("fr-FR")} €/mois`
+                  : `→ votre loyer dans 10 ans : ${yr10.toLocaleString("fr-FR")} €/mois`;
+              })()}
               cityHint={cityData ? `IRL ${cityData.name}` : null}
               tooltip={TOOLTIP_HAUSSE}
             />

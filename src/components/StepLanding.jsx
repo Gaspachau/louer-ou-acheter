@@ -554,23 +554,23 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
       </section>
 
       {/* ── GAME PROMO ───────────────────────────────────────── */}
-      <section className="lp-section lp-game-section lp-section-tint" aria-label="Jeu éducatif">
+      <section className="lp-section lp-game-section lp-section-tint" aria-label="ImmoMaestro">
         <div className="lp-game-inner">
           <div className="lp-game-text">
-            <span className="lp-game-badge">🎮 Nouveau</span>
-            <h2 className="lp-game-title">Testez votre instinct immobilier</h2>
-            <p className="lp-game-sub">5 scénarios réels — devinez si Marie, Thomas ou Sophie devrait louer ou acheter. Le simulateur révèle la vraie réponse avec les calculs.</p>
+            <span className="lp-game-badge">🏆 ImmoMaestro</span>
+            <h2 className="lp-game-title">Avez-vous l'instinct immobilier ?</h2>
+            <p className="lp-game-sub">10 profils réels — devinez si chaque personne devrait louer ou acheter. Le simulateur calcule la vraie réponse. Devenez Gourou de l'Immobilier !</p>
             <Link to="/jeu" className="btn-hero-primary lp-game-cta">
-              Jouer maintenant →
+              Relever le défi →
             </Link>
           </div>
           <div className="lp-game-preview" aria-hidden="true">
             <div className="lp-game-card">
               <div className="lp-game-card-header">
                 <span>👩‍⚕️ Marie, 32 ans</span>
-                <span className="lp-game-score">Score : 2/3</span>
+                <span className="lp-game-score">7 / 10</span>
               </div>
-              <p className="lp-game-card-q">Devrait-elle acheter à Lyon pour 280 000 € ?</p>
+              <p className="lp-game-card-q">Devrait-elle acheter à Lyon pour 245 000 € ?</p>
               <div className="lp-game-card-btns">
                 <span className="lp-game-btn-preview lp-game-btn-rent">🏢 Louer</span>
                 <span className="lp-game-btn-preview lp-game-btn-buy">🏠 Acheter</span>

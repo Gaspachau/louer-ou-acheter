@@ -31,7 +31,7 @@ function CustomizePanel({ onClose, onSave }) {
     <div className="cookie-overlay" role="dialog" aria-modal="true" aria-labelledby="cookie-customize-title">
       <div className="cookie-modal">
         <div className="cookie-modal-header">
-          <h2 id="cookie-customize-title" className="cookie-modal-title">Paramètres de confidentialité</h2>
+          <h2 id="cookie-customize-title" className="cookie-modal-title">Confidentialité</h2>
           <button type="button" className="cookie-modal-close" onClick={onClose} aria-label="Fermer">
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
               <path d="M4 4l10 10M14 4L4 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
@@ -40,14 +40,14 @@ function CustomizePanel({ onClose, onSave }) {
         </div>
 
         <p className="cookie-modal-desc">
-          Choisissez quelles données vous acceptez de partager. Vos préférences sont sauvegardées dans votre navigateur.
+          Choisissez les données que vous acceptez de partager. Sauvegardées dans votre navigateur.
         </p>
 
         <div className="cookie-category">
           <div className="cookie-category-header">
             <div>
               <p className="cookie-category-name">Cookies essentiels</p>
-              <p className="cookie-category-desc">Nécessaires au fonctionnement du site (préférences, navigation). Aucune donnée personnelle n'est collectée.</p>
+              <p className="cookie-category-desc">Nécessaires au fonctionnement. Aucune donnée personnelle collectée.</p>
             </div>
             <span className="cookie-always-on" aria-label="Toujours actifs">Toujours actifs</span>
           </div>
@@ -56,9 +56,9 @@ function CustomizePanel({ onClose, onSave }) {
         <div className="cookie-category">
           <div className="cookie-category-header">
             <div>
-              <p className="cookie-category-name">Cookies analytiques</p>
+              <p className="cookie-category-name">Analyse d'usage</p>
               <p className="cookie-category-desc">
-                Nous aident à comprendre comment vous utilisez les simulateurs pour les améliorer. Les données sont <strong>anonymisées</strong> et ne sont jamais revendues. Outil utilisé : PostHog (open source, hébergé en Europe).
+                Données <strong>anonymisées</strong>, jamais revendues. Outil : PostHog open source, hébergé en Europe.
               </p>
             </div>
             <Toggle checked={analytics} onChange={setAnalytics} id="toggle-analytics" />
@@ -70,7 +70,7 @@ function CustomizePanel({ onClose, onSave }) {
             Tout refuser
           </button>
           <button type="button" className="cookie-btn-primary" onClick={handleSave}>
-            Enregistrer mes choix
+            Enregistrer
           </button>
         </div>
       </div>
@@ -116,30 +116,20 @@ export default function CookieBanner() {
       )}
 
       {!showCustomize && (
-        <div className="cookie-banner" role="region" aria-label="Amélioration de l'expérience">
-          <div className="cookie-banner-inner">
-            <div className="cookie-banner-text">
-              <p className="cookie-banner-title">
-                <span className="cookie-icon" aria-hidden="true">✨</span>
-                Améliorons votre expérience
-              </p>
-              <p className="cookie-banner-desc">
-                Nous analysons anonymement votre utilisation des simulateurs pour améliorer
-                l'expérience et personnaliser les recommandations. Aucune donnée personnelle
-                n'est collectée.{" "}
-                <button type="button" className="cookie-banner-link" onClick={() => setShowCustomize(true)}>
-                  En savoir plus
-                </button>
-              </p>
-            </div>
-            <div className="cookie-banner-actions">
-              <button type="button" className="cookie-btn-ghost" onClick={handleRejectAll}>
-                Non merci
-              </button>
-              <button type="button" className="cookie-btn-primary" onClick={handleAcceptAll}>
-                Accepter
-              </button>
-            </div>
+        <div className="cookie-bar" role="region" aria-label="Cookies">
+          <span className="cookie-bar-text">
+            🍪 Analyse anonyme pour améliorer le site.{" "}
+            <button type="button" className="cookie-bar-link" onClick={() => setShowCustomize(true)}>
+              Paramètres
+            </button>
+          </span>
+          <div className="cookie-bar-btns">
+            <button type="button" className="cookie-bar-btn-ghost" onClick={handleRejectAll}>
+              Non merci
+            </button>
+            <button type="button" className="cookie-bar-btn-primary" onClick={handleAcceptAll}>
+              Accepter
+            </button>
           </div>
         </div>
       )}

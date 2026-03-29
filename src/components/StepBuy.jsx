@@ -62,6 +62,7 @@ function StepBuy({ values, set, onNext, onBack, city }) {
 
   const { payment, charges, total } = useMemo(() => calcMonthly(values), [values]);
   const loanAmount = Math.max(0, values.purchasePrice - values.downPayment);
+  const totalInterest = Math.max(0, payment * values.mortgageYears * 12 - loanAmount);
   const apportPct = values.purchasePrice > 0
     ? (values.downPayment / values.purchasePrice) * 100
     : 0;
@@ -135,7 +136,7 @@ function StepBuy({ values, set, onNext, onBack, city }) {
                 value={values.downPayment}
                 onChange={set("downPayment")}
                 suffix="€"
-                hint={`Montant emprunté : ${formatCurrency(loanAmount)}`}
+                hint={`${Math.round(apportPct)}% du prix · emprunt : ${formatCurrency(loanAmount)}`}
                 tooltip={T.apport}
               />
               {values.purchasePrice > 0 && (
@@ -147,7 +148,7 @@ function StepBuy({ values, set, onNext, onBack, city }) {
               value={values.mortgageRate}
               onChange={set("mortgageRate")}
               suffix="%"
-              hint={cityData ? `Taux moyen 2026 à ${cityData.name} : ~${cityData.appreciationRate > 2.2 ? "3,4" : "3,5"} % sur 20 ans` : "Taux moyen 2026 : ~3,5 % sur 20 ans"}
+              hint={`→ coût total du crédit : ${formatCurrency(totalInterest)}`}
               tooltip={T.taux}
               warning={warnTaux(values.mortgageRate)}
             />
@@ -156,7 +157,7 @@ function StepBuy({ values, set, onNext, onBack, city }) {
               value={values.mortgageYears}
               onChange={set("mortgageYears")}
               suffix="ans"
-              hint="20 ou 25 ans sont les plus courants"
+              hint={`20 ou 25 ans · ${formatCurrency(payment)}/mois pendant ${values.mortgageYears} ans`}
               tooltip={T.duree}
               warning={warnDuree(values.mortgageYears)}
             />
