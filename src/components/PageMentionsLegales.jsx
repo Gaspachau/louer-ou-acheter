@@ -81,22 +81,17 @@ export default function PageMentionsLegales() {
           <MlSection badge="2" title="Hébergement">
             <MlTable
               rows={[
-                ["Hébergeur", "Vercel Inc."],
-                ["Adresse", "340 Pine Street, Suite 701, San Francisco, CA 94104, États-Unis"],
-                ["Infrastructure", "CDN mondial, serveurs Europe (Frankfurt, Allemagne)"],
-                [
-                  "Politique de confidentialité",
-                  <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener noreferrer">
-                    vercel.com/legal/privacy-policy
-                  </a>,
-                ],
+                ["Hébergeur", "Prestataire d'hébergement tiers spécialisé"],
+                ["Infrastructure", "CDN mondial avec points de présence en Europe"],
+                ["Localisation données UE", "Serveurs européens (Union Européenne)"],
+                ["Conformité", "Data Processing Agreement RGPD disponible sur demande"],
               ]}
             />
             <p className="blog-p">
-              Le site est hébergé sur l'infrastructure Vercel, dont les serveurs
-              de traitement pour les visiteurs européens sont situés en Europe
-              (Frankfurt). Vercel est certifié conforme aux mécanismes de transfert
-              encadrés par le RGPD (Data Processing Agreement disponible).
+              Le site est hébergé chez un prestataire spécialisé dont les serveurs
+              de traitement pour les visiteurs européens sont situés au sein de
+              l'Union Européenne. Ce prestataire est certifié conforme aux
+              mécanismes de transfert encadrés par le RGPD.
             </p>
           </MlSection>
 
@@ -155,7 +150,7 @@ export default function PageMentionsLegales() {
             <p className="blog-p">
               Sous réserve de votre consentement explicite (voir section Cookies
               ci-dessous), des <strong>événements d'usage anonymisés</strong> sont
-              transmis à PostHog (outil d'analyse de produit). Ces événements
+              transmis à un outil d'analyse de produit tiers. Ces événements
               décrivent les interactions avec le simulateur (ouverture/fermeture,
               modification de champs) sans jamais inclure vos valeurs financières
               personnelles ni aucun identifiant permettant de vous reconnaître.
@@ -165,7 +160,7 @@ export default function PageMentionsLegales() {
             <MlSubtitle>b. Base légale du traitement</MlSubtitle>
             <p className="blog-p">
               Le seul traitement de données susceptible d'être effectué — l'analyse
-              d'usage via PostHog — repose exclusivement sur votre{" "}
+              d'usage anonymisée — repose exclusivement sur votre{" "}
               <strong>consentement libre et éclairé</strong> au sens de l'article
               6.1.a du RGPD. Ce consentement est recueilli via la bannière cookies
               affichée lors de votre première visite. Vous pouvez le retirer à tout
@@ -201,39 +196,32 @@ export default function PageMentionsLegales() {
 
               <div className="ml-cookie-type ml-cookie-analytics">
                 <div className="ml-cookie-header">
-                  <span className="ml-cookie-name">Analyse d'usage — PostHog EU</span>
+                  <span className="ml-cookie-name">Analyse d'usage (optionnel)</span>
                   <span className="ml-cookie-badge ml-cookie-badge--optional">Optionnel (sur consentement)</span>
                 </div>
                 <p className="ml-cookie-desc">
-                  Si vous cliquez sur "Accepter" lors de votre première visite, le service
-                  PostHog (région UE, serveurs <code className="ml-code">eu.i.posthog.com</code>)
-                  est activé. PostHog enregistre des événements anonymisés décrivant vos
+                  Si vous cliquez sur "Accepter" lors de votre première visite, un outil
+                  d'analyse de produit tiers hébergé sur des serveurs européens est activé.
+                  Cet outil enregistre des événements anonymisés décrivant vos
                   interactions avec le simulateur : ouverture/fermeture, modification de
-                  champs (type de champ uniquement, pas les valeurs saisies). Il peut
-                  également activer un enregistrement de session anonymisé. Aucune
+                  champs (type de champ uniquement, pas les valeurs saisies). Aucune
                   information personnellement identifiable (nom, adresse IP complète,
                   montants saisis) n'est collectée. Ces données servent uniquement à
                   améliorer l'ergonomie du site.
-                </p>
-                <p className="ml-cookie-desc">
-                  Politique de confidentialité PostHog :{" "}
-                  <a href="https://posthog.com/privacy" target="_blank" rel="noopener noreferrer">
-                    posthog.com/privacy
-                  </a>
                 </p>
               </div>
 
               <div className="ml-cookie-type ml-cookie-infra">
                 <div className="ml-cookie-header">
-                  <span className="ml-cookie-name">Infrastructure — Vercel</span>
+                  <span className="ml-cookie-name">Infrastructure d'hébergement</span>
                   <span className="ml-cookie-badge ml-cookie-badge--infra">Infrastructure</span>
                 </div>
                 <p className="ml-cookie-desc">
-                  L'hébergeur Vercel peut générer des données de log techniques
+                  Notre prestataire d'hébergement peut générer des données de log techniques
                   (adresse IP tronquée, horodatage, URL demandée) à des fins de
-                  sécurité et de performance. Ces données sont traitées
-                  conformément à la politique de confidentialité de Vercel et
-                  ne sont pas utilisées à des fins de profilage.
+                  sécurité et de performance. Ces données sont traitées conformément
+                  à leur politique de confidentialité et ne sont pas utilisées
+                  à des fins de profilage.
                 </p>
               </div>
 
@@ -250,14 +238,14 @@ export default function PageMentionsLegales() {
                   "Votre navigateur uniquement",
                 ],
                 [
-                  "Événements analytiques PostHog (si consentement)",
+                  "Événements analytiques anonymisés (si consentement)",
                   "12 mois glissants",
-                  "Serveurs PostHog EU (Frankfurt)",
+                  "Serveurs de notre prestataire d'analyse (UE)",
                 ],
                 [
-                  "Logs techniques Vercel",
-                  "Conformément à la politique Vercel (max. 30 jours)",
-                  "Infrastructure Vercel",
+                  "Logs techniques d'hébergement",
+                  "Selon la politique du prestataire (30 jours max.)",
+                  "Infrastructure d'hébergement",
                 ],
               ]}
             />
@@ -296,33 +284,34 @@ export default function PageMentionsLegales() {
             {/* 5f. Sous-traitants */}
             <MlSubtitle>f. Sous-traitants et services tiers</MlSubtitle>
             <MlTable
-              headers={["Service", "Finalité", "Données transmises", "Lieu"]}
+              headers={["Catégorie", "Finalité", "Données transmises", "Localisation"]}
               rows={[
                 [
-                  "Vercel Inc.",
+                  "Hébergeur",
                   "Hébergement et délivrance du site",
-                  "IP tronquée, logs techniques",
-                  "Frankfurt (UE) / USA",
+                  "Adresse IP tronquée, logs techniques",
+                  "Union Européenne",
                 ],
                 [
-                  "PostHog EU (si consentement)",
+                  "Outil d'analyse (si consentement)",
                   "Analyse d'usage anonymisée",
-                  "Événements anonymisés, pas de PII",
-                  "Frankfurt (UE)",
+                  "Événements anonymisés, sans PII",
+                  "Union Européenne",
                 ],
                 [
-                  "Google Fonts",
-                  "Police de caractères Inter",
-                  "IP lors du chargement initial",
-                  "Serveurs Google (mondial)",
+                  "Service de polices de caractères",
+                  "Chargement de la typographie du site",
+                  "Adresse IP lors du premier accès",
+                  "Mondial (tiers international)",
                 ],
               ]}
             />
             <p className="blog-p">
-              Google Fonts est chargé via CSS. Lors du premier chargement, votre
-              adresse IP est transmise aux serveurs de Google afin de télécharger
-              la police. Si vous souhaitez éviter ce transfert, vous pouvez bloquer
-              les requêtes tierces via les paramètres de votre navigateur.
+              Les polices de caractères utilisées sur ce site sont chargées via
+              un service tiers. Lors du premier chargement, votre adresse IP peut
+              être transmise à ce prestataire. Si vous souhaitez éviter ce transfert,
+              vous pouvez bloquer les requêtes tierces via les paramètres de votre
+              navigateur.
             </p>
 
           </MlSection>

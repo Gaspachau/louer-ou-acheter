@@ -13,6 +13,7 @@ const QUICK_CITIES = ["paris", "lyon", "marseille", "bordeaux", "nantes"];
 export default function CityPicker({ cityId, onChange, label = "Ville" }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [dropUp, setDropUp] = useState(false);
   const inputRef = useRef(null);
   const wrapRef = useRef(null);
 
@@ -28,10 +29,19 @@ export default function CityPicker({ cityId, onChange, label = "Ville" }) {
     return () => document.removeEventListener("pointerdown", close, true);
   }, [open]);
 
-  // Focus l'input à l'ouverture
+  // Focus l'input à l'ouverture + calcul position
   useEffect(() => {
-    if (open) setTimeout(() => inputRef.current?.focus(), 50);
-    else setQuery("");
+    if (open) {
+      setTimeout(() => inputRef.current?.focus(), 50);
+      // Detect if dropdown should open upward
+      if (wrapRef.current) {
+        const rect = wrapRef.current.getBoundingClientRect();
+        const spaceBelow = window.innerHeight - rect.bottom;
+        setDropUp(spaceBelow < 340);
+      }
+    } else {
+      setQuery("");
+    }
   }, [open]);
 
   const results = query.trim()
@@ -75,7 +85,10 @@ export default function CityPicker({ cityId, onChange, label = "Ville" }) {
             <span className="cpicker-trigger-price">{fmtEur(city.pricePerM2)} /m²</span>
           </>
         ) : (
-          <span className="cpicker-trigger-placeholder">Choisir une ville…</span>
+          <>
+            <span className="cpicker-trigger-emoji">🇫🇷</span>
+            <span className="cpicker-trigger-name">Moyenne nationale</span>
+          </>
         )}
         <svg className={`cpicker-chevron${open ? " open" : ""}`} width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
           <path d="M3.5 5.5l3.5 3.5 3.5-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
@@ -84,7 +97,29 @@ export default function CityPicker({ cityId, onChange, label = "Ville" }) {
 
       {/* Dropdown */}
       {open && (
-        <div className="cpicker-dropdown" role="dialog" aria-label="Sélectionner une ville">
+        <div className={`cpicker-dropdown${dropUp ? " cpicker-drop-up" : ""}`} role="dialog" aria-label="Sélectionner une ville">
+          {/* "Sans ville" option */}
+          {!query && (
+            <div className="cpicker-section">
+              <button
+                type="button"
+                className={`cpicker-option cpicker-no-city${!cityId ? " selected" : ""}`}
+                onClick={() => { onChange(null); setOpen(false); }}
+                aria-label="Utiliser la moyenne nationale"
+              >
+                <span className="cpicker-opt-emoji">🇫🇷</span>
+                <span className="cpicker-opt-info">
+                  <span className="cpicker-opt-name">Moyenne nationale</span>
+                  <span className="cpicker-opt-region">Valeurs moyennes France entière</span>
+                </span>
+                {!cityId && (
+                  <svg className="cpicker-opt-check" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M2.5 7l3.5 3.5L11.5 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                )}
+              </button>
+            </div>
+          )}
           {/* Search */}
           <div className="cpicker-search-wrap">
             <svg className="cpicker-search-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">

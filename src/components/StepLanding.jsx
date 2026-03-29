@@ -252,18 +252,6 @@ const FAQ_ITEMS = [
     q: "Est-ce le bon moment d'acheter en 2026 ?",
     a: "Les taux de crédit se stabilisent autour de 3,5–4 % après avoir culminé à 4,5 % en 2023. Dans certaines villes (Lille, Toulouse, Nantes), la correction des prix + la baisse des taux créent une fenêtre favorable. À Paris et Nice, le ratio prix/loyer reste très défavorable à l'achat sur moins de 12 ans.",
   },
-  {
-    q: "Les frais de notaire sont-ils vraiment obligatoires ?",
-    a: "Oui, ils sont dus lors de toute transaction immobilière. Dans l'ancien, ils représentent 7 à 8 % du prix (dont 5,8 % de taxes collectées pour l'État). Dans le neuf, ils descendent à 2–3 %. Ils ne sont pas finançables par le crédit — prévoyez-les dans votre apport.",
-  },
-  {
-    q: "C'est quoi le PTZ et qui peut en bénéficier en 2026 ?",
-    a: "Le Prêt à Taux Zéro (PTZ) est un prêt complémentaire sans intérêts réservé aux primo-accédants. En 2026, il est élargi aux logements anciens avec travaux sur tout le territoire. Les plafonds de revenus varient de 28 000 à 37 000 €/an selon la taille du foyer et la zone géographique.",
-  },
-  {
-    q: "Quand vaut-il mieux louer plutôt qu'acheter ?",
-    a: "Louer est souvent plus avantageux si vous restez moins de 5 ans dans le logement, si le ratio prix/loyer dépasse 25 (comme à Paris), si vous n'avez pas d'apport suffisant, ou si votre situation professionnelle est incertaine. Notre simulateur calcule exactement à partir de combien d'années l'achat devient gagnant.",
-  },
 ];
 
 const WHY_DIFF = [

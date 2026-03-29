@@ -1085,4 +1085,138 @@ export const ARTICLES = [
       </>
     ),
   },
+  {
+    slug: "negociation-prix-immobilier-2026",
+    title: "Négocier le prix d'un bien immobilier : guide 2026",
+    description: "Comment négocier efficacement le prix d'un appartement ou d'une maison en 2026 ? Tactiques concrètes, arguments chiffrés et erreurs à éviter.",
+    date: "29 mars 2026",
+    readTime: "5 min",
+    tag: "Stratégie achat",
+    tagClass: "tag-green",
+    intro: "En France, le prix affiché est rarement le prix final. En 2026, avec un marché qui se rééquilibre, la marge de négociation a atteint 4 à 7 % en moyenne — voici comment en profiter.",
+    Content: () => (
+      <>
+        <p>Négocier un bien immobilier est un art qui s'apprend. Trop d'acheteurs acceptent le prix affiché par peur de perdre le bien. Pourtant, en 2026, <strong>le marché est plus favorable aux acheteurs qu'en 2020–2022</strong> : les délais de vente s'allongent, les vendeurs sont plus ouverts.</p>
+        <h2>Quelle marge de négociation espérer ?</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Type de marché</th><th>Marge médiane</th><th>Exemples</th></tr></thead><tbody><tr><td>Marché vendeur tendu</td><td>0–2 %</td><td>Paris intra-muros, Lyon 6e</td></tr><tr><td>Marché équilibré</td><td>3–5 %</td><td>Nantes, Bordeaux, Strasbourg</td></tr><tr><td>Marché acheteur</td><td>5–10 %</td><td>Villes moyennes, zones rurales</td></tr><tr><td>Bien avec travaux importants</td><td>10–15 %</td><td>DPE F/G, façade à refaire</td></tr></tbody></table></div>
+        <h2>Les arguments qui font baisser le prix</h2>
+        <ul><li><strong>Durée de mise en vente &gt; 90 jours</strong> : le vendeur commence à douter. Vérifiez sur les annonces l'historique de prix.</li><li><strong>DPE mauvais (F ou G)</strong> : vous pouvez argumenter le coût des travaux de rénovation énergétique obligatoires d'ici 2025–2028.</li><li><strong>Travaux visibles</strong> : obtenez des devis avant d'offrir. "J'ai un devis de 35 000 € pour la toiture" est un argument béton.</li><li><strong>Comparaison avec les ventes récentes</strong> : consultez les prix DVF (données de valeur foncière) du quartier pour ancrer votre offre sur le marché réel.</li></ul>
+        <div className="callout callout-tip"><span className="callout-icon">💡</span><div className="callout-body"><strong>Tactique éprouvée :</strong> faites une offre raisonnée par écrit, avec un argumentaire chiffré. Une offre sérieuse avec justification est 3× plus susceptible d'être acceptée qu'une simple annonce verbale.</div></div>
+        <h2>Les erreurs qui plombent la négociation</h2>
+        <ul><li>Révéler votre prix maximum avant de faire une offre</li><li>Négocier verbalement sans formaliser par écrit</li><li>Trop critiquer le bien lors de la visite (le vendeur s'y attache)</li><li>Faire une offre sans avoir vérifié le financement</li></ul>
+        <h2>Le bon timing pour négocier</h2>
+        <p>Faites votre offre après une deuxième visite — cela montre votre sérieux. Évitez de négocier en période de fortes transactions (printemps) ; l'été ou l'automne sont plus favorables à l'acheteur.</p>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">En 2026, une négociation bien préparée peut économiser 10 000 à 30 000 € sur un bien standard. Armez-vous de données, pas d'émotions.</blockquote>
+      </>
+    ),
+  },
+  {
+    slug: "assurance-pret-changer-economiser",
+    title: "Changer d'assurance emprunteur : combien économiser en 2026 ?",
+    description: "Loi Lemoine : vous pouvez changer d'assurance prêt à tout moment. Calcul concret des économies possibles et démarche pas à pas.",
+    date: "29 mars 2026",
+    readTime: "4 min",
+    tag: "Financement",
+    tagClass: "tag-purple",
+    intro: "Depuis la loi Lemoine (2022), vous pouvez résilier votre assurance emprunteur à tout moment. Pour un crédit de 250 000 €, l'économie peut dépasser 20 000 € sur 20 ans — et la démarche prend 2 semaines.",
+    Content: () => (
+      <>
+        <p>L'assurance emprunteur représente <strong>25 à 35 % du coût total d'un crédit immobilier</strong>. Pourtant, la grande majorité des emprunteurs conservent l'assurance de leur banque par défaut, sans jamais comparer. La loi Lemoine a tout changé.</p>
+        <h2>Ce que dit la loi Lemoine (2022)</h2>
+        <p>Depuis juin 2022, vous pouvez résilier votre assurance de prêt à tout moment, sans frais, sans préavis minimum, à condition de trouver un contrat aux garanties équivalentes. C'est valable même si vous avez emprunté il y a 15 ans.</p>
+        <h2>Exemple chiffré : 250 000 € sur 20 ans</h2>
+        <div className="key-figures"><div className="key-figure"><span className="kf-value">0,36 %</span><span className="kf-label">Taux assurance bancaire moyen</span></div><div className="key-figure"><span className="kf-value">0,12 %</span><span className="kf-label">Taux délégation d'assurance</span></div><div className="key-figure"><span className="kf-value">~18 000 €</span><span className="kf-label">Économie sur 20 ans</span></div></div>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Profil</th><th>Assurance banque</th><th>Délégation</th><th>Économie</th></tr></thead><tbody><tr><td>35 ans, non-fumeur, cadre</td><td>~750 €/an</td><td>~250 €/an</td><td>~10 000 € sur 20 ans</td></tr><tr><td>45 ans, sportif, profession libérale</td><td>~1 200 €/an</td><td>~400 €/an</td><td>~16 000 € sur 20 ans</td></tr></tbody></table></div>
+        <h2>Comment procéder en 4 étapes</h2>
+        <ol style={{paddingLeft:'20px', lineHeight:'2'}}><li>Récupérez votre contrat actuel et notez les garanties clés (DC, PTIA, ITT, IPT)</li><li>Demandez des devis à des comparateurs ou assureurs alternatifs</li><li>Vérifiez l'équivalence des garanties (critères CCSF)</li><li>Envoyez la demande de substitution à votre banque (qui a 10 jours pour répondre)</li></ol>
+        <div className="callout callout-tip"><span className="callout-icon">💡</span><div className="callout-body"><strong>Bon à savoir :</strong> les assureurs alternatifs comme April, Magnolia, Afi Esca ou MAIF sont souvent 40 à 60 % moins chers que les banques pour les profils standard.</div></div>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">Pour un emprunteur de 35 ans en bonne santé, changer d'assurance de prêt est probablement la démarche financière la plus rentable par rapport au temps investi.</blockquote>
+      </>
+    ),
+  },
+  {
+    slug: "calcul-budget-renovation-avant-achat",
+    title: "Calculer le budget rénovation avant d'acheter : guide complet",
+    description: "Comment estimer le coût des travaux avant une offre d'achat ? Grilles de prix par poste, pièges à éviter et méthode pour ne pas se retrouver à court.",
+    date: "29 mars 2026",
+    readTime: "5 min",
+    tag: "Guide pratique",
+    tagClass: "tag-teal",
+    intro: "60 % des acquéreurs de biens anciens sous-estiment les travaux à prévoir. Résultat : des rénovations qui explosent le budget et remettent en question la rentabilité de l'achat. Voici comment éviter ce piège.",
+    Content: () => (
+      <>
+        <p>Un bien à rénover peut être une excellente opportunité ou un piège financier — tout dépend de la qualité de votre estimation initiale. Avant de faire une offre, il est indispensable d'avoir une idée précise du budget travaux.</p>
+        <h2>Grille de prix des travaux par poste (2026)</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Poste</th><th>Coût indicatif</th><th>Priorité</th></tr></thead><tbody><tr><td>Toiture complète (100 m²)</td><td>15 000 – 30 000 €</td><td>Urgente si infiltrations</td></tr><tr><td>Isolation combles (100 m²)</td><td>2 000 – 6 000 €</td><td>Haute (CEE + MaPrimeRénov)</td></tr><tr><td>Chauffage — pompe à chaleur</td><td>8 000 – 15 000 €</td><td>Haute (obligatoire DPE F/G)</td></tr><tr><td>Électricité complète (80 m²)</td><td>6 000 – 12 000 €</td><td>Si NF C 15-100 non conforme</td></tr><tr><td>Salle de bain complète</td><td>5 000 – 15 000 €</td><td>Selon état</td></tr><tr><td>Cuisine équipée</td><td>5 000 – 20 000 €</td><td>Variable</td></tr><tr><td>Peintures + sols (80 m²)</td><td>8 000 – 20 000 €</td><td>Cosmétique</td></tr></tbody></table></div>
+        <h2>La règle des 3 devis</h2>
+        <p>Pour tout poste de plus de 3 000 €, obtenez systématiquement <strong>3 devis d'artisans locaux</strong> avant de formuler votre offre. L'écart entre le moins cher et le plus cher peut être de 1 à 3.</p>
+        <div className="callout callout-warn"><span className="callout-icon">⚠️</span><div className="callout-body"><strong>Provision pour imprévus :</strong> ajoutez systématiquement 15 % au budget estimé pour les découvertes en cours de chantier (humidité cachée, amiante, structure). Cette provision s'avère nécessaire dans 70 % des rénovations.</div></div>
+        <h2>Les aides qui allègent la facture</h2>
+        <ul><li><strong>MaPrimeRénov'</strong> : jusqu'à 70 % des travaux de rénovation énergétique selon les revenus</li><li><strong>CEE (Certificats d'Économie d'Énergie)</strong> : primes versées par les fournisseurs d'énergie</li><li><strong>Éco-PTZ</strong> : prêt à taux zéro pour financer jusqu'à 50 000 € de travaux de rénovation</li></ul>
+        <h2>Comment intégrer les travaux dans la négociation</h2>
+        <p>Un devis obtenu avant l'offre est votre meilleur outil de négociation. "J'ai un devis de 22 000 € pour la toiture" est un argument objectif qui justifie une réduction du prix affiché.</p>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">La règle d'or : les travaux que vous n'avez pas chiffrés avant l'achat seront toujours plus chers que prévu. Une semaine de préparation peut vous faire économiser des années de stress financier.</blockquote>
+      </>
+    ),
+  },
+  {
+    slug: "investissement-locatif-premiers-pas",
+    title: "Investissement locatif : par où commencer en 2026 ?",
+    description: "Guide pour les débutants en investissement locatif : comment choisir son bien, calculer la rentabilité et structurer son financement en 2026.",
+    date: "29 mars 2026",
+    readTime: "6 min",
+    tag: "Investissement",
+    tagClass: "tag-blue",
+    intro: "L'immobilier locatif reste l'un des investissements préférés des Français — mais se lancer sans méthode peut coûter cher. Voici la feuille de route pour un premier investissement rentable en 2026.",
+    Content: () => (
+      <>
+        <p>L'investissement locatif combine plusieurs avantages : revenus réguliers, effet de levier du crédit, constitution de patrimoine et protection contre l'inflation. Mais il comporte aussi des risques que les débutants minimisent souvent.</p>
+        <h2>Les 3 types d'investissement locatif</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Type</th><th>Rentabilité brute</th><th>Gestion</th><th>Adapté à</th></tr></thead><tbody><tr><td>Location nue longue durée</td><td>3–6 %</td><td>Légère</td><td>Patrimoine stable, fiscalité régime réel</td></tr><tr><td>Location meublée (LMNP)</td><td>4–8 %</td><td>Modérée</td><td>Amortissement comptable, zones étudiantes</td></tr><tr><td>Colocation</td><td>6–10 %</td><td>Élevée</td><td>Grandes villes, rendement optimisé</td></tr></tbody></table></div>
+        <h2>La règle des 7 % brut</h2>
+        <p>Un investissement locatif n'est vraiment intéressant que si sa <strong>rentabilité brute dépasse 6–7 %</strong>. En dessous, après déduction des charges, impôts et vacance locative, la rentabilité nette risque d'être négative.</p>
+        <div className="key-figures"><div className="key-figure"><span className="kf-value">6–7 %</span><span className="kf-label">Rentabilité brute minimale</span></div><div className="key-figure"><span className="kf-value">3–4 %</span><span className="kf-label">Rentabilité nette réaliste</span></div><div className="key-figure"><span className="kf-value">8–10 %</span><span className="kf-label">Objectif colocation</span></div></div>
+        <h2>Les villes les plus rentables en 2026</h2>
+        <p>Les grandes métropoles (Paris, Lyon, Bordeaux) offrent peu de rendement brut (3–4 %) mais une sécurité locative élevée. Les villes moyennes (Saint-Étienne, Mulhouse, Limoges, Roubaix) peuvent atteindre 8–12 % brut — avec un risque de vacance plus élevé.</p>
+        <div className="callout callout-tip"><span className="callout-icon">💡</span><div className="callout-body"><strong>Stratégie 2026 :</strong> visez les villes universitaires de taille moyenne (Angers, Clermont-Ferrand, Caen) : demande locative forte, prix raisonnables, rentabilité autour de 6–8 % brut.</div></div>
+        <h2>La fiscalité : choisir le bon régime</h2>
+        <ul><li><strong>Micro-foncier</strong> : abattement forfaitaire de 30 %. Simple mais peu optimisé.</li><li><strong>Régime réel</strong> : déduisez toutes les charges réelles. Incontournable au-delà de 15 000 €/an de loyers.</li><li><strong>LMNP (meublé)</strong> : amortissez le bien sur 30 ans — souvent le plus avantageux sur 10–15 ans.</li></ul>
+        <h2>Les erreurs du débutant</h2>
+        <ul><li>Acheter dans sa ville par confort (et non pour la rentabilité)</li><li>Négliger la gestion locative (prévoir 7–10 % des loyers pour un gestionnaire)</li><li>Sous-estimer la vacance locative (prévoir 1 mois de vide par an en moyenne)</li><li>Oublier les charges de copropriété dans le calcul</li></ul>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">Le meilleur investissement locatif n'est pas forcément le plus cher ni le plus proche — c'est celui dont la rentabilité nette couvre les charges ET génère un cash-flow positif dès la première année.</blockquote>
+      </>
+    ),
+  },
+  {
+    slug: "separation-divorce-bien-immobilier",
+    title: "Séparation ou divorce : que devient le bien immobilier ?",
+    description: "Rachat de soulte, vente du bien, désolidarisation de prêt : toutes les options quand un couple propriétaire se sépare en 2026.",
+    date: "29 mars 2026",
+    readTime: "5 min",
+    tag: "Guide pratique",
+    tagClass: "tag-amber",
+    intro: "1 divorce sur 3 concerne des couples propriétaires. La question du bien immobilier est souvent la plus complexe à régler. Voici les 3 scénarios possibles et leurs implications financières.",
+    Content: () => (
+      <>
+        <p>Quand deux co-emprunteurs se séparent, le bien immobilier et le prêt associé doivent être traités ensemble. Ignorer l'un ou l'autre peut avoir des conséquences graves sur le crédit et le patrimoine de chacun.</p>
+        <h2>Les 3 options principales</h2>
+        <div className="compare-table-wrap"><table className="compare-table"><thead><tr><th>Option</th><th>Pour qui</th><th>Coût estimatif</th></tr></thead><tbody><tr><td>Vente du bien et partage du produit</td><td>Si accord entre les deux parties</td><td>5–8 % de frais de vente</td></tr><tr><td>Rachat de la part par l'un des deux</td><td>Si l'un peut seul soutenir le prêt</td><td>Soulte + frais notaire (1–2 %)</td></tr><tr><td>Conservation en indivision</td><td>Si enfants scolarisés, marché bas</td><td>Faible à court terme, risqué long terme</td></tr></tbody></table></div>
+        <h2>Comprendre la soulte</h2>
+        <p>La <strong>soulte</strong> est la somme versée par celui qui garde le bien à celui qui part. Elle correspond à la part de l'autre dans la valeur nette du bien :</p>
+        <div className="key-figures"><div className="key-figure"><span className="kf-value">Valeur du bien</span><span className="kf-label">Estimation actuelle</span></div><div className="key-figure"><span className="kf-value">− Capital restant dû</span><span className="kf-label">Sur le prêt</span></div><div className="key-figure"><span className="kf-value">÷ 2 = Soulte</span><span className="kf-label">À verser à l'autre</span></div></div>
+        <p><em>Exemple : bien estimé 350 000 €, capital restant dû 200 000 €. Valeur nette = 150 000 €. Soulte = 75 000 €.</em></p>
+        <h2>La désolidarisation du prêt : étape cruciale</h2>
+        <p>Si l'un des deux rachète le bien, il doit obtenir de la banque une <strong>désolidarisation</strong> : l'autre co-emprunteur est retiré du prêt. Sans cela, les deux restent solidairement responsables — même après divorce.</p>
+        <div className="callout callout-warn"><span className="callout-icon">⚠️</span><div className="callout-body"><strong>Attention :</strong> la banque n'est pas obligée d'accepter la désolidarisation. Si les revenus de celui qui reste ne couvrent pas seul le crédit, elle peut refuser. Prévoyez un rachat de crédit chez une autre banque en solution de repli.</div></div>
+        <h2>Régime matrimonial : ça change tout</h2>
+        <ul><li><strong>Communauté réduite aux acquêts</strong> (par défaut) : le bien acheté pendant le mariage appartient à 50/50.</li><li><strong>Séparation de biens</strong> : chacun possède ce qu'il a apporté ou acheté à son nom.</li><li><strong>Concubins (non mariés)</strong> : l'indivision s'applique selon les parts détenues au moment de l'achat.</li></ul>
+        <div className="article-divider" />
+        <blockquote className="pull-quote">En cas de séparation, le premier réflexe doit être de consulter un notaire — pas un agent immobilier. C'est le notaire qui sécurisera le partage du patrimoine et la désolidarisation du prêt.</blockquote>
+      </>
+    ),
+  },
 ];

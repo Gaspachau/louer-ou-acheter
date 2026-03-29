@@ -89,22 +89,10 @@ export default function TopBar({ onBrandClick, rightContent }) {
       {/* Brand */}
       {onBrandClick ? (
         <button className="brand-btn" onClick={onBrandClick} type="button" aria-label="Retour à l'accueil">
-          <svg className="brand-logo-svg" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <path d="M11 1.5L0.5 9.5H3v11h5.5v-5.5h5v5.5H19v-11h2.5L11 1.5z" fill="#1a56db"/>
-            <rect x="6" y="13" width="3.5" height="3" rx="0.5" fill="white" opacity="0.55"/>
-            <rect x="12.5" y="13" width="3.5" height="3" rx="0.5" fill="white" opacity="0.55"/>
-            <rect x="8.5" y="16" width="5" height="4.5" rx="0.5" fill="white" opacity="0.45"/>
-          </svg>
           {brand}
         </button>
       ) : (
         <Link to="/" className="brand-btn" aria-label="Accueil">
-          <svg className="brand-logo-svg" width="22" height="22" viewBox="0 0 22 22" fill="none" aria-hidden="true">
-            <path d="M11 1.5L0.5 9.5H3v11h5.5v-5.5h5v5.5H19v-11h2.5L11 1.5z" fill="#1a56db"/>
-            <rect x="6" y="13" width="3.5" height="3" rx="0.5" fill="white" opacity="0.55"/>
-            <rect x="12.5" y="13" width="3.5" height="3" rx="0.5" fill="white" opacity="0.55"/>
-            <rect x="8.5" y="16" width="5" height="4.5" rx="0.5" fill="white" opacity="0.45"/>
-          </svg>
           {brand}
         </Link>
       )}

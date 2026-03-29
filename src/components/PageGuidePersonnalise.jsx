@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import TopBar from "./TopBar";
+import Footer from "./Footer";
 
 const QUESTIONS = [
   {
@@ -334,11 +336,24 @@ export default function PageGuidePersonnalise() {
 
   const path = done ? buildPath(answers) : null;
 
+  const answeredLabels = QUESTIONS.slice(0, currentQ).map((q) => {
+    const opt = q.options.find((o) => o.id === answers[q.id]);
+    return opt ? { icon: opt.emoji, label: opt.label } : null;
+  }).filter(Boolean);
+
   return (
     <div className="guide-perso-page">
+      <TopBar />
       <div className="guide-perso-hero">
         <div className="guide-perso-hero-inner">
-          <span className="guide-perso-badge">Parcours personnalisé</span>
+          <div className="guide-perso-hero-top">
+            <span className="guide-perso-badge">Parcours personnalisé</span>
+            <div className="guide-perso-hero-links">
+              <Link to="/simulateurs" className="guide-hero-link">Simulateurs</Link>
+              <Link to="/blog" className="guide-hero-link">Blog</Link>
+              <Link to="/guide-achat" className="guide-hero-link guide-hero-link-primary">Guide achat →</Link>
+            </div>
+          </div>
           <h1 className="guide-perso-title">Votre guide immobilier sur mesure</h1>
           <p className="guide-perso-subtitle">
             3 questions pour obtenir le parcours de simulateurs le plus adapté à votre situation et vos objectifs.
@@ -349,14 +364,23 @@ export default function PageGuidePersonnalise() {
       <div className="guide-perso-content">
         {!done ? (
           <div className="guide-perso-quiz">
-            {/* Progress */}
-            <div className="guide-quiz-progress">
-              {QUESTIONS.map((q, i) => (
-                <div
-                  key={q.id}
-                  className={`guide-quiz-dot${i === currentQ ? " active" : ""}${i < currentQ ? " done" : ""}`}
-                />
-              ))}
+            {/* Progress steps */}
+            <div className="guide-quiz-steps">
+              {QUESTIONS.map((q, i) => {
+                const isDone = i < currentQ;
+                const isActive = i === currentQ;
+                const opt = isDone ? q.options.find((o) => o.id === answers[q.id]) : null;
+                return (
+                  <div key={q.id} className={`guide-quiz-step-item${isActive ? " active" : ""}${isDone ? " done" : ""}`}>
+                    <span className="guide-quiz-step-num">
+                      {isDone ? "✓" : i + 1}
+                    </span>
+                    <span className="guide-quiz-step-text">
+                      {isDone && opt ? `${opt.emoji} ${opt.label}` : q.question.replace(" ?", "")}
+                    </span>
+                  </div>
+                );
+              })}
             </div>
             <p className="guide-quiz-step">Question {currentQ + 1} sur {QUESTIONS.length}</p>
 
@@ -426,6 +450,7 @@ export default function PageGuidePersonnalise() {
           </div>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

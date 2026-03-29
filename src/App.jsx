@@ -1,5 +1,5 @@
 import "./App.css";
-import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieBanner from "./components/CookieBanner";
@@ -127,41 +127,50 @@ function Simulator() {
   const set = (key) => (val) => setValues((v) => ({ ...v, [key]: val }));
   const applyPreset = (preset) => { setValues({ ...DEFAULTS, ...preset.values }); setStep(2); };
   const applyCity = (cityId) => {
-    const cityDefaults = getDefaultsForCity(cityId);
-    if (cityDefaults) setValues((v) => ({ ...v, ...cityDefaults }));
+    const cityDefaults = cityId ? getDefaultsForCity(cityId) : null;
+    setValues((v) => ({ ...v, city: cityId, ...(cityDefaults || {}) }));
   };
   const result = useMemo(() => computeComparison(values), [values]);
 
-  /* Slim progress bar instead of numbered stepper */
-  const progressContent = step > 0 ? (
-    <div className="sim-progress" aria-label="Progression de la simulation">
-      <div className="sim-progress-steps">
-        {STEP_LABELS.map((label, i) => {
-          const s = i + 1;
-          const done = step > s;
-          const active = step === s;
-          return (
-            <button
-              key={s}
-              type="button"
-              className={`sim-progress-step${active ? " active" : ""}${done ? " done" : ""}`}
-              onClick={() => done && setStep(s)}
-              disabled={!done}
-              aria-current={active ? "step" : undefined}
-              aria-label={`${label}${active ? " (en cours)" : done ? " (terminé)" : ""}`}
-            >
-              <span className="sim-progress-dot" aria-hidden="true">{done ? "✓" : s}</span>
-              <span className="sim-progress-label">{label}</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  ) : null;
+  /* Scroll to top on step change */
+  useEffect(() => { window.scrollTo(0, 0); }, [step]);
 
   return (
     <div className="page">
-      <TopBar onBrandClick={() => setStep(0)} rightContent={progressContent} />
+      <TopBar onBrandClick={() => setStep(0)} />
+      {step > 0 && (
+        <nav className="sim-funnel-bar" aria-label="Progression de la simulation">
+          {STEP_LABELS.map((label, i) => {
+            const s = i + 1;
+            const done = step > s;
+            const active = step === s;
+            return (
+              <Fragment key={s}>
+                <button
+                  type="button"
+                  className={`sim-funnel-step${active ? " active" : ""}${done ? " done" : ""}`}
+                  onClick={() => done ? setStep(s) : undefined}
+                  disabled={!done}
+                  aria-current={active ? "step" : undefined}
+                  aria-label={`Étape ${s} : ${label}${active ? " (en cours)" : done ? " (terminé)" : ""}`}
+                >
+                  <span className="sim-funnel-num" aria-hidden="true">
+                    {done ? (
+                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    ) : s}
+                  </span>
+                  <span className="sim-funnel-label">{label}</span>
+                </button>
+                {i < STEP_LABELS.length - 1 && (
+                  <span className={`sim-funnel-line${done ? " done" : ""}`} aria-hidden="true" />
+                )}
+              </Fragment>
+            );
+          })}
+        </nav>
+      )}
       <main id="main-content">
         {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} city={values.city} />}
         {step === 1 && <StepProfile values={values} set={set} onNext={() => setStep(2)} applyCity={applyCity} />}

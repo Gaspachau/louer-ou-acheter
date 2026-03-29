@@ -5602,3 +5602,228 @@ html, body {
   .ville-body { padding: 20px 16px 32px; }
   .ville-sim-stats { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FUNNEL PROGRESS BAR (standalone, sticky below TopBar)
+══════════════════════════════════════════════════════════ */
+.sim-funnel-bar {
+  position: sticky;
+  top: 52px;
+  z-index: 90;
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 54px;
+  padding: 0 16px;
+  gap: 0;
+  box-shadow: 0 1px 6px rgba(0,0,0,.05);
+  overflow: hidden;
+}
+
+.sim-funnel-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #9ca3af;
+  background: none;
+  border: none;
+  cursor: default;
+  white-space: nowrap;
+  transition: color .2s, background .2s;
+}
+.sim-funnel-step.active {
+  color: #1a56db;
+  background: #eff6ff;
+}
+.sim-funnel-step.done {
+  color: #059669;
+  cursor: pointer;
+}
+.sim-funnel-step.done:hover {
+  background: #f0fdf4;
+}
+
+.sim-funnel-num {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  border: 2px solid currentColor;
+  flex-shrink: 0;
+  transition: background .2s, border-color .2s;
+}
+.sim-funnel-step.active .sim-funnel-num {
+  background: #1a56db;
+  color: #fff;
+  border-color: #1a56db;
+}
+.sim-funnel-step.done .sim-funnel-num {
+  background: #059669;
+  color: #fff;
+  border-color: #059669;
+}
+
+.sim-funnel-line {
+  width: 28px;
+  height: 2px;
+  background: #e5e7eb;
+  flex-shrink: 0;
+  border-radius: 1px;
+  transition: background .3s;
+}
+.sim-funnel-line.done { background: #059669; }
+
+@media (max-width: 480px) {
+  .sim-funnel-step { padding: 4px 6px; gap: 5px; font-size: 11px; }
+  .sim-funnel-num { width: 20px; height: 20px; font-size: 10px; }
+  .sim-funnel-line { width: 16px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CITYPICKER — upward dropdown + no-city option
+══════════════════════════════════════════════════════════ */
+.cpicker-drop-up {
+  bottom: calc(100% + 6px) !important;
+  top: auto !important;
+}
+.cpicker-no-city {
+  background: #f8fafc;
+  border-radius: 8px;
+  margin-bottom: 2px;
+}
+.cpicker-no-city.selected {
+  background: #eff6ff;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   WORLD MAP — country panel facts
+══════════════════════════════════════════════════════════ */
+.cm-panel-facts {
+  margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cm-panel-fact {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  background: #f8fafc;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+.cm-panel-curiosity {
+  background: #fffbeb;
+}
+.cm-panel-fact-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.cm-panel-fact-text {
+  margin: 0;
+  font-size: 12.5px;
+  color: #374151;
+  line-height: 1.55;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   GUIDE PERSONNALISÉ — TopBar + nav + step progress
+══════════════════════════════════════════════════════════ */
+.guide-perso-hero-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+.guide-perso-hero-links {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.guide-hero-link {
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(255,255,255,.8);
+  text-decoration: none;
+  padding: 5px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(255,255,255,.25);
+  transition: background .18s, color .18s;
+}
+.guide-hero-link:hover { background: rgba(255,255,255,.15); color: #fff; }
+.guide-hero-link-primary {
+  background: #fff;
+  color: #1a56db;
+  border-color: transparent;
+  font-weight: 700;
+}
+.guide-hero-link-primary:hover { background: #e0eaff; color: #1a56db; }
+
+.guide-quiz-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.guide-quiz-step-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: #f8fafc;
+  border: 1.5px solid #e5e7eb;
+  font-size: 13px;
+  color: #6b7280;
+  transition: all .2s;
+}
+.guide-quiz-step-item.active {
+  background: #eff6ff;
+  border-color: #93c5fd;
+  color: #1a56db;
+  font-weight: 600;
+}
+.guide-quiz-step-item.done {
+  background: #f0fdf4;
+  border-color: #6ee7b7;
+  color: #065f46;
+}
+.guide-quiz-step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.guide-quiz-step-item.active .guide-quiz-step-num { background: #1a56db; color: #fff; border-color: #1a56db; }
+.guide-quiz-step-item.done .guide-quiz-step-num { background: #059669; color: #fff; border-color: #059669; }
+.guide-quiz-step-text { font-size: 13px; font-weight: 500; flex: 1; }
+
+/* ═══════════════════════════════════════════════════════════
+   GLOBAL OVERFLOW FIX
+══════════════════════════════════════════════════════════ */
+html, body { overflow-x: hidden; max-width: 100vw; }
+.page, .lp, .result-page, .blog-page, .sim-page { max-width: 100%; overflow-x: hidden; }
+
+/* Remove old brand logo svg space since we removed it */
+.brand-logo-svg { display: none; }
+

@@ -10,6 +10,40 @@ import { HOMEOWNERSHIP, ownershipColor, FRANCE_RATE, COLOR_LEGEND } from "../dat
 const W = 960;
 const H = 500;
 
+/* ─── Interesting facts per country ──────────────────────── */
+const COUNTRY_FACTS = {
+  "France":           { flag: "🇫🇷", fact: "La France a parmi les loyers les plus réglementés d'Europe — l'encadrement des loyers s'applique dans les grandes villes.", curiosity: "Paris compte 64 % de locataires, le taux le plus élevé de France." },
+  "Allemagne":        { flag: "🇩🇪", fact: "L'Allemagne a le taux de propriétaires le plus bas d'Europe occidentale (45 %) malgré une économie solide.", curiosity: "À Berlin, 85 % des habitants sont locataires — une exception mondiale." },
+  "Suisse":           { flag: "🇨🇭", fact: "La Suisse a l'un des marchés locatifs les plus matures du monde, avec des baux protégés de longue durée.", curiosity: "Le droit de préemption des locataires existe dans plusieurs cantons." },
+  "Roumanie":         { flag: "🇷🇴", fact: "La Roumanie a le taux de propriétaires le plus élevé d'UE (95 %), héritage des privatisations post-communistes.", curiosity: "Dans les années 90, l'État a vendu les logements aux locataires pour 1 % de leur valeur." },
+  "Lituanie":         { flag: "🇱🇹", fact: "93 % de Lituaniens propriétaires : après l'indépendance en 1990, les appartements soviétiques ont été offerts aux occupants.", curiosity: "Le marché locatif formel représente moins de 3 % du parc résidentiel." },
+  "Slovaquie":        { flag: "🇸🇰", fact: "Même héritage post-soviétique que ses voisins : les logements collectivistes ont été transférés aux occupants.", curiosity: "Bratislava voit affluer les investisseurs étrangers attirés par les prix encore bas." },
+  "Hongrie":          { flag: "🇭🇺", fact: "91 % des Hongrois sont propriétaires — Budapest est pourtant une ville où la location devient attractive pour les jeunes.", curiosity: "Le crédit immobilier à taux fixe sur 20 ans n'existait presque pas avant 2010." },
+  "Chine":            { flag: "🇨🇳", fact: "90 % des Chinois possèdent leur logement — en partie car louer est culturellement mal vu pour une famille stable.", curiosity: "Dans des villes comme Shenzhen, des appartements ont multiplié par 100 leur valeur en 20 ans." },
+  "Inde":             { flag: "🇮🇳", fact: "87 % des Indiens sont propriétaires, surtout en zones rurales. Dans les mégapoles comme Mumbai, des millions vivent en bidonvilles.", curiosity: "L'Inde manquerait de 18 millions de logements urbains selon le gouvernement." },
+  "Albanie":          { flag: "🇦🇱", fact: "85 % des Albanais sont propriétaires, souvent grâce aux constructions informelles qui ont longtemps précédé toute réglementation.", curiosity: "Tirana a vu ses prix doubler entre 2018 et 2023 avec l'afflux de la diaspora." },
+  "Pologne":          { flag: "🇵🇱", fact: "La Pologne oscille entre héritage soviétique (propriété collective) et boom immobilier récent.", curiosity: "Varsovie a les prix immobiliers qui ont le plus augmenté en Europe entre 2020 et 2024." },
+  "Bulgarie":         { flag: "🇧🇬", fact: "83 % de Bulgares propriétaires, souvent dans des immeubles hérités de l'ère communiste.", curiosity: "La Bulgarie perd 7 % de sa population par décennie — l'immobilier dans les régions rurales vaut parfois moins de 5 000 €." },
+  "Australie":        { flag: "🇦🇺", fact: "L'Australie vit une crise du logement : Sydney est la 2e ville la moins abordable du monde selon le ratio prix/revenus.", curiosity: "Un report fiscal (negative gearing) encourage les Australiens aisés à acheter pour louer à perte fiscalement." },
+  "Canada":           { flag: "🇨🇦", fact: "Le Canada a interdit les achats immobiliers par des non-résidents en 2023 pour lutter contre la spéculation.", curiosity: "À Vancouver, le prix médian d'une maison dépasse 14 fois le salaire médian annuel." },
+  "États-Unis":       { flag: "🇺🇸", fact: "Les États-Unis ont une longue tradition de propriété soutenue par des déductions fiscales sur les intérêts d'emprunt.", curiosity: "La crise des subprimes de 2008 a fait chuter le taux de propriétaires de 69 % à 63 %." },
+  "Japon":            { flag: "🇯🇵", fact: "Au Japon, les maisons perdent de la valeur avec le temps (amortissement) — seul le terrain vaut sur le long terme.", curiosity: "Il existe au Japon 8 millions de maisons abandonnées (akiya) à vendre pour quelques milliers d'euros." },
+  "Corée du Sud":     { flag: "🇰🇷", fact: "La Corée du Sud a un système unique : le 'jeonse', où le locataire verse une caution massive (~50 % du prix) sans payer de loyer.", curiosity: "Séoul a vu ses prix immobiliers doubler en 5 ans, provoquant une révolte politique." },
+  "Pays-Bas":         { flag: "🇳🇱", fact: "Les Pays-Bas ont un vaste secteur social (30 % du parc) mais un marché privé très tendu.", curiosity: "Amsterdam manque officiellement de 19 000 logements. La file d'attente pour un logement social peut atteindre 15 ans." },
+  "Suède":            { flag: "🇸🇪", fact: "Stockholm a un système de file d'attente pour les logements sociaux — certains attendent 20+ ans.", curiosity: "En Suède, les appartements coopératifs (bostadsrätt) sont une forme hybride entre location et propriété." },
+  "Danemark":         { flag: "🇩🇰", fact: "Le Danemark a les loyers les plus chers d'Europe rapportés aux revenus, mais aussi des logements sociaux très bien construits.", curiosity: "Copenhague vise 50 % de logements abordables dans les nouveaux quartiers." },
+  "Norvège":          { flag: "🇳🇴", fact: "77 % des Norvégiens sont propriétaires grâce aux prêts étudiants abordables et aux salaires élevés liés au pétrole.", curiosity: "Oslo a les prix immobiliers les plus élevés de Scandinavie — 10 000 €/m² en centre-ville." },
+  "Italie":           { flag: "🇮🇹", fact: "L'Italie a un marché du logement figé par des lois protégeant fortement les locataires, décourageant les propriétaires de louer.", curiosity: "Des villages siciliens et calabrais bradent leurs maisons à 1 € pour lutter contre l'exode rural." },
+  "Espagne":          { flag: "🇪🇸", fact: "Après la bulle de 2008, l'Espagne a vu ses prix chuter de 40 %. Une génération entière a perdu confiance dans la propriété.", curiosity: "Barcelone a 22 000 appartements touristiques Airbnb — plus que de logements sociaux." },
+  "Portugal":         { flag: "🇵🇹", fact: "Le Portugal a attiré des milliers d'étrangers via les visas dorés, faisant flamber les prix dans les grandes villes.", curiosity: "Lisbonne est devenue moins abordable que Paris pour les locaux en 10 ans." },
+  "Grèce":            { flag: "🇬🇷", fact: "La crise de 2010 a ruiné des milliers de propriétaires grecs qui n'arrivaient plus à payer leurs hypothèques.", curiosity: "Des appartements vides à Athènes ont été convertis en logements Airbnb, vidant les centres-villes de leurs habitants." },
+  "Russie":           { flag: "🇷🇺", fact: "Après la chute de l'URSS, les appartements soviétiques ont été privatisés massivement — 89 % des Russes sont propriétaires.", curiosity: "Moscou est dans le top 10 des villes les plus chères du monde malgré les sanctions." },
+  "Brésil":           { flag: "🇧🇷", fact: "73 % de Brésiliens propriétaires, grâce au programme Minha Casa Minha Vida qui a construit 6 millions de logements sociaux.", curiosity: "São Paulo compte 40 000 personnes sans-abri — et 500 000 logements vides simultanément." },
+  "Argentine":        { flag: "🇦🇷", fact: "L'instabilité économique pousse les Argentins à investir dans la brique comme valeur refuge contre l'inflation.", curiosity: "Buenos Aires loue en dollars pour protéger les propriétaires de l'inflation en pesos (> 100 %/an)." },
+  "Mexique":          { flag: "🇲🇽", fact: "80 % des Mexicains propriétaires, souvent dans des logements construits par eux-mêmes (autoconstruction) en périphérie.", curiosity: "Mexico City s'enfonce de 10 cm par an à cause de l'extraction d'eau — les immeubles se déforment." },
+};
+
+
 const projection = geoNaturalEarth1()
   .scale(153)
   .translate([W / 2, H / 2 + 20]);
@@ -65,10 +99,14 @@ function Tooltip({ data, x, y, visible }) {
 function CountryPanel({ data, onClose }) {
   if (!data) return null;
   const diff = data.rate - FRANCE_RATE;
+  const facts = COUNTRY_FACTS[data.name];
   return (
     <div className="cm-panel">
       <button className="cm-panel-close" onClick={onClose} type="button" aria-label="Fermer">✕</button>
-      <p className="cm-panel-name">{data.name}</p>
+      <p className="cm-panel-name">
+        {facts?.flag && <span style={{ marginRight: 8 }}>{facts.flag}</span>}
+        {data.name}
+      </p>
       <div className="cm-panel-stat">
         <span className="cm-panel-stat-label">Propriétaires</span>
         <span className="cm-panel-stat-value" style={{ color: ownershipColor(data.rate) }}>
@@ -98,6 +136,18 @@ function CountryPanel({ data, onClose }) {
           : `Même taux de propriétaires que la France (${FRANCE_RATE} %).`
         }
       </p>
+      {facts && (
+        <div className="cm-panel-facts">
+          <div className="cm-panel-fact">
+            <span className="cm-panel-fact-icon">💡</span>
+            <p className="cm-panel-fact-text">{facts.fact}</p>
+          </div>
+          <div className="cm-panel-fact cm-panel-curiosity">
+            <span className="cm-panel-fact-icon">✨</span>
+            <p className="cm-panel-fact-text">{facts.curiosity}</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
