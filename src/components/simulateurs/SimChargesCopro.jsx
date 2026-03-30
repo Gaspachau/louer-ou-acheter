@@ -14,9 +14,9 @@ const MOYENNES_NATIONALES = {
   administration: 350, // syndic
 };
 
-function calcCharges({ chargesAnnuelles, tantieamesLot, totalTantièmes, fondsTravauxPct, surface, ascenseur, gardien, chauffageCollectif }) {
+function calcCharges({ chargesAnnuelles, tantiemesLot, totalTantièmes, fondsTravauxPct, surface, ascenseur, gardien, chauffageCollectif }) {
   if (!chargesAnnuelles || totalTantièmes <= 0) return null;
-  const quotePart = tantieamesLot / totalTantièmes;
+  const quotePart = tantiemesLot / totalTantièmes;
   const chargesAnnuellesLot = chargesAnnuelles * quotePart;
   const fondsTravauxAnnuel = chargesAnnuellesLot * (fondsTravauxPct / 100);
   const totalAnnuel = chargesAnnuellesLot + fondsTravauxAnnuel;
@@ -35,7 +35,7 @@ const BENCHMARK = [
 export default function SimChargesCopro() {
   const [v, setV] = useState({
     chargesAnnuelles: 25000,
-    tantieamesLot: 150,
+    tantiemesLot: 150,
     totalTantièmes: 1000,
     fondsTravauxPct: 5,
     surface: 55,
@@ -72,7 +72,7 @@ export default function SimChargesCopro() {
               <Field label="Budget prévisionnel annuel de la copro" value={v.chargesAnnuelles} onChange={set("chargesAnnuelles")} suffix="€/an"
                 hint="Total voté en assemblée générale (hors fonds de travaux). Mentionné dans le carnet d'entretien ou le PV d'AG." tooltip="Total du budget voté en assemblée générale de copropriété, hors fonds de travaux. Mentionné sur le PV d'AG ou le carnet d'entretien." />
             </div>
-            <Field label="Tantièmes de votre lot" value={v.tantieamesLot} onChange={set("tantieamesLot")} suffix="tantièmes"
+            <Field label="Tantièmes de votre lot" value={v.tantiemesLot} onChange={set("tantiemesLot")} suffix="tantièmes"
               hint="Part du bien dans l'immeuble — figurant dans votre titre de propriété ou l'état descriptif de division" tooltip="Part de l'immeuble que représente votre appartement. Figure sur votre titre de propriété ou l'état descriptif de division. Ex. : 150/1000." />
             <Field label="Total tantièmes de l'immeuble" value={v.totalTantièmes} onChange={set("totalTantièmes")} suffix="tantièmes"
               hint="Généralement 1000 ou 10 000 — précisé dans le règlement de copropriété" />

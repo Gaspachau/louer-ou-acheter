@@ -188,7 +188,7 @@ function buildPath(answers) {
           icon: "💰",
           title: "Capacité d'emprunt",
           desc: "Calculez combien vous pouvez emprunter selon vos revenus et votre taux d'endettement.",
-          href: "/simulateurs/capacite-emprunt",
+          href: "/simulateurs/endettement",
           tag: "En premier",
           tagColor: "#059669",
         },
