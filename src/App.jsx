@@ -132,7 +132,9 @@ function Simulator() {
     const cityDefaults = cityId ? getDefaultsForCity(cityId) : null;
     setValues((v) => ({ ...v, city: cityId, ...(cityDefaults || {}) }));
   };
-  const result = useMemo(() => computeComparison(values), [values]);
+  // comparisonYears always mirrors mortgageYears — no separate user input
+  const effectiveValues = useMemo(() => ({ ...values, comparisonYears: values.mortgageYears }), [values]);
+  const result = useMemo(() => computeComparison(effectiveValues), [effectiveValues]);
 
   /* Scroll to top on step change */
   useEffect(() => { window.scrollTo(0, 0); }, [step]);
@@ -150,24 +152,21 @@ function Simulator() {
               <Fragment key={s}>
                 <button
                   type="button"
-                  className={`sim-funnel-step${active ? " active" : ""}${done ? " done" : ""}`}
+                  className={`sfb-step${active ? " sfb-active" : ""}${done ? " sfb-done" : ""}`}
                   onClick={() => done ? setStep(s) : undefined}
-                  disabled={!done}
+                  disabled={!done && !active}
                   aria-current={active ? "step" : undefined}
-                  aria-label={`Étape ${s} : ${label}${active ? " (en cours)" : done ? " (terminé)" : ""}`}
                 >
-                  <span className="sim-funnel-num" aria-hidden="true">
+                  <span className="sfb-num" aria-hidden="true">
                     {done ? (
-                      <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                        <path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                        <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     ) : s}
                   </span>
-                  <span className="sim-funnel-label">{label}</span>
+                  <span className="sfb-label">{label}</span>
                 </button>
-                {i < STEP_LABELS.length - 1 && (
-                  <span className={`sim-funnel-line${done ? " done" : ""}`} aria-hidden="true" />
-                )}
+                {i < STEP_LABELS.length - 1 && <span className={`sfb-line${done ? " sfb-line-done" : ""}`} aria-hidden="true"/>}
               </Fragment>
             );
           })}
@@ -179,7 +178,7 @@ function Simulator() {
           {step === 1 && <StepProfile values={values} set={set} onNext={() => setStep(2)} applyCity={applyCity} />}
           {step === 2 && <StepRent values={values} set={set} onNext={() => setStep(3)} city={values.city} />}
           {step === 3 && <StepBuy values={values} set={set} onNext={() => setStep(4)} onBack={() => navigate(-1)} city={values.city} />}
-          {step === 4 && <StepResult result={result} values={values} onEdit={() => setStep(2)} />}
+          {step === 4 && <StepResult result={result} values={effectiveValues} onEdit={() => setStep(2)} />}
         </Suspense>
       </main>
       {step === 0 && <Footer />}

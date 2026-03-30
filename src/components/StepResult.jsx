@@ -45,10 +45,7 @@ function getContextualTips({ result, values }) {
   if (apportPct < 0.1) {
     tips.push({ type: "warn", text: "Apport < 10 % — les banques exigent souvent 10 % minimum, et préfèrent 20 % pour les meilleures conditions." });
   }
-  if (values.comparisonYears <= 5) {
-    tips.push({ type: "warn", text: `Sur ${values.comparisonYears} ans, les frais d'achat (~8–10 %) ont à peine le temps de s'amortir.` });
-  }
-  if (!result.isBuyingBetter && values.comparisonYears < 12) {
+if (!result.isBuyingBetter && values.comparisonYears < 12) {
     tips.push({ type: "info", text: `Testez 15–20 ans : l'achat gagne souvent sur le long terme une fois les frais initiaux absorbés.` });
   }
   if (result.isBuyingBetter && result.advantage > 60000) {
@@ -305,6 +302,40 @@ export default function StepResult({ result, values, onEdit }) {
             />
           </AreaChart>
         </ResponsiveContainer>
+      </section>
+
+      {/* ══ TIMELINE PÉDAGOGIQUE ════════════════════════════ */}
+      <section className="horizon-pedagogy" aria-label="Pourquoi l'horizon de temps compte">
+        <div className="hp-header">
+          <p className="hp-kicker">Comprendre votre résultat</p>
+          <h2 className="hp-title">L'horizon de temps change tout</h2>
+          <p className="hp-desc">En dessous de 5 ans, les frais d'achat (~10 %) n'ont pas le temps de s'amortir. Sur 10–15 ans, l'achat devient généralement gagnant.</p>
+        </div>
+        <div className="hp-timeline">
+          <div className={`hp-zone hp-zone-rent${!isBuyingBetter && values.comparisonYears <= 5 ? " hp-zone-active" : ""}`}>
+            <div className="hp-zone-bar"/>
+            <span className="hp-zone-label">Location gagne</span>
+            <span className="hp-zone-range">&lt; 5 ans</span>
+            <p className="hp-zone-desc">Frais d'achat non amortis</p>
+          </div>
+          <div className={`hp-zone hp-zone-neutral${values.comparisonYears > 5 && values.comparisonYears <= 10 ? " hp-zone-active" : ""}`}>
+            <div className="hp-zone-bar"/>
+            <span className="hp-zone-label">Zone neutre</span>
+            <span className="hp-zone-range">5–10 ans</span>
+            <p className="hp-zone-desc">Dépend de votre situation</p>
+          </div>
+          <div className={`hp-zone hp-zone-buy${isBuyingBetter && values.comparisonYears > 10 ? " hp-zone-active" : ""}`}>
+            <div className="hp-zone-bar"/>
+            <span className="hp-zone-label">Achat gagne</span>
+            <span className="hp-zone-range">&gt; 10 ans</span>
+            <p className="hp-zone-desc">Patrimoine se construit</p>
+          </div>
+        </div>
+        <div className="hp-your-position">
+          <div className="hp-cursor" style={{ "--hp-pct": `${Math.min(95, Math.max(5, (values.comparisonYears / 25) * 100))}%` }}>
+            <span className="hp-cursor-label">Votre simulation : {values.comparisonYears} ans</span>
+          </div>
+        </div>
       </section>
 
       {/* ══ 4 — SCOREBOARD ══════════════════════════════════ */}
