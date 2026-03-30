@@ -213,10 +213,10 @@ function StepBuy({ values, set, onNext, onBack, city }) {
             <div className="step-fields advanced-fields">
               <Field label="Frais de notaire" value={values.notaryFeesPct} onChange={set("notaryFeesPct")} suffix="%" hint="~8 % dans l'ancien · ~3 % dans le neuf" tooltip={T.notaire} />
               <Field label="Taxe foncière" value={values.annualPropertyTax} onChange={set("annualPropertyTax")} suffix="€/an" hint="Variable selon la commune" tooltip={T.taxe} />
-              <Field label="Entretien annuel" value={values.annualMaintenancePct} onChange={set("annualMaintenancePct")} suffix="%" hint="~1 % du prix du bien/an" tooltip={T.entretien} />
+              <Field label="Entretien annuel" value={values.annualMaintenancePct} onChange={set("annualMaintenancePct")} suffix="%" hint={`→ ${formatCurrency(values.purchasePrice * values.annualMaintenancePct / 100)}/an`} tooltip={T.entretien} />
               <Field label="Assurance habitation" value={values.annualInsurance} onChange={set("annualInsurance")} suffix="€/an" tooltip={T.assurance} />
-              <Field label="Hausse du bien / an" value={values.appreciationRate} onChange={set("appreciationRate")} suffix="%" hint="Moyenne France : ~2 %/an" tooltip={T.apprec} />
-              <Field label="Frais de revente" value={values.saleCostsPct} onChange={set("saleCostsPct")} suffix="%" hint="Agence (~3–5 %) + diagnostics" tooltip={T.revente} />
+              <Field label="Hausse du bien / an" value={values.appreciationRate} onChange={set("appreciationRate")} suffix="%" hint={(() => { const yr5 = Math.round(values.purchasePrice * Math.pow(1 + values.appreciationRate/100, 5)); const yr10 = Math.round(values.purchasePrice * Math.pow(1 + values.appreciationRate/100, 10)); return `bien à ${formatCurrency(yr5)} dans 5 ans, ${formatCurrency(yr10)} dans 10 ans`; })()} tooltip={T.apprec} />
+              <Field label="Frais de revente" value={values.saleCostsPct} onChange={set("saleCostsPct")} suffix="%" hint={`→ ${formatCurrency(values.purchasePrice * values.saleCostsPct / 100)} à la revente`} tooltip={T.revente} />
             </div>
           </fieldset>
         )}

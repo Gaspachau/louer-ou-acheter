@@ -64,21 +64,45 @@ function StepRent({ values, set, onNext, city }) {
               value={values.annualRentIncrease}
               onChange={set("annualRentIncrease")}
               suffix="%"
-              hint={(() => {
-                const yr10 = Math.round(values.monthlyRent * Math.pow(1 + values.annualRentIncrease / 100, 10));
-                return cityData
-                  ? `IRL ${cityData.name} ≈ ${cityData.rentIndexGrowth} %/an · loyer dans 10 ans : ${yr10.toLocaleString("fr-FR")} €/mois`
-                  : `→ votre loyer dans 10 ans : ${yr10.toLocaleString("fr-FR")} €/mois`;
-              })()}
+              hint={cityData ? `IRL ${cityData.name} ≈ ${cityData.rentIndexGrowth} %/an (indice légal)` : "Indice IRL ~1,5–2 %/an"}
               cityHint={cityData ? `IRL ${cityData.name}` : null}
               tooltip={TOOLTIP_HAUSSE}
             />
+            {values.monthlyRent >= 200 && values.annualRentIncrease > 0 && (() => {
+              const r = values.annualRentIncrease / 100;
+              const yr1 = Math.round(values.monthlyRent * (1 + r));
+              const yr1diff = yr1 - Math.round(values.monthlyRent);
+              const yr5 = Math.round(values.monthlyRent * Math.pow(1 + r, 5));
+              const yr10 = Math.round(values.monthlyRent * Math.pow(1 + r, 10));
+              return (
+                <div className="field-full">
+                  <div className="rent-proj-box" role="note" aria-label="Projection loyer">
+                    <div className="rent-proj-title">📈 Projection de votre loyer</div>
+                    <div className="rent-proj-row">
+                      <span className="rent-proj-label">Dans 1 an</span>
+                      <span className="rent-proj-val">+{yr1diff.toLocaleString("fr-FR")} €/mois → <strong>{yr1.toLocaleString("fr-FR")} €</strong>/mois</span>
+                    </div>
+                    <div className="rent-proj-row">
+                      <span className="rent-proj-label">Dans 5 ans</span>
+                      <span className="rent-proj-val"><strong>{yr5.toLocaleString("fr-FR")} €</strong>/mois</span>
+                    </div>
+                    <div className="rent-proj-row rent-proj-row-last">
+                      <span className="rent-proj-label">Dans 10 ans</span>
+                      <span className="rent-proj-val rent-proj-final"><strong>{yr10.toLocaleString("fr-FR")} €</strong>/mois</span>
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
             <Field
               label="Rendement épargne"
               value={values.investmentReturn}
               onChange={set("investmentReturn")}
               suffix="%"
-              hint="Livret A = 1,5 % · ETF ≈ 7–8 %"
+              hint={(() => {
+                const gain10k = Math.round(10000 * Math.pow(1 + values.investmentReturn / 100, 10));
+                return `Livret A 1,5 % · ETF 7–8 % · 10 000 € → ${gain10k.toLocaleString("fr-FR")} € dans 10 ans`;
+              })()}
               tooltip={TOOLTIP_RENDEMENT}
               warning={warnRendement(values.investmentReturn)}
             />

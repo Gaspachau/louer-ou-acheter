@@ -297,9 +297,52 @@ function FaqItem({ q, a }) {
   );
 }
 
+function Newsletter() {
+  const [email, setEmail] = useState("");
+  const [submitted, setSubmitted] = useState(() => !!localStorage.getItem("nl_sub"));
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!email) return;
+    localStorage.setItem("nl_sub", "1");
+    setSubmitted(true);
+  }
+
+  return (
+    <section className="lp-s lp-s-dark lp-newsletter lp-s" aria-label="Newsletter">
+      <div className="lp-container">
+        <div className="lp-section-header">
+          <h2 className="lp-section-title lp-dark-title">Restez informé du marché immobilier</h2>
+          <p className="lp-section-sub lp-dark-sub">
+            Taux, prix par ville, nouvelles aides — dans votre boîte mail chaque mois.
+          </p>
+        </div>
+        {submitted ? (
+          <p className="lp-nl-success">✅ Vous êtes inscrit·e ! Merci.</p>
+        ) : (
+          <form className="lp-nl-form" onSubmit={handleSubmit} noValidate>
+            <input
+              className="lp-nl-input"
+              type="email"
+              placeholder="votre@email.fr"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              aria-label="Adresse e-mail"
+            />
+            <button className="lp-nl-btn" type="submit">
+              S'inscrire
+            </button>
+          </form>
+        )}
+      </div>
+    </section>
+  );
+}
+
 export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
   useEffect(() => {
-    const sections = document.querySelectorAll(".lp-section");
+    const sections = document.querySelectorAll(".lp-s");
     const observer = new IntersectionObserver(
       (entries) => entries.forEach((e) => { if (e.isIntersecting) e.target.classList.add("lp-visible"); }),
       { threshold: 0.1 }
@@ -311,7 +354,7 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
   return (
     <div className="lp">
 
-      {/* ── HERO ─────────────────────────────────────────────── */}
+      {/* ── 1. HERO ─────────────────────────────────────────────── */}
       <section className="lp-hero" aria-label="Présentation">
         <div className="lp-hero-orb lp-hero-orb-1" aria-hidden="true" />
         <div className="lp-hero-orb lp-hero-orb-2" aria-hidden="true" />
@@ -374,7 +417,7 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
         </div>
       </section>
 
-      {/* ── TRUST BAR ──────────────────────────────────────────── */}
+      {/* ── 2. TRUST BAR ──────────────────────────────────────────── */}
       <div className="lp-trust-bar" role="list" aria-label="Nos engagements">
         {TRUST_ITEMS.map((item, i) => (
           <div key={i} className="lp-trust-item" role="listitem">
@@ -384,222 +427,244 @@ export default function StepLanding({ onStart, onPreset, onCityChange, city }) {
         ))}
       </div>
 
-      {/* ── PRESET CARDS ─────────────────────────────────────── */}
-      <section className="lp-section lp-presets-section" aria-label="Scénarios types">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Commencer avec un scénario type</h2>
-          <p className="lp-section-sub">Choisissez la situation la plus proche de la vôtre</p>
-        </div>
-        <div className="lp-presets-grid" role="list">
-          {PRESETS.map((preset) => (
-            <button
-              key={preset.id}
-              className="lp-preset-card"
-              onClick={() => { trackPresetSelected(preset.id, preset.name); onPreset(preset); }}
-              type="button"
-              role="listitem"
-              aria-label={`Scénario ${preset.name} : ${preset.desc}`}
-            >
-              <span className="lp-preset-icon-wrap" aria-hidden="true">{preset.emoji}</span>
-              <div className="lp-preset-content">
-                <strong className="lp-preset-name">{preset.name}</strong>
-                <span className="lp-preset-desc">{preset.desc}</span>
-                <span className="lp-preset-tag">{preset.tag}</span>
-              </div>
-              <span className="lp-preset-arrow" aria-hidden="true">
-                <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
-                  <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </span>
-            </button>
-          ))}
-        </div>
-        <button className="lp-custom-btn" onClick={() => { trackSimulationStarted("custom"); onStart(); }} type="button">
-          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-            <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/>
-            <path d="M9 6v6M6 9h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-          </svg>
-          Saisir mes propres chiffres
-        </button>
-      </section>
-
-      {/* ── HOW IT WORKS ─────────────────────────────────────── */}
-      <section className="lp-section lp-how lp-section-dark" aria-label="Comment ça marche">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Comment ça marche ?</h2>
-          <p className="lp-section-sub">3 étapes, 2 minutes, une réponse chiffrée</p>
-        </div>
-        <div className="lp-how-steps" role="list">
-          {HOW_STEPS.map((step, i) => (
-            <div key={i} className="lp-how-step" role="listitem">
-              <div className="lp-how-step-top">
-                <span className="lp-how-step-num">{step.num}</span>
-                <span className="lp-how-step-icon">{step.icon}</span>
-              </div>
-              <strong className="lp-how-step-title">{step.title}</strong>
-              <p className="lp-how-step-desc">{step.desc}</p>
-            </div>
-          ))}
-        </div>
-        <button className="btn-hero-primary lp-how-cta" onClick={onStart} type="button">
-          Démarrer maintenant
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
-            <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-        </button>
-      </section>
-
-      {/* ── WHY DIFFERENT ────────────────────────────────────── */}
-      <section className="lp-section lp-why-section" aria-label="Pourquoi nous ?">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Pourquoi ce simulateur ?</h2>
-          <p className="lp-section-sub">Pas de pub, pas d'inscription, pas de raccourcis dans les calculs</p>
-        </div>
-        <div className="lp-why-grid">
-          {WHY_DIFF.map((item, i) => (
-            <div key={i} className="lp-why-card">
-              <span className="lp-why-icon" aria-hidden="true">{item.icon}</span>
-              <strong className="lp-why-title">{item.title}</strong>
-              <p className="lp-why-desc">{item.desc}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── TESTIMONIALS ─────────────────────────────────────── */}
-      <section className="lp-section lp-testimonials-section lp-section-tint" aria-label="Témoignages">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Ils ont tranché grâce au simulateur</h2>
-          <p className="lp-section-sub">Des situations réelles, des décisions éclairées</p>
-        </div>
-        <div className="lp-testimonials-grid">
-          {TESTIMONIALS.map((t, i) => (
-            <div key={i} className="lp-testimonial-card">
-              <div className="lp-testimonial-avatar" style={{ background: t.color }} aria-hidden="true">{t.initials}</div>
-              <p className="lp-testimonial-text">"{t.text}"</p>
-              <div className="lp-testimonial-person">
-                <strong>{t.name}</strong>
-                <span>{t.situation}</span>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ── SIMULATORS SHOWCASE ──────────────────────────────── */}
-      <section className="lp-section lp-sims-section" aria-label="Tous nos simulateurs">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Nos autres simulateurs</h2>
-          <p className="lp-section-sub">Des outils gratuits pour toutes vos décisions financières</p>
-        </div>
-        <div className="lp-sims-grid">
-          {SIMS_LP.map((sim) => (
-            <Link key={sim.href} to={sim.href} className="lp-sim-card">
-              <span className="lp-sim-icon" aria-hidden="true">{sim.icon}</span>
-              <span className={`article-tag ${sim.tagClass}`}>{sim.tag}</span>
-              <strong className="lp-sim-title">{sim.title}</strong>
-              <p className="lp-sim-desc">{sim.desc}</p>
-              <span className="lp-sim-cta">Ouvrir →</span>
-            </Link>
-          ))}
-        </div>
-        <Link to="/simulateurs" className="lp-sims-all">
-          Voir tous les simulateurs →
-        </Link>
-      </section>
-
-      {/* ── BLOG PREVIEW ─────────────────────────────────────── */}
-      <section className="lp-section lp-blog-section lp-section-dark" aria-label="Derniers articles">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Le blog immobilier</h2>
-          <p className="lp-section-sub">Analyses du marché et conseils pratiques</p>
-        </div>
-        <div className="lp-blog-grid">
-          {ARTICLES.slice(0, 3).map((article) => (
-            <Link key={article.slug} to={`/blog/${article.slug}`} className="lp-blog-card">
-              <div
-                className="lp-blog-card-cover"
-                style={{ background: BLOG_GRADIENTS[article.tagClass] || BLOG_GRADIENTS["tag-blue"] }}
-                aria-hidden="true"
-              />
-              <div className="lp-blog-card-body">
-                <div className="lp-blog-card-top">
-                  <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
-                  <span className="article-read-time">{article.readTime}</span>
-                </div>
-                <h3 className="lp-blog-card-title">{article.title}</h3>
-                <p className="lp-blog-card-intro">{article.intro}</p>
-                <div className="lp-blog-card-footer">
-                  <span className="article-date">{article.date}</span>
-                  <span className="lp-blog-card-cta">Lire →</span>
-                </div>
-              </div>
-            </Link>
-          ))}
-        </div>
-        <Link to="/blog" className="lp-sims-all">
-          Voir tous les articles →
-        </Link>
-      </section>
-
-      {/* ── FAQ ──────────────────────────────────────────────── */}
-      <section className="lp-section lp-faq-section" aria-label="Questions fréquentes">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Questions fréquentes</h2>
-          <p className="lp-section-sub">Les vraies questions que les gens posent sur Google — avec des réponses chiffrées</p>
-        </div>
-        <div className="lp-faq">
-          {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
-        </div>
-      </section>
-
-      {/* ── GAME PROMO ───────────────────────────────────────── */}
-      <section className="lp-section lp-game-section lp-section-tint" aria-label="ImmoMaestro">
-        <div className="lp-game-inner">
-          <div className="lp-game-text">
-            <span className="lp-game-badge">🏆 ImmoMaestro</span>
-            <h2 className="lp-game-title">Avez-vous l'instinct immobilier ?</h2>
-            <p className="lp-game-sub">10 profils réels — devinez si chaque personne devrait louer ou acheter. Le simulateur calcule la vraie réponse. Devenez Gourou de l'Immobilier !</p>
-            <Link to="/jeu" className="btn-hero-primary lp-game-cta">
-              Relever le défi →
-            </Link>
+      {/* ── 3. PRESET CARDS ─────────────────────────────────────── */}
+      <section className="lp-s lp-presets-wrap" aria-label="Scénarios types">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title">Commencer avec un scénario type</h2>
+            <p className="lp-section-sub">Choisissez la situation la plus proche de la vôtre</p>
           </div>
-          <div className="lp-game-preview" aria-hidden="true">
-            <div className="lp-game-card">
-              <div className="lp-game-card-header">
-                <span>👩‍⚕️ Marie, 32 ans</span>
-                <span className="lp-game-score">7 / 10</span>
+          <div className="lp-presets-grid" role="list">
+            {PRESETS.map((preset) => (
+              <button
+                key={preset.id}
+                className="lp-preset-card"
+                onClick={() => { trackPresetSelected(preset.id, preset.name); onPreset(preset); }}
+                type="button"
+                role="listitem"
+                aria-label={`Scénario ${preset.name} : ${preset.desc}`}
+              >
+                <span className="lp-preset-icon-wrap" aria-hidden="true">{preset.emoji}</span>
+                <div className="lp-preset-content">
+                  <strong className="lp-preset-name">{preset.name}</strong>
+                  <span className="lp-preset-desc">{preset.desc}</span>
+                  <span className="lp-preset-tag">{preset.tag}</span>
+                </div>
+                <span className="lp-preset-arrow" aria-hidden="true">
+                  <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                    <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </span>
+              </button>
+            ))}
+          </div>
+          <button className="lp-custom-btn" onClick={() => { trackSimulationStarted("custom"); onStart(); }} type="button">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+              <circle cx="9" cy="9" r="7" stroke="currentColor" strokeWidth="1.5"/>
+              <path d="M9 6v6M6 9h6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+            Saisir mes propres chiffres
+          </button>
+        </div>
+      </section>
+
+      {/* ── 4. HOW IT WORKS ─────────────────────────────────────── */}
+      <section className="lp-s lp-s-dark lp-how-wrap" aria-label="Comment ça marche">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title lp-dark-title">Comment ça marche ?</h2>
+            <p className="lp-section-sub lp-dark-sub">3 étapes, 2 minutes, une réponse chiffrée</p>
+          </div>
+          <div className="lp-how-steps" role="list">
+            {HOW_STEPS.map((step, i) => (
+              <div key={i} className="lp-how-step" role="listitem">
+                <div className="lp-how-step-top">
+                  <span className="lp-how-step-num">{step.num}</span>
+                  <span className="lp-how-step-icon">{step.icon}</span>
+                </div>
+                <strong className="lp-how-step-title">{step.title}</strong>
+                <p className="lp-how-step-desc">{step.desc}</p>
               </div>
-              <p className="lp-game-card-q">Devrait-elle acheter à Lyon pour 245 000 € ?</p>
-              <div className="lp-game-card-btns">
-                <span className="lp-game-btn-preview lp-game-btn-rent">🏢 Louer</span>
-                <span className="lp-game-btn-preview lp-game-btn-buy">🏠 Acheter</span>
+            ))}
+          </div>
+          <button className="btn-hero-primary lp-how-cta" onClick={onStart} type="button">
+            Démarrer maintenant
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      </section>
+
+      {/* ── 5. WHY DIFFERENT ────────────────────────────────────── */}
+      <section className="lp-s lp-why-wrap" aria-label="Pourquoi nous ?">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title">Pourquoi ce simulateur ?</h2>
+            <p className="lp-section-sub">Pas de pub, pas d'inscription, pas de raccourcis dans les calculs</p>
+          </div>
+          <div className="lp-why-grid">
+            {WHY_DIFF.map((item, i) => (
+              <div key={i} className="lp-why-card">
+                <span className="lp-why-icon" aria-hidden="true">{item.icon}</span>
+                <strong className="lp-why-title">{item.title}</strong>
+                <p className="lp-why-desc">{item.desc}</p>
               </div>
-            </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ── CITY PAGES ────────────────────────────────────────── */}
-      <section className="lp-section lp-cities-section" aria-label="Analyse par ville">
-        <div className="lp-section-header">
-          <h2 className="lp-section-title">Louer ou acheter par ville</h2>
-          <p className="lp-section-sub">Analyse du marché local, simulation pré-remplie et FAQ immobilière pour chaque ville</p>
-        </div>
-        <div className="lp-cities-grid">
-          {CITY_LIST.map((c) => (
-            <Link key={c.id} to={`/villes/${c.id}`} className="lp-city-card">
-              <span className="lp-city-card-emoji" aria-hidden="true">{c.emoji}</span>
-              <div className="lp-city-card-body">
-                <strong className="lp-city-card-name">{c.name}</strong>
-                <span className="lp-city-card-price">{c.pricePerM2.toLocaleString("fr-FR")} €/m²</span>
+      {/* ── 6. TESTIMONIALS ─────────────────────────────────────── */}
+      <section className="lp-s lp-s-tint lp-testimonials-wrap" aria-label="Témoignages">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title">Ils ont tranché grâce au simulateur</h2>
+            <p className="lp-section-sub">Des situations réelles, des décisions éclairées</p>
+          </div>
+          <div className="lp-testimonials-grid">
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className="lp-testimonial-card">
+                <div className="lp-testimonial-avatar" style={{ background: t.color }} aria-hidden="true">{t.initials}</div>
+                <p className="lp-testimonial-text">"{t.text}"</p>
+                <div className="lp-testimonial-person">
+                  <strong>{t.name}</strong>
+                  <span>{t.situation}</span>
+                </div>
               </div>
-              <span className="lp-city-card-arrow" aria-hidden="true">→</span>
-            </Link>
-          ))}
+            ))}
+          </div>
         </div>
       </section>
 
+      {/* ── 7. SIMULATORS SHOWCASE ──────────────────────────────── */}
+      <section className="lp-s lp-sims-wrap" aria-label="Tous nos simulateurs">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title">Nos autres simulateurs</h2>
+            <p className="lp-section-sub">Des outils gratuits pour toutes vos décisions financières</p>
+          </div>
+          <div className="lp-sims-grid">
+            {SIMS_LP.map((sim) => (
+              <Link key={sim.href} to={sim.href} className="lp-sim-card">
+                <span className="lp-sim-icon" aria-hidden="true">{sim.icon}</span>
+                <span className={`article-tag ${sim.tagClass}`}>{sim.tag}</span>
+                <strong className="lp-sim-title">{sim.title}</strong>
+                <p className="lp-sim-desc">{sim.desc}</p>
+                <span className="lp-sim-cta">Ouvrir →</span>
+              </Link>
+            ))}
+          </div>
+          <Link to="/simulateurs" className="lp-sims-all">
+            Voir tous les simulateurs →
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 8. BLOG PREVIEW ─────────────────────────────────────── */}
+      <section className="lp-s lp-s-dark lp-blog-wrap" aria-label="Derniers articles">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title lp-dark-title">Le blog immobilier</h2>
+            <p className="lp-section-sub lp-dark-sub">Analyses du marché et conseils pratiques</p>
+          </div>
+          <div className="lp-blog-grid">
+            {ARTICLES.slice(0, 3).map((article) => (
+              <Link key={article.slug} to={`/blog/${article.slug}`} className="lp-blog-card lp-blog-card-dark">
+                <div
+                  className="lp-blog-card-cover"
+                  style={{ background: BLOG_GRADIENTS[article.tagClass] || BLOG_GRADIENTS["tag-blue"] }}
+                  aria-hidden="true"
+                />
+                <div className="lp-blog-card-body">
+                  <div className="lp-blog-card-top">
+                    <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
+                    <span className="article-read-time">{article.readTime}</span>
+                  </div>
+                  <h3 className="lp-blog-card-title">{article.title}</h3>
+                  <p className="lp-blog-card-intro">{article.intro}</p>
+                  <div className="lp-blog-card-footer">
+                    <span className="article-date">{article.date}</span>
+                    <span className="lp-blog-card-cta lp-dark-link">Lire →</span>
+                  </div>
+                </div>
+              </Link>
+            ))}
+          </div>
+          <Link to="/blog" className="lp-sims-all lp-dark-link">
+            Voir tous les articles →
+          </Link>
+        </div>
+      </section>
+
+      {/* ── 9. FAQ ──────────────────────────────────────────────── */}
+      <section className="lp-s lp-faq-wrap" aria-label="Questions fréquentes">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title">Questions fréquentes</h2>
+            <p className="lp-section-sub">Les vraies questions que les gens posent sur Google — avec des réponses chiffrées</p>
+          </div>
+          <div className="lp-faq">
+            {FAQ_ITEMS.map((item, i) => <FaqItem key={i} q={item.q} a={item.a} />)}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 10. GAME PROMO ──────────────────────────────────────── */}
+      <section className="lp-s lp-s-light lp-game-wrap" aria-label="ImmoMaestro">
+        <div className="lp-container">
+          <div className="lp-game-inner">
+            <div className="lp-game-text">
+              <span className="lp-game-badge">🏆 ImmoMaestro</span>
+              <h2 className="lp-game-title">Avez-vous l'instinct immobilier ?</h2>
+              <p className="lp-game-sub">10 profils réels — devinez si chaque personne devrait louer ou acheter. Le simulateur calcule la vraie réponse. Devenez Gourou de l'Immobilier !</p>
+              <Link to="/jeu" className="btn-hero-primary lp-game-cta">
+                Relever le défi →
+              </Link>
+            </div>
+            <div className="lp-game-preview" aria-hidden="true">
+              <div className="lp-game-card">
+                <div className="lp-game-card-header">
+                  <span>👩‍⚕️ Marie, 32 ans</span>
+                  <span className="lp-game-score">7 / 10</span>
+                </div>
+                <p className="lp-game-card-q">Devrait-elle acheter à Lyon pour 245 000 € ?</p>
+                <div className="lp-game-card-btns">
+                  <span className="lp-game-btn-preview lp-game-btn-rent">🏢 Louer</span>
+                  <span className="lp-game-btn-preview lp-game-btn-buy">🏠 Acheter</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ── 11. CITY PAGES ────────────────────────────────────────── */}
+      <section className="lp-s lp-cities-wrap" aria-label="Analyse par ville">
+        <div className="lp-container">
+          <div className="lp-section-header">
+            <h2 className="lp-section-title">Louer ou acheter par ville</h2>
+            <p className="lp-section-sub">Analyse du marché local, simulation pré-remplie et FAQ immobilière pour chaque ville</p>
+          </div>
+          <div className="lp-cities-grid">
+            {CITY_LIST.map((c) => (
+              <Link key={c.id} to={`/villes/${c.id}`} className="lp-city-card">
+                <span className="lp-city-card-emoji" aria-hidden="true">{c.emoji}</span>
+                <div className="lp-city-card-body">
+                  <strong className="lp-city-card-name">{c.name}</strong>
+                  <span className="lp-city-card-price">{c.pricePerM2.toLocaleString("fr-FR")} €/m²</span>
+                </div>
+                <span className="lp-city-card-arrow" aria-hidden="true">→</span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── 12. NEWSLETTER ────────────────────────────────────────── */}
+      <Newsletter />
+
+      {/* ── 13. DISCLAIMER ────────────────────────────────────────── */}
       <p className="lp-disclaimer">
         Simulation à titre pédagogique — ne remplace pas un conseil patrimonial ou une offre de prêt.
       </p>

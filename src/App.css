@@ -6040,32 +6040,155 @@ html, body { overflow-x: hidden; max-width: 100vw; }
 }
 
 /* ═══════════════════════════════════════════════════════════
-   LANDING PAGE — Dark/tinted section alternation
+   LANDING PAGE — Clean section architecture (lp-s / lp-container)
 ══════════════════════════════════════════════════════════ */
-.lp-section-dark {
-  background: #0f172a;
-  color: #f1f5f9;
-  border-radius: 0;
-  margin: 0 -1px; /* remove any side gaps */
-}
-.lp-section-dark .lp-section-title { color: #f1f5f9; }
-.lp-section-dark .lp-section-sub { color: #94a3b8; }
-.lp-section-dark .lp-how-step { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.1); }
-.lp-section-dark .lp-how-step-num { background: #1e40af; color: #fff; }
-.lp-section-dark .lp-how-step-title { color: #f1f5f9; }
-.lp-section-dark .lp-how-step-desc { color: #94a3b8; }
-.lp-section-dark .lp-custom-btn { color: #93c5fd; border-color: rgba(255,255,255,.2); }
-.lp-section-dark .lp-blog-card { background: #1e293b; border-color: rgba(255,255,255,.1); }
-.lp-section-dark .lp-blog-card-title { color: #f1f5f9; }
-.lp-section-dark .lp-blog-card-intro { color: #94a3b8; }
-.lp-section-dark .article-date { color: #64748b; }
-.lp-section-dark .lp-blog-card-cta { color: #93c5fd; }
-.lp-section-dark .lp-sims-all { color: #93c5fd; }
 
-.lp-section-tint {
-  background: #f0f7ff;
+/* Scroll-reveal base for all .lp-s elements */
+.lp-s {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity .55s ease, transform .55s ease;
+  width: 100%;
 }
-.lp-section-tint .lp-testimonial-card { background: #fff; }
+.lp-visible { opacity: 1 !important; transform: none !important; }
+
+/* Max-width content container */
+.lp-container {
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Section backgrounds */
+.lp-s-dark  { background: #0f172a; }
+.lp-s-tint  { background: #f0f7ff; }
+.lp-s-light { background: #f8fafc; }
+
+/* Text helpers for dark backgrounds */
+.lp-dark-title { color: #f1f5f9 !important; }
+.lp-dark-sub   { color: #94a3b8 !important; }
+.lp-dark-link  { color: #93c5fd !important; text-decoration: none; }
+.lp-dark-link:hover { text-decoration: underline; }
+
+/* Generous padding for all content sections */
+.lp-presets-wrap,
+.lp-how-wrap,
+.lp-why-wrap,
+.lp-testimonials-wrap,
+.lp-sims-wrap,
+.lp-blog-wrap,
+.lp-faq-wrap,
+.lp-game-wrap,
+.lp-cities-wrap,
+.lp-newsletter {
+  padding: 80px 0;
+}
+
+/* ─── HOW-IT-WORKS on dark bg ─── */
+.lp-how-wrap .lp-how-steps { max-width: 960px; margin: 0 auto; }
+.lp-how-wrap .lp-how-step {
+  background: rgba(255,255,255,.06);
+  border: 1.5px solid rgba(255,255,255,.12);
+  border-radius: 16px; padding: 28px 20px;
+}
+.lp-how-wrap .lp-how-step-top  { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.15); }
+.lp-how-wrap .lp-how-step-num  { background: #1e40af; color: #fff; }
+.lp-how-wrap .lp-how-step-title{ color: #f1f5f9; }
+.lp-how-wrap .lp-how-step-desc { color: #94a3b8; }
+.lp-how-wrap .lp-how-cta { display: flex; margin: 40px auto 0; }
+
+/* ─── BLOG on dark bg ─── */
+.lp-blog-wrap .lp-blog-grid { max-width: 960px; margin: 0 auto; margin-top: 32px; }
+.lp-blog-card-dark {
+  background: #1e293b !important;
+  border-color: rgba(255,255,255,.1) !important;
+}
+.lp-blog-wrap .lp-blog-card-title { color: #f1f5f9; }
+.lp-blog-wrap .lp-blog-card-intro { color: #94a3b8; }
+.lp-blog-wrap .article-date  { color: #64748b; }
+.lp-blog-wrap .lp-blog-card-cta { color: #93c5fd; }
+.lp-blog-wrap .lp-sims-all { color: #93c5fd; }
+.lp-blog-wrap .lp-sims-all:hover { color: #bfdbfe; }
+
+/* ─── TESTIMONIALS on tint bg ─── */
+.lp-testimonials-wrap .lp-testimonial-card { background: #fff; }
+
+/* ─── WHY section ─── */
+.lp-why-wrap .lp-why-section { background: none; border-radius: 0; padding: 0; }
+
+/* ─── CITIES section ─── */
+.lp-cities-wrap .lp-cities-grid { margin-top: 32px; }
+
+/* ─── FAQ section ─── */
+.lp-faq-wrap .lp-faq { margin-top: 32px; }
+
+/* ─── SIMULATORS section ─── */
+.lp-sims-wrap .lp-sims-grid  { margin-top: 32px; }
+
+/* ─── GAME PROMO ─── */
+.lp-game-wrap .lp-game-inner  { max-width: 900px; margin: 0 auto; }
+.lp-game-wrap .lp-game-title  { color: #0f172a; }
+
+/* ─── NEWSLETTER ─── */
+.lp-nl-form {
+  display: flex; gap: 10px;
+  max-width: 480px; margin: 28px auto 0;
+}
+.lp-nl-input {
+  flex: 1; min-width: 0;
+  padding: 0 16px; height: 48px;
+  background: rgba(255,255,255,.08);
+  border: 1.5px solid rgba(255,255,255,.2);
+  border-radius: 10px; font-size: 14px; color: #f1f5f9;
+  outline: none;
+}
+.lp-nl-input::placeholder { color: #64748b; }
+.lp-nl-input:focus { border-color: rgba(255,255,255,.45); background: rgba(255,255,255,.12); }
+.lp-nl-btn {
+  padding: 0 24px; height: 48px; flex-shrink: 0;
+  background: #1a56db; border: none; border-radius: 10px;
+  font-size: 14px; font-weight: 700; color: #fff;
+  cursor: pointer; white-space: nowrap; transition: background .15s;
+}
+.lp-nl-btn:hover { background: #1e40af; }
+.lp-nl-success {
+  text-align: center; color: #86efac;
+  font-size: 15px; font-weight: 600; margin-top: 24px;
+}
+
+/* ─── RENT PROJECTION BOX (StepRent) ─── */
+.rent-proj-box {
+  background: #f0f9ff; border: 1.5px solid #bae6fd;
+  border-radius: 12px; padding: 12px 14px; margin-top: 6px;
+}
+.rent-proj-title {
+  font-size: 12px; font-weight: 700; color: #0369a1;
+  margin-bottom: 8px; letter-spacing: .02em;
+}
+.rent-proj-row {
+  display: flex; justify-content: space-between;
+  align-items: center; padding: 5px 0;
+  border-bottom: 1px solid rgba(186,230,253,.5);
+  font-size: 13px;
+}
+.rent-proj-row-last { border-bottom: none; }
+.rent-proj-label { color: #0369a1; font-weight: 500; }
+.rent-proj-val { color: #0f172a; text-align: right; }
+.rent-proj-final { color: #dc2626; }
+
+/* ─── Responsive ─── */
+@media (max-width: 900px) {
+  .lp-presets-wrap, .lp-how-wrap, .lp-why-wrap, .lp-testimonials-wrap,
+  .lp-sims-wrap, .lp-blog-wrap, .lp-faq-wrap, .lp-game-wrap,
+  .lp-cities-wrap, .lp-newsletter { padding: 60px 0; }
+}
+@media (max-width: 640px) {
+  .lp-presets-wrap, .lp-how-wrap, .lp-why-wrap, .lp-testimonials-wrap,
+  .lp-sims-wrap, .lp-blog-wrap, .lp-faq-wrap, .lp-game-wrap,
+  .lp-cities-wrap, .lp-newsletter { padding: 48px 0; }
+  .lp-nl-form { flex-direction: column; }
+  .lp-nl-btn { height: 44px; width: 100%; }
+}
 
 /* ═══════════════════════════════════════════════════════════
    LANDING — Game promo section
