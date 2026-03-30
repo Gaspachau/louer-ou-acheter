@@ -1,114 +1,151 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 
-/* ─── City data for hero widget ──────────────────────────── */
+/* ─── Données villes ─────────────────────────────────────── */
 const CITY_DATA = [
-  { id: "paris",    name: "Paris",    priceM2: 9800, rentRef: 1500, breakEven: 18 },
-  { id: "lyon",     name: "Lyon",     priceM2: 4600, rentRef: 950,  breakEven: 11 },
-  { id: "marseille",name: "Marseille",priceM2: 3400, rentRef: 820,  breakEven: 9  },
-  { id: "bordeaux", name: "Bordeaux", priceM2: 4200, rentRef: 880,  breakEven: 12 },
-  { id: "nantes",   name: "Nantes",   priceM2: 3900, rentRef: 820,  breakEven: 11 },
+  { id:"paris",    name:"Paris",    priceM2:9800, rentRef:1500, breakEven:17, yield:"3.6%" },
+  { id:"lyon",     name:"Lyon",     priceM2:4600, rentRef:950,  breakEven:11, yield:"4.8%" },
+  { id:"marseille",name:"Marseille",priceM2:3400, rentRef:820,  breakEven:9,  yield:"5.6%" },
+  { id:"bordeaux", name:"Bordeaux", priceM2:4200, rentRef:880,  breakEven:12, yield:"4.9%" },
+  { id:"nantes",   name:"Nantes",   priceM2:3900, rentRef:820,  breakEven:11, yield:"4.9%" },
 ];
 
-/* ─── Presets for scenario cards ─────────────────────────── */
+/* ─── Presets scénarios ──────────────────────────────────── */
 const PRESETS = {
   paris: {
-    price: 380000, apport: 76000, rent: 1500, charges: 150, duration: 15,
-    rate: 3.5, loanYears: 20, notaryPct: 8, appRate: 2.0, situation: "locataire",
+    price:380000, apport:76000, rent:1500, charges:150, duration:15,
+    rate:3.5, loanYears:20, notaryPct:8, appRate:2.0, situation:"locataire",
   },
   region: {
-    price: 200000, apport: 40000, rent: 800, charges: 80, duration: 15,
-    rate: 3.5, loanYears: 20, notaryPct: 8, appRate: 2.2, situation: "locataire",
+    price:200000, apport:40000, rent:800, charges:80, duration:15,
+    rate:3.5, loanYears:20, notaryPct:8, appRate:2.2, situation:"locataire",
   },
   budget: {
-    price: 130000, apport: 15000, rent: 600, charges: 60, duration: 10,
-    rate: 3.8, loanYears: 25, notaryPct: 8, appRate: 1.8, situation: "locataire",
+    price:130000, apport:15000, rent:600, charges:60, duration:10,
+    rate:3.8, loanYears:25, notaryPct:8, appRate:1.8, situation:"locataire",
   },
 };
 
-/* ─── Hero Section ───────────────────────────────────────── */
+/* ─── Hook scroll reveal ─────────────────────────────────── */
+function useReveal() {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { el.classList.add("lp-visible"); obs.disconnect(); } },
+      { threshold: 0.12 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return ref;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SECTION HERO
+   ═══════════════════════════════════════════════════════════ */
 function HeroSection() {
-  const [selectedCity, setSelectedCity] = useState("paris");
-  const city = CITY_DATA.find((c) => c.id === selectedCity);
+  const [city, setCity] = useState("paris");
+  const c = CITY_DATA.find((x) => x.id === city);
 
   return (
     <section className="lp-hero">
+      {/* Orbes animés — ambiance premium */}
+      <div className="lp-hero-orb lp-hero-orb-1" aria-hidden="true" />
+      <div className="lp-hero-orb lp-hero-orb-2" aria-hidden="true" />
+      <div className="lp-hero-orb lp-hero-orb-3" aria-hidden="true" />
+
       <div className="lp-hero-inner">
-        {/* Left: text content */}
+        {/* Colonne gauche */}
         <div className="lp-hero-text">
-          <h1 className="lp-hero-title">
-            Louer <span className="lp-title-ou">ou</span> acheter
-          </h1>
-          <p className="lp-hero-subtitle">
-            La réponse dépend de votre situation — en 2 minutes chrono
-          </p>
           <div className="lp-hero-badge">
-            <span className="lp-badge-green">Simulateur gratuit · Sans inscription</span>
+            <span className="lp-badge-green">
+              ✦ Gratuit · Sans inscription · Résultat immédiat
+            </span>
           </div>
+
+          <h1 className="lp-hero-title">
+            Louer <span className="lp-title-ou">ou</span><br />acheter ?
+          </h1>
+
+          <p className="lp-hero-subtitle">
+            La vraie réponse dépend de <em>votre</em> situation — pas d'une règle générale.
+            Notre simulateur calcule votre point d'équilibre exact en 2 minutes.
+          </p>
+
           <div className="lp-hero-buttons">
             <Link to="/simulateur" className="lp-btn-primary">
-              Lancer la simulation
+              Lancer la simulation →
             </Link>
             <Link to="/simulateurs" className="lp-btn-outline">
-              Voir les simulateurs
+              Tous les simulateurs
             </Link>
           </div>
+
           <div className="lp-hero-trust">
             <span className="lp-trust-pill">Données INSEE</span>
             <span className="lp-trust-sep">·</span>
             <span className="lp-trust-pill">Banque de France</span>
             <span className="lp-trust-sep">·</span>
-            <span className="lp-trust-pill">Mis à jour 2026</span>
+            <span className="lp-trust-pill">Taux 2026</span>
           </div>
-          {/* Mobile: stat pills instead of city widget */}
+
+          {/* Mobile uniquement */}
           <div className="lp-hero-mobile-stats">
-            <span className="lp-stat-pill">2 min</span>
-            <span className="lp-stat-pill">6 étapes</span>
-            <span className="lp-stat-pill">100% gratuit</span>
+            <span className="lp-stat-pill">⏱ 2 min</span>
+            <span className="lp-stat-pill">📊 Chiffré</span>
+            <span className="lp-stat-pill">🔒 100% privé</span>
           </div>
         </div>
 
-        {/* Right: city widget (desktop only) */}
+        {/* Colonne droite — widget ville interactif (desktop) */}
         <div className="lp-city-widget">
           <div className="lp-city-widget-header">
             <span className="lp-city-widget-title">Marché immobilier 2026</span>
           </div>
+
           <div className="lp-city-tabs">
-            {CITY_DATA.map((c) => (
+            {CITY_DATA.map((x) => (
               <button
-                key={c.id}
-                className={`lp-city-tab${selectedCity === c.id ? " lp-city-tab-active" : ""}`}
-                onClick={() => setSelectedCity(c.id)}
+                key={x.id}
                 type="button"
+                className={`lp-city-tab${city === x.id ? " lp-city-tab-active" : ""}`}
+                onClick={() => setCity(x.id)}
               >
-                {c.name}
+                {x.name}
               </button>
             ))}
           </div>
-          {city && (
+
+          {c && (
             <div className="lp-city-stats">
               <div className="lp-city-stat">
-                <span className="lp-city-stat-label">Prix moyen</span>
+                <span className="lp-city-stat-label">Prix médian</span>
                 <span className="lp-city-stat-val">
-                  {city.priceM2.toLocaleString("fr-FR")} €/m²
+                  {c.priceM2.toLocaleString("fr-FR")} €/m²
                 </span>
               </div>
               <div className="lp-city-stat">
-                <span className="lp-city-stat-label">Loyer de référence</span>
+                <span className="lp-city-stat-label">Loyer de référence T2</span>
                 <span className="lp-city-stat-val">
-                  {city.rentRef.toLocaleString("fr-FR")} €/mois
+                  {c.rentRef.toLocaleString("fr-FR")} €/mois
                 </span>
               </div>
+              <div className="lp-city-stat">
+                <span className="lp-city-stat-label">Rendement brut locatif</span>
+                <span className="lp-city-stat-val">{c.yield}</span>
+              </div>
               <div className="lp-city-stat lp-city-stat-highlight">
-                <span className="lp-city-stat-label">Point d'équilibre</span>
+                <span className="lp-city-stat-label">Point d'équilibre achat</span>
                 <span className="lp-city-stat-val lp-city-stat-cyan">
-                  ~{city.breakEven} ans
+                  ~{c.breakEven} ans
                 </span>
               </div>
               <Link to="/simulateur" className="lp-city-cta">
-                Simuler pour {city.name} →
+                Simuler pour {c.name} →
               </Link>
             </div>
           )}
@@ -118,118 +155,143 @@ function HeroSection() {
   );
 }
 
-/* ─── Trust Bar ──────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   TRUST BAR
+   ═══════════════════════════════════════════════════════════ */
 function TrustBar() {
   return (
     <div className="lp-trust-bar">
       <div className="lp-trust-bar-inner">
+
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
           </svg>
-          <span>Gratuit &amp; sans inscription</span>
+          <span>Sans compte ni email</span>
         </div>
+
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
           </svg>
-          <span>Données actualisées 2026</span>
+          <span>Données mises à jour en 2026</span>
         </div>
+
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/>
           </svg>
-          <span>Calcul instantané</span>
+          <span>Résultat en moins de 2 minutes</span>
         </div>
+
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
           </svg>
-          <span>100% indépendant</span>
+          <span>Outil indépendant · Sources officielles</span>
         </div>
+
       </div>
     </div>
   );
 }
 
-/* ─── Emotional Hook ─────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   ACCROCHE ÉMOTIONNELLE
+   ═══════════════════════════════════════════════════════════ */
 function EmotionalHook() {
+  const ref = useReveal();
   return (
-    <section className="lp-section-white lp-emotional">
+    <section className="lp-section-white lp-emotional lp-s" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section-title lp-emotional-title">
-          Perdez-vous de l'argent en louant ?
+          Êtes-vous en train de perdre de l'argent en louant ?
         </h2>
         <p className="lp-emotional-text">
-          La réponse dépend de 3 facteurs clés : votre <strong>loyer actuel</strong>,
-          le <strong>prix du bien</strong> que vous envisagez d'acheter, et la{" "}
-          <strong>durée prévue</strong> dans ce logement. Notre simulateur analyse
-          votre situation exacte et vous donne un chiffre précis — pas une généralité.
+          Ni la location ni l'achat n'est universellement gagnant. Tout dépend de trois
+          paramètres précis : <strong>votre loyer actuel</strong>, le <strong>prix du bien
+          visé</strong> et le <strong>nombre d'années</strong> que vous comptez y rester.
+          En dessous d'un certain seuil de durée, acheter vous coûte plus cher qu'il ne vous rapporte.
+          Notre simulateur calcule ce seuil pour vous — chiffres à l'appui.
         </p>
         <Link to="/simulateur" className="lp-btn-primary lp-emotional-cta">
-          Découvrir ma situation
+          Calculer mon point d'équilibre →
         </Link>
       </div>
     </section>
   );
 }
 
-/* ─── Scénarios Types ────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   SCÉNARIOS TYPES
+   ═══════════════════════════════════════════════════════════ */
 function ScenariosSection() {
   const navigate = useNavigate();
+  const ref = useReveal();
 
   const scenarios = [
     {
       key: "paris",
       emoji: "🏙️",
-      label: "Paris / Grande ville",
-      price: "~380 000 €",
-      rent: "~1 500 €/mois",
-      desc: "Marché tendu, rentabilité longue",
+      label: "Paris / Grande métropole",
+      price: "380 000 €",
+      rent: "1 500 €/mois",
+      breakEven: "~17 ans",
+      desc: "Marché très tendu. L'achat est rentable uniquement si vous vous projetez sur le long terme.",
+      color: "#1a56db",
     },
     {
       key: "region",
       emoji: "🏡",
       label: "Ville moyenne",
-      price: "~220 000 €",
-      rent: "~800 €/mois",
-      desc: "Équilibre achat/location raisonnable",
+      price: "200 000 €",
+      rent: "800 €/mois",
+      breakEven: "~11 ans",
+      desc: "Équilibre plus rapide. L'achat devient intéressant dès la 11e année de détention.",
+      color: "#059669",
     },
     {
       key: "budget",
       emoji: "🏢",
-      label: "Budget serré",
-      price: "~150 000 €",
-      rent: "~600 €/mois",
-      desc: "Achat accessible, faible apport",
+      label: "Premier achat / Budget serré",
+      price: "130 000 €",
+      rent: "600 €/mois",
+      breakEven: "~9 ans",
+      desc: "Faible apport accepté. Le crédit reste accessible et le retour est plus rapide.",
+      color: "#7c3aed",
     },
   ];
 
-  const handleScenario = (key) => {
-    try {
-      sessionStorage.setItem("fv2_preset", JSON.stringify(PRESETS[key]));
-    } catch {}
+  const go = (key) => {
+    try { sessionStorage.setItem("fv2_preset", JSON.stringify(PRESETS[key])); } catch {}
     navigate("/simulateur");
   };
 
   return (
-    <section className="lp-section-gray lp-scenarios">
+    <section className="lp-section-gray lp-scenarios lp-s" ref={ref}>
       <div className="lp-container">
-        <h2 className="lp-section-title">Commencer avec un scénario</h2>
+        <h2 className="lp-section-title">Commencer avec votre profil</h2>
+        <p style={{ textAlign:"center", color:"var(--muted)", fontSize:15, margin:"-20px auto 32px", maxWidth:560 }}>
+          Choisissez le scénario le plus proche de votre situation — toutes les valeurs sont pré-remplies et modifiables.
+        </p>
         <div className="lp-scenarios-grid">
           {scenarios.map((s) => (
             <button
               key={s.key}
               type="button"
               className="lp-scenario-card"
-              onClick={() => handleScenario(s.key)}
+              onClick={() => go(s.key)}
+              aria-label={`Simuler le scénario ${s.label}`}
             >
               <span className="lp-scenario-emoji">{s.emoji}</span>
               <span className="lp-scenario-label">{s.label}</span>
               <span className="lp-scenario-price">{s.price}</span>
-              <span className="lp-scenario-rent">{s.rent}</span>
+              <span className="lp-scenario-rent">Loyer équivalent : {s.rent}</span>
+              <span className="lp-scenario-rent" style={{ color:"#059669", fontWeight:700 }}>
+                Point d'équilibre : {s.breakEven}
+              </span>
               <span className="lp-scenario-desc">{s.desc}</span>
-              <span className="lp-scenario-cta">Simuler ce scénario →</span>
+              <span className="lp-scenario-cta">Simuler ce profil →</span>
             </button>
           ))}
         </div>
@@ -238,33 +300,36 @@ function ScenariosSection() {
   );
 }
 
-/* ─── Why This Simulator ─────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   POURQUOI CE SIMULATEUR
+   ═══════════════════════════════════════════════════════════ */
 function WhySection() {
+  const ref = useReveal();
   const features = [
     {
       icon: "🎯",
-      title: "Calcul complet",
-      desc: "Mensualités, frais de notaire, valorisation, placement alternatif — tout y est.",
+      title: "Calcul patrimonial complet",
+      desc: "Mensualités, frais de notaire, taxe foncière, valorisation du bien, placement alternatif — rien n'est oublié.",
     },
     {
       icon: "🔒",
-      title: "100% privé",
-      desc: "Aucune donnée transmise, aucune inscription. Tout reste sur votre appareil.",
+      title: "Données 100% privées",
+      desc: "Aucun compte, aucun email. Tout le calcul s'effectue dans votre navigateur. Vos données ne quittent jamais votre appareil.",
     },
     {
       icon: "📊",
-      title: "Données réelles 2026",
-      desc: "Taux, prix, indices IRL et taxe foncière mis à jour en temps réel.",
+      title: "Sources officielles 2026",
+      desc: "Taux BCE, indices IRL, prix Notaires de France, HCSF — nos paramètres sont calés sur les données de référence actuelles.",
     },
     {
       icon: "⚡",
-      title: "Résultat en 2 minutes",
-      desc: "6 questions, un graphique animé et votre point d'équilibre exact.",
+      title: "Point d'équilibre en 2 min",
+      desc: "6 questions, un graphique animé et le nombre d'années exact à partir duquel acheter devient plus rentable que louer.",
     },
   ];
 
   return (
-    <section className="lp-section-white lp-why">
+    <section className="lp-section-white lp-why lp-s" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section-title">Pourquoi ce simulateur ?</h2>
         <div className="lp-why-grid">
@@ -281,57 +346,63 @@ function WhySection() {
   );
 }
 
-/* ─── How It Works ───────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   COMMENT ÇA MARCHE
+   ═══════════════════════════════════════════════════════════ */
 function HowItWorksSection() {
+  const ref = useReveal();
   const steps = [
     {
       num: 1,
       title: "Décrivez votre situation",
-      desc: "Locataire, revenus, apport. 3 questions, 1 minute.",
+      desc: "Locataire, hébergé ou propriétaire ? Revenus, apport, situation pro. Trois questions, moins d'une minute.",
       svg: (
         <svg viewBox="0 0 80 80" fill="none" className="lp-how-svg" aria-hidden="true">
-          <circle cx="40" cy="40" r="36" fill="#dbeafe" />
-          <rect x="24" y="28" width="32" height="24" rx="4" fill="#1a56db" opacity=".15" />
-          <rect x="28" y="34" width="20" height="3" rx="1.5" fill="#1a56db" />
-          <rect x="28" y="40" width="14" height="3" rx="1.5" fill="#1a56db" opacity=".6" />
-          <circle cx="52" cy="52" r="10" fill="#1a56db" />
-          <path d="M48 52l3 3 5-6" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+          <circle cx="40" cy="40" r="36" fill="#dbeafe"/>
+          <rect x="24" y="26" width="32" height="28" rx="5" fill="white" stroke="#93c5fd" strokeWidth="1.5"/>
+          <rect x="30" y="33" width="20" height="3" rx="1.5" fill="#1a56db"/>
+          <rect x="30" y="39" width="14" height="3" rx="1.5" fill="#93c5fd"/>
+          <rect x="30" y="45" width="10" height="3" rx="1.5" fill="#bfdbfe"/>
+          <circle cx="53" cy="53" r="11" fill="#1a56db"/>
+          <path d="M49 53l3 3 5.5-6" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       ),
     },
     {
       num: 2,
       title: "Paramétrez votre projet",
-      desc: "Prix du bien, durée, taux. Nos données pré-remplissent.",
+      desc: "Prix du bien, taux d'intérêt, durée de détention. Les données de votre ville pré-remplissent automatiquement.",
       svg: (
         <svg viewBox="0 0 80 80" fill="none" className="lp-how-svg" aria-hidden="true">
-          <circle cx="40" cy="40" r="36" fill="#d1fae5" />
-          <rect x="22" y="24" width="36" height="32" rx="5" fill="#059669" opacity=".12" />
-          <path d="M30 44l8-12 7 8 5-5" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          <circle cx="30" cy="44" r="2.5" fill="#059669" />
-          <circle cx="38" cy="32" r="2.5" fill="#059669" />
-          <circle cx="45" cy="40" r="2.5" fill="#059669" />
-          <circle cx="50" cy="35" r="2.5" fill="#059669" />
+          <circle cx="40" cy="40" r="36" fill="#dcfce7"/>
+          <rect x="22" y="22" width="36" height="36" rx="6" fill="white" stroke="#a7f3d0" strokeWidth="1.5"/>
+          <path d="M29 46l8-14 8 10 5-7" stroke="#059669" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="29" cy="46" r="3" fill="#059669"/>
+          <circle cx="37" cy="32" r="3" fill="#059669"/>
+          <circle cx="45" cy="42" r="3" fill="#059669"/>
+          <circle cx="50" cy="35" r="3" fill="#059669"/>
         </svg>
       ),
     },
     {
       num: 3,
-      title: "Recevez votre résultat",
-      desc: "Graphique animé, point d'équilibre, patrimoine à 20 ans.",
+      title: "Votre analyse personnalisée",
+      desc: "Graphique animé, point d'équilibre précis, patrimoine comparé à 20 ans. Le tout en clair et actionnable.",
       svg: (
         <svg viewBox="0 0 80 80" fill="none" className="lp-how-svg" aria-hidden="true">
-          <circle cx="40" cy="40" r="36" fill="#fef3c7" />
-          <circle cx="40" cy="38" r="14" fill="#d97706" opacity=".15" />
-          <path d="M33 38l5 5 9-10" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-          <path d="M40 24v-4M40 58v-4M56 38h4M20 38h4" stroke="#d97706" strokeWidth="2" strokeLinecap="round" opacity=".4" />
+          <circle cx="40" cy="40" r="36" fill="#fef3c7"/>
+          <rect x="22" y="22" width="36" height="36" rx="6" fill="white" stroke="#fcd34d" strokeWidth="1.5"/>
+          <path d="M30 50l6-10 6 6 8-14" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M30 50l6-10 6 6 8-14" stroke="#d97706" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" strokeDasharray="0" opacity="0.3" strokeWidth="6"/>
+          <line x1="30" y1="52" x2="50" y2="52" stroke="#fcd34d" strokeWidth="1.2"/>
+          <line x1="28" y1="28" x2="28" y2="52" stroke="#fcd34d" strokeWidth="1.2"/>
         </svg>
       ),
     },
   ];
 
   return (
-    <section className="lp-section-lightblue lp-how">
+    <section className="lp-section-lightblue lp-how lp-s" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section-title">Comment ça marche ?</h2>
         <div className="lp-how-steps">
@@ -346,57 +417,69 @@ function HowItWorksSection() {
             </div>
           ))}
         </div>
+        <div style={{ textAlign:"center", marginTop:40 }}>
+          <Link to="/simulateur" className="lp-btn-primary" style={{ display:"inline-flex" }}>
+            Démarrer maintenant →
+          </Link>
+        </div>
       </div>
     </section>
   );
 }
 
-/* ─── Simulateurs Section ────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   SIMULATEURS
+   ═══════════════════════════════════════════════════════════ */
 function SimulateursSection() {
+  const ref = useReveal();
   const sims = [
     {
       icon: "🏠",
       title: "Louer vs Acheter",
-      desc: "Le comparatif principal, chiffré en 2 minutes.",
+      desc: "Le comparatif patrimonial complet. Point d'équilibre, graphique animé, analyse sur mesure.",
       href: "/simulateur",
       highlight: true,
+      badge: "Principal",
     },
     {
       icon: "🏦",
-      title: "Prêt immobilier",
-      desc: "Mensualité, coût total, tableau d'amortissement.",
+      title: "Simulateur de prêt",
+      desc: "Mensualité, coût total des intérêts et tableau d'amortissement selon votre taux et durée.",
       href: "/simulateurs/pret-immobilier",
     },
     {
       icon: "📊",
       title: "Capacité d'emprunt",
-      desc: "Combien pouvez-vous emprunter ?",
+      desc: "Calculez précisément combien vous pouvez emprunter en respectant le ratio HCSF de 35 %.",
       href: "/simulateurs/endettement",
     },
     {
       icon: "♻️",
-      title: "Impact DPE",
-      desc: "Décote, économies et ROI de la rénovation.",
+      title: "Impact DPE & rénovation",
+      desc: "Décote d'un bien énergivore, économies après travaux et ROI de la rénovation énergétique.",
       href: "/simulateurs/impact-dpe",
     },
     {
       icon: "📈",
       title: "Rentabilité locative",
-      desc: "Calculez le rendement d'un investissement.",
+      desc: "Rendement brut, net et cashflow mensuel pour votre investissement locatif.",
       href: "/simulateurs/rentabilite-locative",
     },
     {
       icon: "🧾",
       title: "Frais de notaire",
-      desc: "Calculez les frais à l'acquisition.",
+      desc: "Estimez les frais d'acquisition au centime près — ancien, neuf ou VEFA.",
       href: "/simulateurs/frais-notaire",
     },
   ];
 
   return (
-    <section className="lp-section-white lp-sims">
+    <section className="lp-section-white lp-sims lp-s" ref={ref}>
       <div className="lp-container">
-        <h2 className="lp-section-title">Tous nos simulateurs gratuits</h2>
+        <h2 className="lp-section-title">27 simulateurs gratuits</h2>
+        <p style={{ textAlign:"center", color:"var(--muted)", fontSize:15, margin:"-20px auto 32px", maxWidth:520 }}>
+          Du calcul de prêt au DPE en passant par la plus-value — tous les outils pour décider sans se tromper.
+        </p>
         <div className="lp-sims-grid">
           {sims.map((s) => (
             <Link
@@ -407,44 +490,53 @@ function SimulateursSection() {
               <span className="lp-sim-icon">{s.icon}</span>
               <span className="lp-sim-title">{s.title}</span>
               <span className="lp-sim-desc">{s.desc}</span>
-              {s.highlight && <span className="lp-sim-badge">Principal</span>}
+              <span className="lp-sim-cta">Ouvrir →</span>
+              {s.badge && <span className="lp-sim-badge">{s.badge}</span>}
             </Link>
           ))}
         </div>
+        <p style={{ textAlign:"center", marginTop:24 }}>
+          <Link to="/simulateurs" style={{ fontSize:14, fontWeight:700, color:"var(--blue)", textDecoration:"none" }}>
+            Voir les 27 simulateurs →
+          </Link>
+        </p>
       </div>
     </section>
   );
 }
 
-/* ─── FAQ ────────────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   FAQ
+   ═══════════════════════════════════════════════════════════ */
 const FAQ_ITEMS = [
   {
     q: "Est-il plus rentable de louer ou d'acheter en 2026 ?",
-    a: "Il n'y a pas de réponse universelle : tout dépend de la durée de détention, de la ville, et du rapport prix/loyer local. À Paris, il faut souvent rester plus de 15 ans pour que l'achat soit rentable. En province, ce seuil peut descendre à 7-9 ans. Notre simulateur calcule votre seuil exact en fonction de votre situation.",
+    a: "Il n'y a pas de réponse universelle. À Paris, il faut souvent rester plus de 15 ans pour que l'achat soit rentable face à un locataire qui investit son apport. En ville moyenne, ce seuil descend à 9-11 ans. Les taux entre 3,5 et 4 % en 2026 rendent l'achat plus accessible qu'en 2023, mais chaque situation est différente. Notre simulateur calcule votre seuil exact.",
   },
   {
     q: "Combien d'années faut-il rester pour rentabiliser un achat ?",
-    a: "En moyenne, il faut entre 7 et 12 ans selon la ville. Dans les grandes métropoles (Paris, Lyon, Bordeaux), le point d'équilibre est autour de 10-15 ans. Dans les villes moyennes, il peut être atteint dès 6-8 ans. Ces durées varient selon les taux, le prix du bien et votre apport.",
+    a: "En moyenne nationale, entre 8 et 14 ans. Dans les grandes métropoles (Paris, Lyon, Bordeaux), le point d'équilibre est autour de 11-17 ans. Dans les villes moyennes, il peut être atteint dès 7-10 ans. Ces durées varient selon les taux d'intérêt, le prix du bien, votre apport et le loyer équivalent.",
   },
   {
     q: "Quel apport minimum faut-il pour acheter ?",
-    a: "En règle générale, il faut au minimum 10% du prix pour couvrir les frais de notaire (7-8% dans l'ancien). Les banques recommandent idéalement 20% pour obtenir les meilleures conditions de prêt. Un apport plus élevé réduit le coût total du crédit et facilite l'obtention du financement.",
+    a: "Il faut au minimum 10 % du prix pour couvrir les frais de notaire (7-8 % dans l'ancien). Les banques recommandent idéalement 20 % pour obtenir les meilleures conditions de taux et respecter les critères HCSF. Un apport plus élevé réduit le coût total du crédit et améliore votre dossier bancaire.",
   },
   {
-    q: "Les taux immobiliers vont-ils baisser en 2026 ?",
-    a: "La BCE a amorcé un cycle de baisse des taux depuis 2024. En 2026, les taux immobiliers se situent entre 3,2% et 3,8% selon les profils et les durées. Les prévisions suggèrent une légère stabilisation. Notre simulateur utilise des taux réalistes que vous pouvez ajuster selon votre situation.",
+    q: "Les taux immobiliers vont-ils continuer à baisser en 2026 ?",
+    a: "Après le cycle de hausse 2022-2023 (pic à 4,5 %), la BCE a amorcé un assouplissement. Les taux se situent en 2026 entre 3,2 % et 3,9 % selon les profils et les durées. Les projections suggèrent une légère stabilisation à ces niveaux. Notre simulateur utilise un taux de 3,5 % par défaut, que vous pouvez ajuster librement.",
   },
   {
-    q: "Ce simulateur est-il vraiment gratuit et sans inscription ?",
-    a: "Oui, à 100%. Aucune inscription, aucun email requis. Toutes les données restent sur votre appareil et ne sont jamais transmises à un serveur. Le simulateur est financé par la publicité et restera toujours gratuit et indépendant.",
+    q: "Ce simulateur est-il vraiment gratuit et sans données personnelles ?",
+    a: "Oui, à 100 %. Aucune inscription, aucun email, aucun cookie de tracking imposé. Tous les calculs s'effectuent localement dans votre navigateur — aucune donnée n'est envoyée à nos serveurs. L'outil est financé par la publicité contextuelle et restera toujours gratuit et indépendant.",
   },
 ];
 
 function FAQSection() {
   const [open, setOpen] = useState(null);
+  const ref = useReveal();
 
   return (
-    <section className="lp-section-gray lp-faq">
+    <section className="lp-section-gray lp-faq lp-s" ref={ref}>
       <div className="lp-container">
         <h2 className="lp-section-title">Questions fréquentes</h2>
         <div className="lp-faq-list">
@@ -475,52 +567,58 @@ function FAQSection() {
   );
 }
 
-/* ─── Newsletter ─────────────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   NEWSLETTER
+   ═══════════════════════════════════════════════════════════ */
 function NewsletterSection() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | submitted
+  const [status, setStatus] = useState("idle");
+  const ref = useReveal();
 
-  const handleSubmit = (e) => {
+  const submit = (e) => {
     e.preventDefault();
     if (!email.includes("@")) return;
-    setStatus("submitted");
+    setStatus("done");
   };
 
   return (
-    <section className="lp-newsletter">
+    <section className="lp-newsletter lp-s" ref={ref}>
       <div className="lp-container">
-        <h2 className="lp-newsletter-title">Restez informé du marché</h2>
+        <h2 className="lp-newsletter-title">Le marché immobilier, chaque mois</h2>
         <p className="lp-newsletter-subtitle">
-          Recevez les tendances immobilières chaque mois — taux, villes, analyses.
+          Taux directeurs BCE, tendances de prix par ville, nouveaux simulateurs — une synthèse
+          mensuelle lisible en 3 minutes.
         </p>
-        {status === "submitted" ? (
+        {status === "done" ? (
           <div className="lp-newsletter-success">
-            Merci ! Vous recevrez notre prochaine newsletter immobilière.
+            ✅ Parfait ! Vous recevrez la prochaine édition directement dans votre boîte.
           </div>
         ) : (
-          <form className="lp-newsletter-form" onSubmit={handleSubmit}>
+          <form className="lp-newsletter-form" onSubmit={submit}>
             <input
               type="email"
+              required
               className="lp-newsletter-input"
               placeholder="votre@email.fr"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              required
             />
             <button type="submit" className="lp-newsletter-btn">
-              S'abonner
+              S'abonner gratuitement
             </button>
           </form>
         )}
         <p className="lp-newsletter-privacy">
-          Aucun spam · Désabonnement en un clic · Données non partagées
+          Aucun spam · Désabonnement en un clic · Données jamais revendues
         </p>
       </div>
     </section>
   );
 }
 
-/* ─── Main LandingPage ───────────────────────────────────── */
+/* ═══════════════════════════════════════════════════════════
+   LANDING PAGE — EXPORT
+   ═══════════════════════════════════════════════════════════ */
 export default function LandingPage() {
   return (
     <div className="lp-root">
