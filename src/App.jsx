@@ -1,19 +1,11 @@
 import "./App.css";
-import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
+import { lazy, Suspense, useEffect } from "react";
+import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieBanner from "./components/CookieBanner";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
-import StepLanding from "./components/StepLanding";
-import { computeComparison } from "./utils/finance";
-import { getDefaultsForCity } from "./data/cityData";
-
-// Funnel steps beyond step 0 are lazy-loaded — only StepLanding is needed for initial render
-const StepProfile = lazy(() => import("./components/StepProfile"));
-const StepRent    = lazy(() => import("./components/StepRent"));
-const StepBuy     = lazy(() => import("./components/StepBuy"));
-const StepResult  = lazy(() => import("./components/StepResult"));
+import FunnelV2 from "./components/FunnelV2";
 const PageVille = lazy(() => import("./components/PageVille"));
 
 const BlogList = lazy(() => import("./components/BlogList"));
@@ -60,128 +52,15 @@ function PageLoader() {
   );
 }
 
-const DEFAULTS = {
-  city: null,
-  profile: null,
-  purchasePrice: 250000,
-  downPayment: 35000,
-  mortgageRate: 3.5,
-  mortgageYears: 20,
-  notaryFeesPct: 8,
-  annualPropertyTax: 1400,
-  annualMaintenancePct: 1,
-  annualInsurance: 300,
-  appreciationRate: 2,
-  saleCostsPct: 5,
-  monthlyRent: 900,
-  annualRentIncrease: 2,
-  investmentReturn: 3.5,
-  comparisonYears: 10,
-  monthlySavings: 0,
-};
-
-export const PRESETS = [
-  {
-    id: "paris",
-    emoji: "🏙️",
-    name: "Paris / Grande ville",
-    desc: "Appartement 2 pièces",
-    tag: "380 000 € · Loyer ~1 500 €",
-    values: { purchasePrice: 380000, downPayment: 76000, mortgageRate: 3.5, mortgageYears: 20, monthlyRent: 1500, annualPropertyTax: 2200, comparisonYears: 10, monthlySavings: 200 },
-  },
-  {
-    id: "region",
-    emoji: "🏡",
-    name: "Ville moyenne",
-    desc: "Maison avec jardin",
-    tag: "220 000 € · Loyer ~850 €",
-    values: { purchasePrice: 200000, downPayment: 40000, mortgageRate: 3.5, mortgageYears: 20, monthlyRent: 750, annualPropertyTax: 1100, comparisonYears: 10, monthlySavings: 150 },
-  },
-  {
-    id: "budget",
-    emoji: "🏢",
-    name: "Budget serré",
-    desc: "Studio ou T2",
-    tag: "150 000 € · Loyer ~650 €",
-    values: { purchasePrice: 130000, downPayment: 15000, mortgageRate: 3.8, mortgageYears: 25, monthlyRent: 580, annualPropertyTax: 800, comparisonYears: 8, monthlySavings: 100 },
-  },
-];
-
-const STEP_LABELS = ["Profil", "Location", "Achat", "Résultat"];
 
 function Simulator() {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  const [values, setValues] = useState(() => {
-    try {
-      const saved = sessionStorage.getItem("sim_values");
-      return saved ? JSON.parse(saved) : DEFAULTS;
-    } catch { return DEFAULTS; }
-  });
-
-  useEffect(() => {
-    try { sessionStorage.setItem("sim_values", JSON.stringify(values)); } catch {}
-  }, [values]);
-
-  const step = Math.max(0, Math.min(4, parseInt(searchParams.get("step") ?? "0", 10) || 0));
-  const setStep = (n) => navigate(n === 0 ? "/" : `/?step=${n}`);
-  const set = (key) => (val) => setValues((v) => ({ ...v, [key]: val }));
-  const applyPreset = (preset) => { setValues({ ...DEFAULTS, ...preset.values }); setStep(2); };
-  const applyCity = (cityId) => {
-    const cityDefaults = cityId ? getDefaultsForCity(cityId) : null;
-    setValues((v) => ({ ...v, city: cityId, ...(cityDefaults || {}) }));
-  };
-  // comparisonYears always mirrors mortgageYears — no separate user input
-  const effectiveValues = useMemo(() => ({ ...values, comparisonYears: values.mortgageYears }), [values]);
-  const result = useMemo(() => computeComparison(effectiveValues), [effectiveValues]);
-
-  /* Scroll to top on step change */
-  useEffect(() => { window.scrollTo(0, 0); }, [step]);
-
   return (
     <div className="page">
-      <TopBar onBrandClick={() => setStep(0)} />
-      {step > 0 && (
-        <nav className="sim-funnel-bar" aria-label="Progression de la simulation">
-          {STEP_LABELS.map((label, i) => {
-            const s = i + 1;
-            const done = step > s;
-            const active = step === s;
-            return (
-              <Fragment key={s}>
-                <button
-                  type="button"
-                  className={`sfb-step${active ? " sfb-active" : ""}${done ? " sfb-done" : ""}`}
-                  onClick={() => done ? setStep(s) : undefined}
-                  disabled={!done && !active}
-                  aria-current={active ? "step" : undefined}
-                >
-                  <span className="sfb-num" aria-hidden="true">
-                    {done ? (
-                      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-                        <path d="M1.5 5l2.5 2.5 4.5-4.5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    ) : s}
-                  </span>
-                  <span className="sfb-label">{label}</span>
-                </button>
-                {i < STEP_LABELS.length - 1 && <span className={`sfb-line${done ? " sfb-line-done" : ""}`} aria-hidden="true"/>}
-              </Fragment>
-            );
-          })}
-        </nav>
-      )}
-      <main id="main-content">
-        {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} city={values.city} />}
-        <Suspense fallback={<PageLoader />}>
-          {step === 1 && <StepProfile values={values} set={set} onNext={() => setStep(2)} applyCity={applyCity} />}
-          {step === 2 && <StepRent values={values} set={set} onNext={() => setStep(3)} city={values.city} />}
-          {step === 3 && <StepBuy values={values} set={set} onNext={() => setStep(4)} onBack={() => navigate(-1)} city={values.city} />}
-          {step === 4 && <StepResult result={result} values={effectiveValues} onEdit={() => setStep(2)} />}
-        </Suspense>
+      <TopBar />
+      <main id="main-content" style={{ padding: "16px 0 0" }}>
+        <FunnelV2 />
       </main>
-      {step === 0 && <Footer />}
+      <Footer />
     </div>
   );
 }
