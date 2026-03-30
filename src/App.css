@@ -7114,4 +7114,63 @@ input[type="radio"] {
 .hypo-table td:first-child { color: var(--muted); }
 .hypo-table td:nth-child(2) { font-weight: 600; }
 .hypo-table td:last-child { color: var(--muted); font-size: 11px; }
+
+/* PageGuideAchat — documents checklist */
+.guide-checklist-section {
+  max-width: 860px;
+  margin: 40px auto 0;
+  padding: 0 16px;
+}
+.guide-checklist-header { margin-bottom: 20px; }
+.guide-checklist-title {
+  font-size: clamp(17px, 2.5vw, 22px);
+  font-weight: 800;
+  color: var(--text, #0c1a35);
+  margin: 0 0 6px;
+}
+.guide-checklist-sub {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+}
+.guide-checklist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 16px;
+}
+.guide-checklist-group {
+  background: var(--card, #fff);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 16px;
+}
+.guide-checklist-cat {
+  font-weight: 700;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.guide-checklist-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.guide-checklist-item {
+  display: flex;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text, #0c1a35);
+  line-height: 1.4;
+}
+.guide-checklist-dot {
+  color: #059669;
+  font-weight: 700;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
 .hypo-table tr:last-child td { border-bottom: none; }

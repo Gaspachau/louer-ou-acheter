@@ -252,13 +252,31 @@ const FAQ_ITEMS = [
     q: "Est-ce le bon moment d'acheter en 2026 ?",
     a: "Les taux de crédit se stabilisent autour de 3,5–4 % après avoir culminé à 4,5 % en 2023. Dans certaines villes (Lille, Toulouse, Nantes), la correction des prix + la baisse des taux créent une fenêtre favorable. À Paris et Nice, le ratio prix/loyer reste très défavorable à l'achat sur moins de 12 ans.",
   },
+  {
+    q: "Peut-on acheter avec un CDD ou en tant qu'indépendant ?",
+    a: "C'est plus difficile mais pas impossible. Les banques acceptent parfois les CDD en fin de mission ou les indépendants justifiant 3 ans de bilans comptables. Un courtier peut vous aider à monter un dossier solide. Comptez des conditions moins favorables (taux légèrement plus élevé, apport exigé plus important).",
+  },
+  {
+    q: "Quels sont les frais cachés d'un achat immobilier ?",
+    a: "Au-delà du prix affiché : frais de notaire (7–8 % dans l'ancien), frais d'agence (3–5 % si inclus), frais de garantie (0,5–1 %), frais de courtage (0–1 %), déménagement, travaux imprévus. Prévoyez 10–12 % du prix en coûts annexes. Notre simulateur de frais de notaire calcule le détail légal.",
+  },
+  {
+    q: "Le taux d'endettement de 35 % est-il une règle absolue ?",
+    a: "Il s'agit d'une règle de la HCSF (Haut Conseil de Stabilité Financière) que les banques doivent respecter dans 80 % des dossiers. Les 20 % restants sont pour des profils particuliers (hauts revenus, primo-accédants). En pratique, la plupart des banques appliquent cette limite strictement depuis 2022.",
+  },
+  {
+    q: "Comment évolueront les taux immobiliers en 2026 ?",
+    a: "Après avoir atteint 4,5 % fin 2023, les taux sont revenus à 3,3–3,8 % début 2026 suite aux baisses de taux de la BCE. La tendance est à la stabilisation. Les experts anticipent des taux entre 3 % et 3,5 % d'ici fin 2026 si l'inflation reste maîtrisée. Notre simulateur utilise un taux par défaut réactualisé chaque trimestre.",
+  },
 ];
 
 const WHY_DIFF = [
-  { icon: "📐", title: "Calculs complets", desc: "Notaire, taxe foncière, entretien, hausse des loyers, rendement épargne — rien n'est oublié." },
-  { icon: "🔢", title: "Formules certifiées", desc: "Mensualités calculées selon la formule actuarielle, données INSEE et Banque de France." },
-  { icon: "🎯", title: "Verdict personnalisé", desc: "Le point d'équilibre est calculé pour votre situation, pas une moyenne nationale." },
-  { icon: "🔒", title: "Données sécurisées", desc: "Vos données restent anonymisées et protégées conformément au RGPD." },
+  { icon: "📐", title: "Calculs complets & transparents", desc: "Notaire, taxe foncière, entretien, hausse des loyers, rendement épargne — 12 paramètres pris en compte, hypothèses affichées." },
+  { icon: "🔢", title: "Formules actuarielles certifiées", desc: "Mensualités calculées selon la formule exacte (capitaux * taux / (1-(1+taux)^-n)), données Banque de France et INSEE 2026." },
+  { icon: "🎯", title: "Verdict personnalisé à votre ville", desc: "Le point d'équilibre est calculé pour votre situation précise — pas une moyenne nationale. Données réelles par ville." },
+  { icon: "🔒", title: "100 % privé, sans compte", desc: "Aucune donnée saisie n'est transmise à nos serveurs. Tout reste dans votre navigateur. Sans publicité ciblée." },
+  { icon: "📊", title: "27 simulateurs gratuits", desc: "PTZ, assurance emprunteur, plus-value, taxe foncière, DPE, stress-test — un outil pour chaque étape de votre projet." },
+  { icon: "🏆", title: "Outil de référence indépendant", desc: "Aucun partenariat bancaire, aucune commission. Notre seul objectif : vous donner les bons chiffres pour décider librement." },
 ];
 
 const SIMS_LP = [

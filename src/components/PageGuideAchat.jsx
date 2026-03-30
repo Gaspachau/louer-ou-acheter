@@ -258,13 +258,41 @@ export default function PageGuideAchat() {
           })}
         </div>
 
+        {/* ── CHECKLIST ──────────────────────────────────────── */}
+        <div className="guide-checklist-section">
+          <div className="guide-checklist-header">
+            <h2 className="guide-checklist-title">📁 Documents à préparer pour votre dossier bancaire</h2>
+            <p className="guide-checklist-sub">Avoir ces documents prêts accélère l'instruction de votre dossier de 2 à 4 semaines.</p>
+          </div>
+          <div className="guide-checklist-grid">
+            {[
+              { cat: "Identité & situation", items: ["Pièce d'identité (carte nationale ou passeport)", "Justificatif de domicile (- de 3 mois)", "Contrat de mariage / PACS si applicable"] },
+              { cat: "Revenus & emploi", items: ["3 derniers bulletins de salaire", "2 derniers avis d'imposition (N-1 et N-2)", "Contrat de travail (CDI, CDD, intérim)", "3 derniers bilans si indépendant"] },
+              { cat: "Épargne & patrimoine", items: ["3 derniers relevés de tous vos comptes", "Justificatif d'épargne (livrets, PEA, assurance-vie)", "Tableau d'amortissement des crédits en cours"] },
+              { cat: "Le bien immobilier", items: ["Compromis de vente signé", "Diagnostics techniques (DPE, amiante…)", "Règlement de copropriété si appartement", "PV d'AG des 3 dernières années"] },
+            ].map((group) => (
+              <div key={group.cat} className="guide-checklist-group">
+                <p className="guide-checklist-cat">{group.cat}</p>
+                <ul className="guide-checklist-list">
+                  {group.items.map((item) => (
+                    <li key={item} className="guide-checklist-item">
+                      <span className="guide-checklist-dot">✓</span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* ── CTA ──────────────────────────────────────────── */}
         <div className="guide-bottom-cta">
           <div className="guide-cta-inner">
             <span className="guide-cta-icon">🚀</span>
             <div>
               <p className="guide-cta-title">Tous les simulateurs disponibles</p>
-              <p className="guide-cta-sub">22 outils pour chaque situation — budget, crédit, investissement, fiscalité.</p>
+              <p className="guide-cta-sub">27 simulateurs gratuits pour chaque situation — budget, crédit, investissement, fiscalité.</p>
             </div>
             <Link to="/simulateurs" className="btn-primary">Voir tous les simulateurs →</Link>
           </div>
