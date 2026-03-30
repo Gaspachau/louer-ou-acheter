@@ -7,6 +7,9 @@ function calcEndettement({ revenus, chargesExistantes, taux, duree }) {
   if (!revenus || revenus <= 0) return null;
   const tauxActuel = (chargesExistantes / revenus) * 100;
   const capaciteRestante = Math.max(0, revenus * 0.35 - chargesExistantes);
+  if (tauxActuel > 35) {
+    return { tauxActuel, capaciteRestante: 0, montantEmpruntable: 0 };
+  }
   const r = taux / 100 / 12;
   const n = duree * 12;
   const montantEmpruntable =

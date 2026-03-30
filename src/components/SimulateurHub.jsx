@@ -411,6 +411,20 @@ export default function SimulateurHub() {
           <span className="shub-guide-cta">Mon parcours →</span>
         </Link>
 
+        {/* ── Guide CTA ─────────────────────────────────────────── */}
+        <div className="shub-guide-cta">
+          <div className="shub-guide-cta-inner">
+            <div>
+              <p className="shub-guide-cta-kicker">Pas sûr par où commencer ?</p>
+              <h2 className="shub-guide-cta-title">Répondez à 5 questions → votre parcours personnalisé</h2>
+              <p className="shub-guide-cta-desc">En 2 minutes, on identifie votre profil (primo, investisseur, en réflexion) et on vous recommande les 3–5 simulateurs les plus utiles pour votre situation.</p>
+            </div>
+            <Link to="/guide-personnalise" className="shub-guide-cta-btn">
+              Démarrer mon guide →
+            </Link>
+          </div>
+        </div>
+
         {/* ── Search bar ── */}
         <div className="shub-search-wrap">
           <svg className="shub-search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">

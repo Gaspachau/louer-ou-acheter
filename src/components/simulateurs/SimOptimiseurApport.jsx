@@ -199,6 +199,25 @@ export default function SimOptimiseurApport() {
                 </ResponsiveContainer>
               </div>
 
+              {res.moisAttente > 0 && (() => {
+                const hausseMarche = 0.03;
+                const moisAtt = res.moisAttente;
+                const prixFutur = v.prixBien * Math.pow(1 + hausseMarche, moisAtt / 12);
+                const surplusPrix = prixFutur - v.prixBien;
+                const netFinal = res.vraiEconomie - surplusPrix;
+                return (
+                  <div className="sim-info-box" style={{ marginTop: 16 }}>
+                    <p className="sim-info-title">📈 Et si les prix montent pendant l'attente ?</p>
+                    <p className="sim-info-body">
+                      Si le marché progresse de +3 %/an, le bien passera de {fmtCur(v.prixBien)} à <strong>{fmtCur(Math.round(prixFutur))}</strong> dans {res.moisAttente} mois ({fmtCur(Math.round(surplusPrix))} de plus).
+                      {netFinal > 0
+                        ? ` Même dans ce cas, attendre reste rentable (+${fmtCur(Math.round(netFinal))} net).`
+                        : ` Dans ce cas, attendre ne serait plus rentable — la hausse des prix efface les économies d'intérêts.`}
+                    </p>
+                  </div>
+                );
+              })()}
+
               {/* Key metrics */}
               <div className="sim-stats-grid" style={{ marginTop: 16 }}>
                 <div className="sim-stat-card sim-stat-card-blue">

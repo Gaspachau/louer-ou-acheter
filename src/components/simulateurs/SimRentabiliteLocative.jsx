@@ -5,7 +5,7 @@ import SimLayout from "./SimLayout";
 import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
-function calcRenta({ prixAchat, fraisNotairePct, travaux, loyerMensuel, chargesMensuelles, tauxOccupation, assurancePNO, taxeFonciere }) {
+function calcRenta({ prixAchat, fraisNotairePct, travaux, loyerMensuel, chargesMensuelles, tauxOccupation, assurancePNO, taxeFonciere, regimeFiscal, tmi }) {
   const fraisNotaire = prixAchat * (fraisNotairePct / 100);
   const investissementTotal = prixAchat + fraisNotaire + travaux;
   const loyerAnnuelBrut = loyerMensuel * 12 * (tauxOccupation / 100);
@@ -15,7 +15,18 @@ function calcRenta({ prixAchat, fraisNotairePct, travaux, loyerMensuel, chargesM
   const rendementNet = investissementTotal > 0 ? (loyerAnnuelNet / investissementTotal) * 100 : 0;
   const cashflowMensuel = loyerAnnuelNet / 12;
   const dureeRecup = loyerAnnuelNet > 0 ? investissementTotal / loyerAnnuelNet : null;
-  return { investissementTotal, fraisNotaire, loyerAnnuelBrut, loyerAnnuelNet, chargesAnnuelles, rendementBrut, rendementNet, cashflowMensuel, dureeRecup };
+
+  // Calcul fiscal
+  const revenuImposable = regimeFiscal === "micro-foncier"
+    ? loyerAnnuelBrut * 0.70
+    : Math.max(0, loyerAnnuelNet);
+  const impotIR = revenuImposable * (tmi / 100);
+  const prelevementsSociaux = revenuImposable * 0.172;
+  const impotTotal = impotIR + prelevementsSociaux;
+  const loyerAnnuelNetNet = loyerAnnuelNet - impotTotal;
+  const rendementNetNet = investissementTotal > 0 ? (loyerAnnuelNetNet / investissementTotal) * 100 : 0;
+
+  return { investissementTotal, fraisNotaire, loyerAnnuelBrut, loyerAnnuelNet, chargesAnnuelles, rendementBrut, rendementNet, cashflowMensuel, dureeRecup, revenuImposable, impotIR, prelevementsSociaux, impotTotal, loyerAnnuelNetNet, rendementNetNet };
 }
 
 const fmtCur = (v) =>
@@ -51,6 +62,8 @@ export default function SimRentabiliteLocative() {
     tauxOccupation: 92,
     assurancePNO: 300,
     taxeFonciere: 1200,
+    regimeFiscal: "micro-foncier",
+    tmi: 30,
   });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
   const res = useMemo(() => calcRenta(v), [v]);
@@ -121,6 +134,42 @@ export default function SimRentabiliteLocative() {
               <div className="horizon-ticks"><span>50 %</span><span>Typique 92 %</span><span>100 %</span></div>
             </div>
           </div>
+
+          <p className="sim-card-legend" style={{ marginTop: 20 }}>Fiscalité</p>
+          <div style={{ marginBottom: 12 }}>
+            <label className="field-label">Régime fiscal</label>
+            <div className="loan-type-grid" style={{ marginTop: 8 }}>
+              <button type="button" className={`loan-type-btn${v.regimeFiscal === "micro-foncier" ? " loan-type-active" : ""}`}
+                onClick={() => set("regimeFiscal")("micro-foncier")}>
+                <span>📄</span><span>Micro-foncier<br/><small style={{fontWeight:400,fontSize:11}}>Abattement 30%</small></span>
+              </button>
+              <button type="button" className={`loan-type-btn${v.regimeFiscal === "reel" ? " loan-type-active" : ""}`}
+                onClick={() => set("regimeFiscal")("reel")}>
+                <span>📊</span><span>Régime réel<br/><small style={{fontWeight:400,fontSize:11}}>Charges déductibles</small></span>
+              </button>
+            </div>
+            <p className="field-hint" style={{ marginTop: 6 }}>
+              {v.regimeFiscal === "micro-foncier"
+                ? "Loyers bruts < 15 000 €/an. Abattement forfaitaire de 30 %. Plus simple mais moins avantageux si charges réelles > 30 %."
+                : "Déduisez les charges réelles (intérêts, travaux, charges copro, assurance, taxe foncière). Optimal si charges > 30 % des loyers."}
+            </p>
+          </div>
+          <div>
+            <label className="field-label">Tranche marginale d'imposition (TMI)</label>
+            <div className="tmi-grid" style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
+              {[0, 11, 30, 41, 45].map((t) => (
+                <button key={t} type="button"
+                  className={`loan-type-btn${v.tmi === t ? " loan-type-active" : ""}`}
+                  style={{ padding: "8px 4px", flexDirection: "column", gap: 2 }}
+                  onClick={() => set("tmi")(t)}>
+                  <span style={{ fontWeight: 700, fontSize: 14 }}>{t}%</span>
+                  <span style={{ fontSize: 10, color: "var(--muted)" }}>
+                    {t === 0 ? "Non imp." : t === 11 ? "<27k" : t === 30 ? "27–73k" : t === 41 ? "73–158k" : ">158k"}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="sim-results-panel">
@@ -151,6 +200,18 @@ export default function SimRentabiliteLocative() {
               <span className="sim-stat-card-label">Récupération capital</span>
               <span className="sim-stat-card-value">{res.dureeRecup ? `${Math.round(res.dureeRecup)} ans` : "—"}</span>
             </div>
+            {v.tmi > 0 && (
+              <>
+                <div className="sim-stat-card">
+                  <span className="sim-stat-card-label">Impôts sur loyers/an</span>
+                  <span className="sim-stat-card-value sim-stat-card-red-text">{fmtCur(res.impotTotal)}</span>
+                </div>
+                <div className={`sim-stat-card ${res.rendementNetNet >= 4 ? "sim-stat-card-green" : res.rendementNetNet >= 2 ? "" : "sim-stat-card-red"}`}>
+                  <span className="sim-stat-card-label">Rendement net-net (impôts)</span>
+                  <span className="sim-stat-card-value">{res.rendementNetNet.toFixed(2)} %</span>
+                </div>
+              </>
+            )}
           </div>
 
           <div className="sim-chart-wrap">
@@ -194,10 +255,22 @@ export default function SimRentabiliteLocative() {
             </div>
           )}
 
-          <div className="sim-info-box">
-            <p className="sim-info-title">⚠️ Attention : la fiscalité change tout</p>
-            <p className="sim-info-body">Ce calcul n'intègre pas la fiscalité sur les loyers (IR + prélèvements sociaux 17,2 %). En régime réel, les charges déductibles réduisent l'imposition. En micro-foncier, l'abattement forfaitaire est de 30 %.</p>
-          </div>
+          {v.tmi > 0 ? (
+            <div className="sim-info-box">
+              <p className="sim-info-title">📊 Détail fiscal ({v.regimeFiscal === "micro-foncier" ? "Micro-foncier" : "Régime réel"})</p>
+              <p className="sim-info-body">
+                Revenus imposables : {fmtCur(res.revenuImposable)}/an
+                {" · "}IR ({v.tmi}%) : {fmtCur(res.impotIR)}
+                {" · "}PS (17,2%) : {fmtCur(res.prelevementsSociaux)}
+                <br/>Cashflow net après impôts : <strong>{fmtCur(res.loyerAnnuelNetNet / 12)}/mois</strong>
+              </p>
+            </div>
+          ) : (
+            <div className="sim-info-box">
+              <p className="sim-info-title">⚠️ Attention : la fiscalité change tout</p>
+              <p className="sim-info-body">Ce calcul n'intègre pas encore la fiscalité. Renseignez votre TMI ci-dessus pour voir le rendement net-net après IR (19 % → 45 %) et prélèvements sociaux (17,2 %).</p>
+            </div>
+          )}
         </div>
       </div>
     </SimLayout>

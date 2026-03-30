@@ -47,6 +47,11 @@ export function computeComparison({
   comparisonYears,
   monthlySavings = 0,
 }) {
+  // Input validation
+  if (!purchasePrice || purchasePrice <= 0) return null;
+  if (!comparisonYears || comparisonYears <= 0) return null;
+  if (!monthlyRent || monthlyRent < 0) return null;
+
   const months = comparisonYears * 12;
   const notaryFees = purchasePrice * (notaryFeesPct / 100);
   const loanAmount = Math.max(0, purchasePrice - downPayment);
@@ -66,7 +71,11 @@ export function computeComparison({
   for (let m = 1; m <= months; m++) {
     const yearIndex = Math.floor((m - 1) / 12);
     const currentRent = monthlyRent * Math.pow(1 + annualRentIncrease / 100, yearIndex);
-    // Extra monthly investment when owner costs exceed rent
+    // Extra monthly investment when owner costs exceed rent.
+    // Assumption: when ownerMonthlyCost < rent (costSurplus negative), the owner has a monthly
+    // advantage but we don't credit the renter's portfolio with that difference — the renter is
+    // assumed to spend (not invest) any surplus rent savings. This slightly favours the buyer
+    // in low-cost-of-ownership scenarios, but is acceptable as a conservative simplification.
     const costSurplus = Math.max(0, ownerMonthlyCost - currentRent);
 
     renterPortfolio =
@@ -78,7 +87,7 @@ export function computeComparison({
       const rem = remainingBalance(loanAmount, mortgageRate, mortgageYears, m);
       yearlyData.push({
         year,
-        ownerNetWorth: propValue - rem - propValue * (saleCostsPct / 100),
+        ownerNetWorth: propValue - rem - propValue * (Math.min(99, saleCostsPct) / 100),
         renterPortfolio,
       });
     }
@@ -88,13 +97,17 @@ export function computeComparison({
   const remaining = remainingBalance(loanAmount, mortgageRate, mortgageYears, monthsPaid);
   const propertyValueAtEnd =
     purchasePrice * Math.pow(1 + appreciationRate / 100, comparisonYears);
-  const saleCosts = propertyValueAtEnd * (saleCostsPct / 100);
+  // Clamp saleCostsPct to avoid division by zero / negative net worth
+  const saleCostsPct_clamped = Math.min(99, saleCostsPct);
+  const saleCosts = propertyValueAtEnd * (saleCostsPct_clamped / 100);
   const ownerNetWorth = propertyValueAtEnd - remaining - saleCosts;
 
   // Minimum property sale price that would make buying equally good as renting
   // ownerNetWorth = renterPortfolio  →  minPropValue - remaining - minPropValue * saleCostsPct/100 = renterPortfolio
-  const minPropertyValue =
-    (renterPortfolio + remaining) / (1 - saleCostsPct / 100);
+  // Guard: if saleCostsPct >= 100, denominator would be <= 0, return null
+  const minPropertyValue = saleCostsPct >= 100
+    ? null
+    : (renterPortfolio + remaining) / (1 - saleCostsPct_clamped / 100);
 
   const advantage = ownerNetWorth - renterPortfolio;
   const isBuyingBetter = advantage >= 0;

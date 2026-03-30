@@ -23,11 +23,14 @@ function calcEmolumentsHT(prix) {
   return Math.max(90, emol); // minimum légal 90 €
 }
 
-function calcFraisNotaire({ prix, type }) {
+function calcFraisNotaire({ prix, type, region, deboursCustom }) {
   const isNeuf = type === "neuf";
 
-  // Droits de mutation (DMTO)
-  const droitsMutation = prix * (isNeuf ? 0.00715 : 0.0581);
+  // Taux droits de mutation selon région
+  const taux_dmto_ancien = region === "idf_plein" ? 0.0591
+    : region === "reduit" ? 0.0380
+    : 0.0581; // standard
+  const droitsMutation = prix * (isNeuf ? 0.00715 : taux_dmto_ancien);
 
   // Émoluments du notaire (TTC avec TVA 20%)
   const emolumentsHT = calcEmolumentsHT(prix);
@@ -37,12 +40,12 @@ function calcFraisNotaire({ prix, type }) {
   const csi = Math.max(15, prix * 0.001);
 
   // Débours et frais divers (relevés cadastraux, documents d'état civil, etc.)
-  const debours = 1200;
+  const debours = deboursCustom ?? 1200;
 
   const total = droitsMutation + emolumentsTTC + csi + debours;
   const pct = (total / prix) * 100;
 
-  return { droitsMutation, emolumentsHT, emolumentsTTC, csi, debours, total, pct };
+  return { droitsMutation, emolumentsHT, emolumentsTTC, csi, debours, total, pct, taux_dmto: isNeuf ? 0.00715 : taux_dmto_ancien };
 }
 
 const COULEURS = ["#1a56db", "#0d9488", "#d97706", "#94a3b8"];
@@ -61,7 +64,7 @@ function ChartTooltip({ active, payload }) {
 }
 
 export default function SimFraisNotaire() {
-  const [v, setV] = useState({ prix: 250000, type: "ancien" });
+  const [v, setV] = useState({ prix: 250000, type: "ancien", region: "standard", deboursCustom: 1200 });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
   const res = useMemo(() => calcFraisNotaire(v), [v]);
@@ -83,7 +86,7 @@ export default function SimFraisNotaire() {
       pct: (res.droitsMutation / res.total) * 100,
       color: "#1a56db",
       explain: v.type === "ancien"
-        ? "5,81 % du prix — principal poste des frais. Perçu par le Département et la Commune."
+        ? `${(res.taux_dmto * 100).toFixed(2)} % du prix — principal poste des frais. Perçu par le Département (4,50 %) et la Commune (1,20 % maximum).`
         : "0,715 % seulement pour un bien neuf en VEFA — c'est l'un des avantages du neuf.",
     },
     {
@@ -140,6 +143,39 @@ export default function SimFraisNotaire() {
                 ? "Bien existant construit depuis + de 5 ans — droits de mutation élevés (5,81 %)"
                 : "Construction neuve ou VEFA — droits de mutation réduits (0,715 %)"}
             </p>
+          </div>
+
+          {v.type === "ancien" && (
+            <div style={{ marginTop: 16 }}>
+              <label className="field-label">Taux de droits de mutation</label>
+              <div className="loan-type-grid" style={{ marginTop: 8, gridTemplateColumns: "repeat(3, 1fr)" }}>
+                <button type="button" className={`loan-type-btn${v.region === "standard" ? " loan-type-active" : ""}`}
+                  onClick={() => set("region")("standard")} style={{ flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontWeight: 700 }}>5,81 %</span>
+                  <span style={{ fontSize: 11 }}>Majorité</span>
+                </button>
+                <button type="button" className={`loan-type-btn${v.region === "idf_plein" ? " loan-type-active" : ""}`}
+                  onClick={() => set("region")("idf_plein")} style={{ flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontWeight: 700 }}>5,91 %</span>
+                  <span style={{ fontSize: 11 }}>Certaines villes</span>
+                </button>
+                <button type="button" className={`loan-type-btn${v.region === "reduit" ? " loan-type-active" : ""}`}
+                  onClick={() => set("region")("reduit")} style={{ flexDirection: "column", gap: 2 }}>
+                  <span style={{ fontWeight: 700 }}>3,80 %</span>
+                  <span style={{ fontSize: 11 }}>Indre (36)</span>
+                </button>
+              </div>
+              <p className="field-hint" style={{ marginTop: 6 }}>
+                {v.region === "standard" ? "Taux standard appliqué dans la grande majorité des départements français."
+                  : v.region === "idf_plein" ? "Certaines communes ont voté la majoration communale de 0,1 % (applicable surtout en Île-de-France)."
+                  : "L'Indre (36) et Mayotte maintiennent un taux réduit de 3,80 %."}
+              </p>
+            </div>
+          )}
+
+          <div style={{ marginTop: 16 }}>
+            <Field label="Débours estimés" value={v.deboursCustom} onChange={set("deboursCustom")} suffix="€"
+              hint="Frais avancés par le notaire (cadastre, état civil, docs). Généralement 800–1 400 €." tooltip="Les débours couvrent les frais que le notaire avance pour votre compte : extraits cadastraux, état civil, relevés hypothécaires, documents d'urbanisme. Varie entre 800 et 1 400 €." />
           </div>
 
           <div className="sim-info-box" style={{ marginTop: 20 }}>

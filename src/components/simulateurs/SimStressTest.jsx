@@ -254,6 +254,36 @@ export default function SimStressTest() {
                   </p>
                 </ScenarioCard>
               </div>
+
+              {/* Combined scenario */}
+              <div className="stress-combined-box">
+                <p className="stress-combined-title">☠️ Scénario combiné — tout se passe mal en même temps</p>
+                <div className="stress-combined-grid">
+                  <div className="stress-combined-item">
+                    <span>Mensualité après hausse taux</span>
+                    <strong style={{ color: "#dc2626" }}>{fmtCur(res.mensHausse)}/mois</strong>
+                  </div>
+                  <div className="stress-combined-item">
+                    <span>Revenus réduits ({baisseRevenu} %)</span>
+                    <strong style={{ color: "#7c3aed" }}>{fmtCur(res.nouveauxRevenus)}/mois</strong>
+                  </div>
+                  <div className="stress-combined-item">
+                    <span>Taux d'endettement</span>
+                    <strong style={{ color: res.nouveauxRevenus > 0 ? (res.mensHausse / res.nouveauxRevenus > 0.5 ? "#dc2626" : "#d97706") : "#dc2626" }}>
+                      {res.nouveauxRevenus > 0 ? ((res.mensHausse / res.nouveauxRevenus) * 100).toFixed(1) : "∞"} %
+                    </strong>
+                  </div>
+                  <div className="stress-combined-item">
+                    <span>Mois de réserve restants</span>
+                    <strong style={{ color: res.moisCouvert < 3 ? "#dc2626" : "#059669" }}>
+                      {res.moisCouvert.toFixed(1)} mois
+                    </strong>
+                  </div>
+                </div>
+                {res.nouveauxRevenus > 0 && res.mensHausse / res.nouveauxRevenus > 0.5 && (
+                  <p className="stress-combined-warn">⚠️ En combinant hausse des taux et perte de revenus, votre taux d'endettement dépasserait 50 % — situation critique. Une réserve d'urgence solide et une assurance perte d'emploi sont indispensables.</p>
+                )}
+              </div>
             </>
           )}
         </div>

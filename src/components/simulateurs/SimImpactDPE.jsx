@@ -62,7 +62,7 @@ export default function SimImpactDPE() {
     const prixApresReno = prixAchat - decoteCible + valorisationGagnee * 0.5; // 50% valorisation se reporte
 
     // Coût travaux
-    const cle = DPE_LABELS.indexOf(dpeActuel) < DPE_LABELS.indexOf(dpeCible)
+    const cle = DPE_LABELS.indexOf(dpeActuel) > DPE_LABELS.indexOf(dpeCible)
       ? `${dpeActuel}→${dpeCible}` : null;
     const coutM2 = cle && COUTS_RENO[cle] ? COUTS_RENO[cle] : 0;
     const coutBrut = coutM2 * superficie;

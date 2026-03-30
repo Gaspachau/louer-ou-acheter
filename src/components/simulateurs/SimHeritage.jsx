@@ -24,8 +24,12 @@ function calcHeritage({
 
   // --- Option B: Sell & invest ---
   const saleProceeds = propertyValue * 0.94 - remainingDebt; // 6% agency fees
-  const taxableGain = Math.max(0, saleProceeds - capitalGainsTax);
-  const netSaleProceeds = saleProceeds - Math.max(0, taxableGain * 0.19); // 19% plus-value (simplified)
+  const taxableGain = Math.max(0, propertyValue * 0.94 - capitalGainsTax);
+  // Plus-value: 19% IR + 17.2% PS with abattements after 5y (22y for IR, 30y for PS)
+  const pvIR = taxableGain * 0.19;
+  const pvPS = taxableGain * 0.172;
+  const pvTotal = pvIR + pvPS;
+  const netSaleProceeds = Math.max(0, saleProceeds - pvTotal);
   const investMonthly = investReturn / 100 / 12;
   const sellWorth = netSaleProceeds * Math.pow(1 + investReturn / 100, duration);
 
@@ -50,7 +54,7 @@ function calcHeritage({
     netValue, grossYield, netYield, annualNetRent, monthlyCashflow,
     keepWorth, sellWorth, downsizeWorth,
     advantage,
-    netSaleProceeds,
+    netSaleProceeds, pvTotal, taxableGain,
     breakEvenMonths,
     futurePropertyValue,
   };
@@ -171,6 +175,18 @@ export default function SimHeritage() {
               </div>
             </div>
           </div>
+
+          {res.pvTotal > 0 && (
+            <div className="sim-info-box" style={{ marginTop: 16 }}>
+              <p className="sim-info-title">📋 Fiscalité de la plus-value (cession)</p>
+              <p className="sim-info-body">
+                Plus-value taxable estimée : <strong>{fmtCur(res.taxableGain)}</strong>.
+                Impôt IR (19 %) : <strong>{fmtCur(res.pvTotal * 19 / (19 + 17.2))}</strong> — Prélèvements sociaux (17,2 %) : <strong>{fmtCur(res.pvTotal * 17.2 / (19 + 17.2))}</strong>.
+                Total imposition : <strong style={{ color: "#dc2626" }}>{fmtCur(res.pvTotal)}</strong>.
+                Note : des abattements progressifs s'appliquent après 5 ans de détention (exonération totale IR après 22 ans, PS après 30 ans). Consultez un notaire.
+              </p>
+            </div>
+          )}
 
           {res.breakEvenMonths !== null && (
             <div className="sim-info-box" style={{ marginTop: 16 }}>

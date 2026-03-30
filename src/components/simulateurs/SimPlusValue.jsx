@@ -273,6 +273,46 @@ export default function SimPlusValue() {
                 </div>
               )}
 
+              {/* Table comparative abattements */}
+              {!res?.exonere && res?.pvBrute > 0 && (
+                <div style={{ marginTop: 16 }}>
+                  <p className="sim-bar-label" style={{ marginBottom: 10 }}>Simulation si vous revendiez à différentes dates</p>
+                  <div className="abat-table-wrap">
+                    <table className="abat-table">
+                      <thead>
+                        <tr>
+                          <th>Années</th>
+                          <th>Abatt. IR</th>
+                          <th>Abatt. PS</th>
+                          <th>Impôt total</th>
+                          <th>PV nette</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {[5, 8, 10, 15, 20, 22, 25, 30].map((yr) => {
+                          const abIR2 = abattementIR(yr);
+                          const abPS2 = abattementPS(yr);
+                          const pvApresAbIR2 = res.pvBrute * (1 - abIR2 / 100);
+                          const pvApresAbPS2 = res.pvBrute * (1 - abPS2 / 100);
+                          const imp2 = pvApresAbIR2 * 0.19 + pvApresAbPS2 * 0.172;
+                          const pvN2 = res.pvBrute - imp2;
+                          const isActive = yr === v.annees;
+                          return (
+                            <tr key={yr} className={isActive ? "abat-row-active" : ""}>
+                              <td style={{ fontWeight: isActive ? 700 : 400 }}>{yr} ans{isActive ? " ←" : ""}</td>
+                              <td>{abIR2.toFixed(0)} %</td>
+                              <td>{abPS2.toFixed(1)} %</td>
+                              <td style={{ color: "#dc2626" }}>{fmtCur(Math.round(imp2))}</td>
+                              <td style={{ color: "#059669", fontWeight: isActive ? 700 : 400 }}>{fmtCur(Math.round(pvN2))}</td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
               <div className="sim-info-box">
                 <p className="sim-info-title">📌 Rappel important</p>
                 <p className="sim-info-body">Ce calcul est une estimation. La plus-value réelle peut différer selon les frais déductibles, les travaux justifiés et les abattements spéciaux. Un notaire ou conseiller fiscal calculera le montant exact lors de la vente.</p>

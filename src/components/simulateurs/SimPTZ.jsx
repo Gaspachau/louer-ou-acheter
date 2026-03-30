@@ -186,6 +186,30 @@ export default function SimPTZ() {
                 <div className="ptz-cond-row"><span>Résidence</span><strong>Principale uniquement</strong></div>
               </div>
 
+              <div className="ptz-schedule-box">
+                <p className="ptz-conditions-title">Remboursement estimé du PTZ</p>
+                <div className="ptz-cond-row">
+                  <span>Capital PTZ</span>
+                  <strong>{fmtCur(res.montantPTZ)}</strong>
+                </div>
+                <div className="ptz-cond-row">
+                  <span>Différé (pas de remboursement)</span>
+                  <strong>{res.differePTZ} ans</strong>
+                </div>
+                <div className="ptz-cond-row">
+                  <span>Durée de remboursement effective</span>
+                  <strong>{res.dureePTZ - res.differePTZ} ans</strong>
+                </div>
+                <div className="ptz-cond-row">
+                  <span>Mensualité PTZ après différé</span>
+                  <strong style={{ color: "#1a56db" }}>{fmtCur(res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
+                </div>
+                <div className="ptz-cond-row" style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 4 }}>
+                  <span>Mensualité totale (crédit + PTZ)</span>
+                  <strong style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ + res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
+                </div>
+              </div>
+
               <p className="sim-detail-note">
                 Simulation indicative — les montants définitifs dépendent de l'établissement prêteur et de votre avis d'imposition. Consultez un courtier pour une offre ferme.
               </p>

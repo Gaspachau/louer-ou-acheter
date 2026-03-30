@@ -6850,3 +6850,268 @@ html, body { overflow-x: hidden; max-width: 100vw; }
   .live-stats-grid { grid-template-columns: 1fr 1fr; }
   .funnel-fields-col { padding: 20px 16px; }
 }
+
+/* ─── Accessibility: focus-visible ──────────────────────── */
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 2px;
+  border-color: var(--blue) !important;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--blue);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ─── Accessibility: touch targets ──────────────────────── */
+button,
+[role="button"],
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: 44px;
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+  min-width: 20px;
+  min-height: 20px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+}
+
+/* ─── SimPretImmo: comparison cards ─────────────────────── */
+.pret-compare-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+.pret-compare-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 12px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  text-align: center;
+  position: relative;
+}
+.pret-compare-active {
+  border-color: var(--blue);
+  background: #eff6ff;
+}
+.pret-compare-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+}
+.pret-compare-mens {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text);
+}
+.pret-compare-badge {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--blue);
+  background: rgba(26,86,219,.1);
+  border-radius: 999px;
+  padding: 2px 6px;
+  align-self: center;
+  margin-top: 2px;
+}
+.pret-compare-int {
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ─── SimRentabiliteLocative: fiscal ────────────────────── */
+.sim-stat-card-red-text {
+  color: #dc2626;
+}
+
+@media (max-width: 640px) {
+  .pret-compare-grid { grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .pret-compare-card { padding: 10px 8px; }
+  .pret-compare-mens { font-size: 14px; }
+}
+
+/* ─── SimulateurHub: guide CTA ──────────────────────────── */
+.shub-guide-cta {
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border: 1.5px solid #bfdbfe;
+  border-radius: 20px;
+  padding: 28px 32px;
+  margin-bottom: 32px;
+}
+.shub-guide-cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+.shub-guide-cta-kicker {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--blue);
+  margin: 0 0 6px;
+}
+.shub-guide-cta-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+  line-height: 1.3;
+}
+.shub-guide-cta-desc {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0;
+  max-width: 480px;
+}
+.shub-guide-cta-btn {
+  background: var(--blue);
+  color: white;
+  border-radius: 12px;
+  padding: 14px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background .15s, transform .1s;
+  flex-shrink: 0;
+}
+.shub-guide-cta-btn:hover { background: #1644c0; transform: translateY(-1px); }
+
+@media (max-width: 640px) {
+  .shub-guide-cta { padding: 20px 16px; }
+  .shub-guide-cta-title { font-size: 17px; }
+  .shub-guide-cta-btn { width: 100%; text-align: center; }
+}
+
+/* ─── SimPlusValue: abattement table ────────────────────── */
+.abat-table-wrap {
+  overflow-x: auto;
+  border-radius: 10px;
+  border: 1px solid var(--line);
+}
+.abat-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.abat-table th {
+  background: var(--bg-alt);
+  padding: 8px 10px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  color: var(--muted);
+  border-bottom: 1px solid var(--line);
+}
+.abat-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text);
+}
+.abat-table tr:last-child td { border-bottom: none; }
+.abat-table .abat-row-active { background: #eff6ff; font-weight: 600; }
+
+/* SimScoreAcheteur — action plan */
+.score-action-row { margin-bottom: 8px; }
+.score-action-dim { font-weight: 700; font-size: 13px; color: var(--fg); }
+.score-action-tip { font-size: 12px; color: var(--muted); margin: 2px 0 0; }
+
+/* SimStressTest — combined scenario */
+.stress-combined-box {
+  background: #1e1e2e;
+  border: 1.5px solid #ef4444;
+  border-radius: 12px;
+  padding: 16px;
+  margin-top: 8px;
+}
+.stress-combined-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: #ef4444;
+  margin: 0 0 12px;
+}
+.stress-combined-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+.stress-combined-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  color: #94a3b8;
+}
+.stress-combined-item strong { font-size: 14px; }
+.stress-combined-warn {
+  font-size: 12px;
+  color: #fca5a5;
+  margin: 12px 0 0;
+  padding-top: 10px;
+  border-top: 1px solid #ef444444;
+}
+
+/* SimPTZ — schedule box */
+.ptz-schedule-box {
+  background: var(--bg-card);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+  margin-top: 12px;
+}
+
+/* StepResult — hypothèses table */
+.hypo-table-wrap {
+  margin-top: 20px;
+  padding: 0 4px;
+}
+.hypo-table-title {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--fg, #0c1a35);
+  margin: 0 0 10px;
+}
+.hypo-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+.hypo-table th {
+  text-align: left;
+  padding: 6px 10px;
+  background: var(--bg, #f5f7fb);
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  border-bottom: 1px solid var(--line);
+}
+.hypo-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text, #0c1a35);
+}
+.hypo-table td:first-child { color: var(--muted); }
+.hypo-table td:nth-child(2) { font-weight: 600; }
+.hypo-table td:last-child { color: var(--muted); font-size: 11px; }
+.hypo-table tr:last-child td { border-bottom: none; }

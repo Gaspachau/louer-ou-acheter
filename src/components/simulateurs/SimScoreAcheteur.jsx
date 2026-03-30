@@ -255,6 +255,23 @@ export default function SimScoreAcheteur() {
                 })}
               </div>
 
+              {/* Action plan — top 2 weakest dimensions */}
+              {(() => {
+                const sorted = Object.entries(res.scores).sort((a, b) => a[1] - b[1]).slice(0, 2).filter(([, s]) => s < 80);
+                if (sorted.length === 0) return null;
+                return (
+                  <div className="sim-info-box" style={{ marginTop: 16 }}>
+                    <p className="sim-info-title">🎯 Plan d'action prioritaire</p>
+                    {sorted.map(([dim, score]) => (
+                      <div key={dim} className="score-action-row">
+                        <span className="score-action-dim">{dim} — {score}/100</span>
+                        <p className="score-action-tip">{DIM_ACTIONS[dim]?.low}</p>
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
+
               {/* Quick stats */}
               <div className="sim-stats-grid" style={{ marginTop: 16 }}>
                 <div className="sim-stat-card">

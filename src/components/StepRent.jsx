@@ -43,7 +43,7 @@ export default function StepRent({ values, set, onNext, city }) {
   const gain10k = Math.round(10000 * Math.pow(1 + values.investmentReturn / 100, 10));
 
   // Equivalent loan capacity from rent
-  const loanR = 3.5 / 100 / 12;
+  const loanR = (values.mortgageRate || 3.5) / 100 / 12;
   const loanN = mortgageYears * 12;
   const equiv = values.monthlyRent >= 300
     ? Math.round(values.monthlyRent * ((Math.pow(1 + loanR, loanN) - 1) / (loanR * Math.pow(1 + loanR, loanN))))

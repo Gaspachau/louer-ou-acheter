@@ -136,6 +136,21 @@ export default function SimNiveauDeVie() {
               </div>
             </div>
           </div>
+
+          {(() => {
+            const maxMens = v.salaire * 0.35;
+            const capitalCapacity = maxMens * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12);
+            return (
+              <div className="sim-info-box" style={{ marginTop: 16 }}>
+                <p className="sim-info-title">🏠 Capacité d'achat indicative</p>
+                <p className="sim-info-body">
+                  À 35 % de vos revenus, votre mensualité max est de <strong>{formatCurrency(Math.round(maxMens))}/mois</strong>.
+                  Cela correspond à une capacité d'emprunt d'environ <strong>{formatCurrency(Math.round(capitalCapacity))}</strong> sur 20 ans à 3,5 %.
+                  {res.tauxCharges > 65 ? " ⚠️ Votre taux de charges actuel est élevé — réduire certains postes améliorera votre dossier bancaire." : ""}
+                </p>
+              </div>
+            );
+          })()}
         </div>
       </div>
     </SimLayout>

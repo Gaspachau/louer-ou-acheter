@@ -139,6 +139,20 @@ export default function SimPretConso() {
                 </div>
               )}
 
+              {res.monthly > 0 && (
+                <div className="sim-info-box">
+                  <p className="sim-info-title">🏠 Impact sur votre capacité d'achat immobilier</p>
+                  <p className="sim-info-body">
+                    Cette mensualité de <strong>{formatCurrency(res.monthly)}/mois</strong> sera comptabilisée dans votre taux d'endettement.
+                    Pour un revenu de 3 000 €/mois (exemple), elle réduit votre capacité d'emprunt immobilier de{" "}
+                    <strong>
+                      {formatCurrency(Math.round(res.monthly * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12)))}
+                    </strong>{" "}
+                    sur 20 ans à 3,5 %. Remboursez vos crédits conso avant de demander un prêt immo.
+                  </p>
+                </div>
+              )}
+
               <div className="sim-chart-wrap">
                 <p className="sim-chart-title">Décomposition du remboursement total</p>
                 <ResponsiveContainer width="100%" height={110}>

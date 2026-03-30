@@ -438,6 +438,32 @@ export default function StepResult({ result, values, onEdit }) {
               </p>
             </div>
           </div>
+
+          {/* Hypothèses utilisées */}
+          <div className="hypo-table-wrap">
+            <p className="hypo-table-title">📋 Hypothèses utilisées dans cette simulation</p>
+            <table className="hypo-table">
+              <thead>
+                <tr>
+                  <th>Paramètre</th>
+                  <th>Valeur saisie</th>
+                  <th>Référence France 2026</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>Prix d'achat</td><td>{formatCurrency(values.purchasePrice)}</td><td>Médiane ~250 000 €</td></tr>
+                <tr><td>Apport personnel</td><td>{formatCurrency(values.downPayment)} ({((values.downPayment / values.purchasePrice) * 100).toFixed(0)} %)</td><td>Recommandé ≥ 10 %</td></tr>
+                <tr><td>Frais de notaire</td><td>{formatCurrency(notaryFees)} (~8 %)</td><td>7–8 % dans l'ancien</td></tr>
+                <tr><td>Taux crédit</td><td>{values.mortgageRate} %</td><td>3,3–3,7 % sur 20 ans</td></tr>
+                <tr><td>Durée du prêt</td><td>{values.mortgageYears} ans</td><td>Max 25 ans (HCSF)</td></tr>
+                <tr><td>Loyer mensuel</td><td>{formatCurrency(values.monthlyRent)}</td><td>Médiane ~700 €/mois</td></tr>
+                <tr><td>Hausse des loyers</td><td>{values.annualRentIncrease} %/an</td><td>IRL ~1,5–2 %/an</td></tr>
+                <tr><td>Appréciation immo</td><td>{values.appreciationRate} %/an</td><td>~1,5–2 %/an (historique)</td></tr>
+                <tr><td>Rendement placement</td><td>{values.investmentReturn} %/an</td><td>Livret A 1,5 % · ETF ~7 %</td></tr>
+                <tr><td>Horizon de comparaison</td><td>{values.comparisonYears} ans</td><td>—</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
