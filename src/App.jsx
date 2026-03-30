@@ -3,16 +3,17 @@ import { Fragment, lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Routes, Route, useNavigate, useSearchParams } from "react-router-dom";
 import ScrollToTop from "./components/ScrollToTop";
 import CookieBanner from "./components/CookieBanner";
-import { initAnalytics } from "./utils/analytics";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
 import StepLanding from "./components/StepLanding";
-import StepProfile from "./components/StepProfile";
-import StepRent from "./components/StepRent";
-import StepBuy from "./components/StepBuy";
-import StepResult from "./components/StepResult";
 import { computeComparison } from "./utils/finance";
 import { getDefaultsForCity } from "./data/cityData";
+
+// Funnel steps beyond step 0 are lazy-loaded — only StepLanding is needed for initial render
+const StepProfile = lazy(() => import("./components/StepProfile"));
+const StepRent    = lazy(() => import("./components/StepRent"));
+const StepBuy     = lazy(() => import("./components/StepBuy"));
+const StepResult  = lazy(() => import("./components/StepResult"));
 const PageVille = lazy(() => import("./components/PageVille"));
 
 const BlogList = lazy(() => import("./components/BlogList"));
@@ -174,10 +175,12 @@ function Simulator() {
       )}
       <main id="main-content">
         {step === 0 && <StepLanding onStart={() => setStep(1)} onPreset={applyPreset} city={values.city} />}
-        {step === 1 && <StepProfile values={values} set={set} onNext={() => setStep(2)} applyCity={applyCity} />}
-        {step === 2 && <StepRent values={values} set={set} onNext={() => setStep(3)} city={values.city} />}
-        {step === 3 && <StepBuy values={values} set={set} onNext={() => setStep(4)} onBack={() => navigate(-1)} city={values.city} />}
-        {step === 4 && <StepResult result={result} values={values} onEdit={() => setStep(2)} />}
+        <Suspense fallback={<PageLoader />}>
+          {step === 1 && <StepProfile values={values} set={set} onNext={() => setStep(2)} applyCity={applyCity} />}
+          {step === 2 && <StepRent values={values} set={set} onNext={() => setStep(3)} city={values.city} />}
+          {step === 3 && <StepBuy values={values} set={set} onNext={() => setStep(4)} onBack={() => navigate(-1)} city={values.city} />}
+          {step === 4 && <StepResult result={result} values={values} onEdit={() => setStep(2)} />}
+        </Suspense>
       </main>
       {step === 0 && <Footer />}
     </div>
@@ -186,10 +189,15 @@ function Simulator() {
 
 export default function App() {
   useEffect(() => {
-    // Re-init analytics if consent updates during the session
-    const handler = () => initAnalytics();
-    window.addEventListener("consent_updated", handler);
-    return () => window.removeEventListener("consent_updated", handler);
+    // Defer analytics init — load posthog chunk only after first render
+    let cleanup;
+    import("./utils/analytics").then(({ initAnalytics }) => {
+      initAnalytics();
+      const handler = () => initAnalytics();
+      window.addEventListener("consent_updated", handler);
+      cleanup = () => window.removeEventListener("consent_updated", handler);
+    });
+    return () => cleanup?.();
   }, []);
 
   return (

@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 const GRADIENTS = {
   "tag-blue":   "linear-gradient(135deg,#1a56db,#0ea5e9)",
@@ -74,6 +75,7 @@ function ArticleCover({ tagClass }) {
 const ALL_TAGS = [...new Set(ARTICLES.map((a) => a.tag))];
 
 export default function BlogList() {
+  useSEO({ title: "Blog Immobilier 2026 — Conseils, Guides & Analyses", description: "Nos articles pour tout comprendre avant d'acheter : taux, PTZ, villes rentables, apport, négociation et stratégies locatives.", path: "/blog" });
   const [activeTag, setActiveTag] = useState(null);
   const [featured, ...rest] = ARTICLES;
   const filteredRest = activeTag ? rest.filter((a) => a.tag === activeTag) : rest;

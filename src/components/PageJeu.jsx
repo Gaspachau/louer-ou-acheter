@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 import { computeComparison } from "../utils/finance";
+import { useSEO } from "../utils/useSEO";
 
 const SCENARIOS = [
   {
@@ -146,6 +147,7 @@ function getGrade(pct) {
 const fmt = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
 
 export default function PageJeu() {
+  useSEO({ title: "ImmoMaestro — Le Jeu Immobilier — Testez vos Connaissances", description: "Saurez-vous dire s'il vaut mieux louer ou acheter ? 10 scénarios réels, 3 niveaux, bonus de vitesse. Devenez Gourou de l'Immobilier !", path: "/jeu" });
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState("intro"); // 'intro' | 'guess' | 'reveal' | 'done'
   const [answers, setAnswers] = useState([]);

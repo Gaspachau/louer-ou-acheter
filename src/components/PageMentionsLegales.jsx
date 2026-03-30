@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 function MlTable({ rows, headers }) {
   return (
@@ -44,6 +45,7 @@ function MlSubtitle({ children }) {
 }
 
 export default function PageMentionsLegales() {
+  useSEO({ title: "Mentions légales — louer-acheter.fr", description: "Mentions légales et informations sur l'éditeur du site louer-acheter.fr.", path: "/mentions-legales", robots: "noindex, follow" });
   return (
     <div className="page">
       <TopBar />

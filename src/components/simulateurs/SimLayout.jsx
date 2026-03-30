@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import TopBar from "../TopBar";
 import Footer from "../Footer";
 import SaveSimulation from "../SaveSimulation";
 import { trackSimulatorOpened, trackSimulatorClosed } from "../../utils/analytics";
+import { useSEO } from "../../utils/useSEO";
 
 const CONSEILS_GENERAUX = [
   "Le taux d'endettement ne doit pas dépasser 35 % de vos revenus nets (règle HCSF 2022).",
@@ -71,6 +72,14 @@ function ShareButton() {
 export default function SimLayout({ children, title, description, icon, backLabel = "← Tous les simulateurs", conseils, saveValues, onRestore }) {
   const conseil = getConseil(conseils);
   const openedAt = useRef(Date.now());
+  const location = useLocation();
+
+  useSEO({
+    title,
+    description,
+    path: location.pathname,
+  });
+
   useEffect(() => {
     trackSimulatorOpened(title, window.location.pathname);
     openedAt.current = Date.now();

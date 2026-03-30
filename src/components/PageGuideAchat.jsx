@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 const STEPS = [
   {
@@ -170,6 +171,7 @@ const TAG_COLORS = {
 };
 
 export default function PageGuideAchat() {
+  useSEO({ title: "Guide Complet pour Acheter en 2026 — Étapes, Pièges et Conseils", description: "Tout ce qu'il faut savoir avant d'acheter : apport, taux, frais de notaire, PTZ, négociation. Le guide étape par étape pour réussir votre premier achat immobilier.", path: "/guide-achat" });
   return (
     <div className="page">
       <TopBar />

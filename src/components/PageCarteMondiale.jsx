@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useSEO } from "../utils/useSEO";
 import { geoNaturalEarth1, geoPath } from "d3-geo";
 import { feature } from "topojson-client";
 import { select } from "d3-selection";
@@ -203,6 +204,7 @@ function MapPaths({ features, hoveredId, selected, onEnter, onLeave, onMove, onC
 
 /* ─── Main page ───────────────────────────────────────────── */
 export default function PageCarteMondiale() {
+  useSEO({ title: "Carte Mondiale Immobilier — Comparez les Prix dans le Monde", description: "Explorez les prix de l'immobilier dans le monde entier sur une carte interactive. Comparez le coût de la vie et les marchés immobiliers pays par pays.", path: "/carte-mondiale" });
   const [features, setFeatures]   = useState([]);
   const [tooltip,  setTooltip]    = useState({ visible: false, data: null, x: 0, y: 0 });
   const [selected, setSelected]   = useState(null);

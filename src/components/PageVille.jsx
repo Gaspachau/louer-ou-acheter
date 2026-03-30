@@ -4,6 +4,7 @@ import TopBar from "./TopBar";
 import Footer from "./Footer";
 import { CITIES, CITY_LIST } from "../data/cityData";
 import { computeComparison } from "../utils/finance";
+import { useSEO } from "../utils/useSEO";
 
 const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
 
@@ -164,6 +165,12 @@ const SIM_LINKS = [
 export default function PageVille() {
   const { cityId } = useParams();
   const city = CITIES[cityId];
+
+  useSEO({
+    title: city ? `Louer ou Acheter à ${city.name} en 2026 — Prix, Loyers, Analyse` : "Ville introuvable",
+    description: city ? `Louer ou acheter à ${city.name} ? Prix au m² ${city.pricePerM2.toLocaleString("fr-FR")} €, loyer médian ${city.rentT2} €/mois. Analyse complète du marché immobilier 2026.` : undefined,
+    path: city ? `/villes/${cityId}` : "/simulateurs",
+  });
 
   if (!city) return <Navigate to="/simulateurs" replace />;
 

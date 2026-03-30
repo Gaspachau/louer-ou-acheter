@@ -4,6 +4,8 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   build: {
+    cssMinify: true,
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -20,5 +22,6 @@ export default defineConfig({
       },
     },
     chunkSizeWarningLimit: 600,
+    reportCompressedSize: false,
   },
 })

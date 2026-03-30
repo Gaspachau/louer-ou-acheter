@@ -1,21 +1,30 @@
 // ─── PostHog analytics — consent-gated ───────────────────────
 // Set VITE_POSTHOG_KEY in your .env or Vercel env vars
-import posthog from "posthog-js";
+// posthog is loaded dynamically (on demand) to avoid blocking initial render
 
 const PH_KEY = import.meta.env.VITE_POSTHOG_KEY;
 const PH_HOST = import.meta.env.VITE_POSTHOG_HOST || "https://eu.i.posthog.com";
 
+let _posthog = null;
 let _initialized = false;
 
 function isAnalyticsAllowed() {
   return localStorage.getItem("cookie_analytics_v1") === "true";
 }
 
-export function initAnalytics() {
+async function loadPosthog() {
+  if (_posthog) return _posthog;
+  const mod = await import("posthog-js");
+  _posthog = mod.default;
+  return _posthog;
+}
+
+export async function initAnalytics() {
   if (!PH_KEY || PH_KEY === "phc_REPLACE_ME") return;
   if (_initialized) return;
   if (!isAnalyticsAllowed()) return;
 
+  const posthog = await loadPosthog();
   posthog.init(PH_KEY, {
     api_host: PH_HOST,
     capture_pageview: true,
@@ -33,8 +42,8 @@ export function initAnalytics() {
 }
 
 export function shutdownAnalytics() {
-  if (_initialized) {
-    posthog.opt_out_capturing();
+  if (_initialized && _posthog) {
+    _posthog.opt_out_capturing();
     _initialized = false;
   }
 }
@@ -42,9 +51,13 @@ export function shutdownAnalytics() {
 // ─── Core tracking helper ─────────────────────────────────────
 export function track(event, props = {}) {
   if (!isAnalyticsAllowed()) return;
-  if (!_initialized) initAnalytics();
-  if (!_initialized) return; // no key configured
-  posthog.capture(event, sanitize(props));
+  if (!_initialized) {
+    initAnalytics().then(() => {
+      if (_initialized && _posthog) _posthog.capture(event, sanitize(props));
+    });
+    return;
+  }
+  if (_posthog) _posthog.capture(event, sanitize(props));
 }
 
 // ─── Specific event helpers ───────────────────────────────────

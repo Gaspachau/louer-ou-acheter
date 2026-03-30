@@ -1,24 +1,19 @@
-import { useEffect } from "react";
 import { Link, useParams } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
 import ReadingProgress from "./ReadingProgress";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 export default function BlogArticle() {
   const { slug } = useParams();
   const article = ARTICLES.find((a) => a.slug === slug);
 
-  useEffect(() => {
-    if (!article) return;
-    document.title = `${article.title} — Louer ou Acheter`;
-    const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute("content", article.description);
-    return () => {
-      document.title = "Louer ou Acheter — Simulateur immobilier gratuit";
-      if (meta) meta.setAttribute("content", "Comparez louer et acheter en 2 minutes. Simulation chiffrée : mensualité, patrimoine, point d'équilibre. Gratuit, sans inscription.");
-    };
-  }, [article]);
+  useSEO({
+    title: article ? article.title : "Article introuvable",
+    description: article?.description,
+    path: article ? `/blog/${article.slug}` : "/blog",
+  });
 
   if (!article) {
     return (

@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 const SOURCES = [
   {
@@ -87,6 +88,7 @@ const VALUES = [
 ];
 
 export default function PageAPropos() {
+  useSEO({ title: "À propos — louer-acheter.fr", description: "Qui sommes-nous ? Découvrez la mission et les valeurs de louer-acheter.fr, plateforme de simulateurs immobiliers gratuits pour aider les Français à décider entre louer et acheter.", path: "/a-propos" });
   return (
     <div className="page">
       <TopBar />

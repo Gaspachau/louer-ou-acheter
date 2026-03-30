@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 const QUESTIONS = [
   {
@@ -313,6 +314,7 @@ function buildPath(answers) {
 }
 
 export default function PageGuidePersonnalise() {
+  useSEO({ title: "Guide Personnalisé Louer ou Acheter — Votre Décision en 5 Questions", description: "Répondez à 5 questions et obtenez un guide personnalisé : êtes-vous prêt à acheter ? Analyse de votre profil, recommandations concrètes et simulateurs adaptés.", path: "/guide-personnalise" });
   const [answers, setAnswers] = useState({});
   const [currentQ, setCurrentQ] = useState(0);
   const [done, setDone] = useState(false);

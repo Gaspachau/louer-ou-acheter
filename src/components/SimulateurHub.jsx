@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { useSEO } from "../utils/useSEO";
 
 /* ── Thèmes ───────────────────────────────────────────────── */
 const THEMES = [
@@ -333,6 +334,7 @@ function SimCard({ sim, theme }) {
 }
 
 export default function SimulateurHub() {
+  useSEO({ title: "25+ Simulateurs Immobiliers Gratuits — PTZ, Prêt, Notaire, Épargne", description: "Tous nos outils gratuits : calculer un prêt immobilier, estimer les frais de notaire, simuler le PTZ 2026, optimiser son apport, tester sa capacité d'emprunt et bien plus.", path: "/simulateurs" });
   const [activeTheme, setActiveTheme] = useState("acheter");
   const [search, setSearch] = useState("");
   const stat = getStatDuJour();
