@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
 import { ARTICLES } from "../data/articles";
 import TopBar from "./TopBar";
@@ -73,12 +73,24 @@ function ArticleCover({ tagClass }) {
 }
 
 const ALL_TAGS = [...new Set(ARTICLES.map((a) => a.tag))];
+const TOTAL_MIN = ARTICLES.reduce((acc, a) => acc + parseInt(a.readTime), 0);
 
 export default function BlogList() {
   useSEO({ title: "Blog Immobilier 2026 — Conseils, Guides & Analyses", description: "Nos articles pour tout comprendre avant d'acheter : taux, PTZ, villes rentables, apport, négociation et stratégies locatives.", path: "/blog" });
   const [activeTag, setActiveTag] = useState(null);
+  const [search, setSearch] = useState("");
   const [featured, ...rest] = ARTICLES;
-  const filteredRest = activeTag ? rest.filter((a) => a.tag === activeTag) : rest;
+
+  const filteredRest = useMemo(() => {
+    let list = activeTag ? rest.filter((a) => a.tag === activeTag) : rest;
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      list = list.filter(
+        (a) => a.title.toLowerCase().includes(q) || a.intro.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q)
+      );
+    }
+    return list;
+  }, [activeTag, search]);
 
   return (
     <div className="page">
@@ -101,8 +113,8 @@ export default function BlogList() {
             </div>
             <div className="blog-stat-divider" />
             <div className="blog-stat">
-              <span className="blog-stat-num">100%</span>
-              <span className="blog-stat-label">gratuit</span>
+              <span className="blog-stat-num">{TOTAL_MIN} min</span>
+              <span className="blog-stat-label">de lecture</span>
             </div>
             <div className="blog-stat-divider" />
             <div className="blog-stat">
@@ -135,6 +147,16 @@ export default function BlogList() {
         <div className="articles-section">
           <div className="articles-section-header">
             <h2 className="articles-section-title">Tous les articles</h2>
+            <div className="blog-search-wrap">
+              <input
+                type="search"
+                className="blog-search-input"
+                placeholder="Rechercher un article…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                aria-label="Rechercher dans le blog"
+              />
+            </div>
             <div className="hub-filters" role="group" aria-label="Filtrer par thème">
               <button
                 type="button"
@@ -154,6 +176,9 @@ export default function BlogList() {
               ))}
             </div>
           </div>
+          {filteredRest.length === 0 && (
+            <p className="blog-search-empty">Aucun article ne correspond à votre recherche.</p>
+          )}
           <div className="articles-grid">
             {filteredRest.map((article) => (
               <Link key={article.slug} to={`/blog/${article.slug}`} className="article-card" aria-label={article.title}>
