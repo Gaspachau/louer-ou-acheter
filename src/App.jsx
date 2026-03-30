@@ -6,6 +6,7 @@ import CookieBanner from "./components/CookieBanner";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
 import FunnelV2 from "./components/FunnelV2";
+import LandingPage from "./components/LandingPage";
 const PageVille = lazy(() => import("./components/PageVille"));
 
 const BlogList = lazy(() => import("./components/BlogList"));
@@ -53,14 +54,13 @@ function PageLoader() {
 }
 
 
-function Simulator() {
+function SimulatorPage() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" style={{ padding: "16px 0 0" }}>
+      <main id="main-content" style={{ paddingTop: "16px" }}>
         <FunnelV2 />
       </main>
-      <Footer />
     </div>
   );
 }
@@ -84,7 +84,8 @@ export default function App() {
     <ScrollToTop />
     <Suspense fallback={<PageLoader />}>
       <Routes>
-        <Route path="/" element={<Simulator />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/simulateur" element={<SimulatorPage />} />
         <Route path="/simulateurs" element={<SimulateurHub />} />
         <Route path="/simulateurs/epargne" element={<SimEpargne />} />
         <Route path="/simulateurs/pret-immobilier" element={<SimPretImmo />} />

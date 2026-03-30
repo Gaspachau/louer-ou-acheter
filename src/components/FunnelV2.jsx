@@ -131,12 +131,11 @@ function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
         <span className="fv2-slider-label">{label}</span>
         <span className="fv2-slider-val">{format ? format(value) : value}</span>
       </div>
-      <div className="fv2-slider-track-wrap">
+      <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
         <input
           type="range" min={min} max={max} step={step} value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="fv2-slider"
-          style={{ "--pct": `${pct}%` }}
         />
         <div className="fv2-slider-fill" style={{ width: `${pct}%` }} />
       </div>
@@ -353,7 +352,16 @@ const DEFAULTS = {
 export default function FunnelV2() {
   const [step, setStep] = useState(1);
   const [dir, setDir] = useState("forward"); // forward | back
-  const [v, setV] = useState(DEFAULTS);
+  const [v, setV] = useState(() => {
+    try {
+      const preset = sessionStorage.getItem("fv2_preset");
+      if (preset) {
+        sessionStorage.removeItem("fv2_preset");
+        return { ...DEFAULTS, ...JSON.parse(preset) };
+      }
+    } catch {}
+    return DEFAULTS;
+  });
   const [showEmail, setShowEmail] = useState(false);
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
