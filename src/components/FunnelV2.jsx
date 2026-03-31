@@ -855,24 +855,34 @@ function Step6({ v, result, onEdit, onEmail }) {
   const savedRef = useRef(false);
   useEffect(() => {
     const t = setTimeout(() => setChartReady(true), 200);
+
     if (!savedRef.current) {
       savedRef.current = true;
-      saveSimulation({
+
+      const payload = {
         ville: v.city?.name ?? null,
         profil: v.situation ?? null,
-        revenus: v.revenus,
-        apport: v.apport,
-        prix_bien: v.price,
-        duree_pret: v.loanYears,
-        taux: v.rate,
-        loyer: v.rent + (v.charges ?? 0),
+        revenus: v.revenus ?? null,
+        apport: v.apport ?? null,
+        prix_bien: v.price ?? null,
+        duree_pret: v.loanYears ?? null,
+        taux: v.rate ?? null,
+        loyer: (v.rent ?? 0) + (v.charges ?? 0),
         resultat_verdict: result.isBuyBetter ? 'acheter' : 'louer',
-        resultat_patrimoine_achat: Math.round(result.ownerNWEnd),
-        resultat_patrimoine_location: Math.round(result.renterPortfolio),
-        resultat_difference: Math.round(Math.abs(result.advantage)),
+        resultat_patrimoine_achat: result.ownerNWEnd != null ? Math.round(result.ownerNWEnd) : null,
+        resultat_patrimoine_location: result.renterPortfolio != null ? Math.round(result.renterPortfolio) : null,
+        resultat_difference: result.advantage != null ? Math.round(Math.abs(result.advantage)) : null,
         point_equilibre: result.breakEven ?? null,
+      };
+
+      console.log('[FunnelV2] Étape résultat atteinte — envoi vers Supabase :', payload);
+
+      saveSimulation(payload).then((id) => {
+        if (id) console.log('[FunnelV2] Simulation enregistrée avec succès, id :', id);
+        else console.warn('[FunnelV2] saveSimulation a retourné null (vérifier console Supabase ci-dessus)');
       });
     }
+
     return () => clearTimeout(t);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
