@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const fmtCur = (v) =>
@@ -93,130 +94,143 @@ export default function SimImpactDPE() {
       conseils={CONSEILS}
       suggestions={["/simulateurs/rentabilite-locative", "/simulateurs/plus-value", "/simulateurs/pret-immobilier"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Le bien</p>
-          <div className="step-fields">
-            <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat du bien. Sert à calculer la décote liée au DPE et la valorisation après travaux." />
-            <Field label="Superficie" value={superficie} onChange={setSuperficie} suffix="m²" step={5} tooltip="Surface habitable en m². Détermine le volume de consommation énergétique totale." />
+      <SimFunnel
+        steps={[
+          {
+            title: "Le bien",
+            icon: "🏠",
+            content: (
+              <>
+                <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat du bien. Sert à calculer la décote liée au DPE et la valorisation après travaux." />
+                <Field label="Superficie" value={superficie} onChange={setSuperficie} suffix="m²" step={5} tooltip="Surface habitable en m². Détermine le volume de consommation énergétique totale." />
 
-            <div className="field-wrap">
-              <label className="field-label">DPE actuel du bien</label>
-              <div className="dpe-btns">
-                {DPE_LABELS.map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    className={`dpe-btn${dpeActuel === d ? " active" : ""}`}
-                    style={dpeActuel === d ? { background: DPE_DATA[d].color, color: "#fff", borderColor: DPE_DATA[d].color } : {}}
-                    onClick={() => setDpeActuel(d)}
-                  >{d}</button>
-                ))}
+                <div className="field-wrap">
+                  <label className="field-label">DPE actuel du bien</label>
+                  <div className="dpe-btns">
+                    {DPE_LABELS.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        className={`dpe-btn${dpeActuel === d ? " active" : ""}`}
+                        style={dpeActuel === d ? { background: DPE_DATA[d].color, color: "#fff", borderColor: DPE_DATA[d].color } : {}}
+                        onClick={() => setDpeActuel(d)}
+                      >{d}</button>
+                    ))}
+                  </div>
+                  <p className="field-hint">{actuelData.emoji} {actuelData.label}</p>
+                </div>
+              </>
+            ),
+          },
+          {
+            title: "La rénovation",
+            icon: "♻️",
+            content: (
+              <>
+                <div className="field-wrap">
+                  <label className="field-label">DPE cible après rénovation</label>
+                  <div className="dpe-btns">
+                    {DPE_LABELS.map((d) => (
+                      <button
+                        key={d}
+                        type="button"
+                        className={`dpe-btn${dpeCible === d ? " active" : ""}`}
+                        style={dpeCible === d ? { background: DPE_DATA[d].color, color: "#fff", borderColor: DPE_DATA[d].color } : {}}
+                        onClick={() => setDpeCible(d)}
+                      >{d}</button>
+                    ))}
+                  </div>
+                  <p className="field-hint">{cibleData.emoji} {cibleData.label}</p>
+                </div>
+
+                <Field
+                  label="Taux MaPrimeRénov' estimé"
+                  value={maprimeRenov}
+                  onChange={setMaprimeRenov}
+                  suffix="%"
+                  step={5}
+                  min={0}
+                  max={70}
+                  hint="0% = revenus élevés, 70% = revenus très modestes"
+                  tooltip="Aide de l'État pour la rénovation énergétique. Taux : 70 % pour revenus très modestes, 50 % modestes, 35 % intermédiaires, 15 % aisés."
+                />
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res.amelioration ? (
+              <div className="dpe-warning-box">
+                <p>⚠️ Sélectionnez un DPE cible <strong>meilleur</strong> que le DPE actuel pour simuler une rénovation.</p>
               </div>
-              <p className="field-hint">{actuelData.emoji} {actuelData.label}</p>
-            </div>
+            ) : (
+              <>
+                <div className="dpe-impact-cards">
+                  <div className="dpe-impact-card" style={{ borderColor: actuelData.color }}>
+                    <span className="dpe-badge" style={{ background: actuelData.color }}>DPE {dpeActuel}</span>
+                    <p className="dpe-impact-label">Charges énergétiques</p>
+                    <p className="dpe-impact-val">{fmtCur(res.chargesActuelles)}/mois</p>
+                    {res.decoteActuelle > 0 && <p className="dpe-decote">Décote estimée : −{fmtCur(res.decoteActuelle)}</p>}
+                  </div>
+                  <div className="dpe-arrow">→</div>
+                  <div className="dpe-impact-card" style={{ borderColor: cibleData.color }}>
+                    <span className="dpe-badge" style={{ background: cibleData.color }}>DPE {dpeCible}</span>
+                    <p className="dpe-impact-label">Charges énergétiques</p>
+                    <p className="dpe-impact-val" style={{ color: "#059669" }}>{fmtCur(res.chargesCibles)}/mois</p>
+                    {res.decoteActuelle > 0 && <p className="dpe-decote" style={{ color: "#059669" }}>Valorisation récupérée</p>}
+                  </div>
+                </div>
 
-            <div className="field-wrap">
-              <label className="field-label">DPE cible après rénovation</label>
-              <div className="dpe-btns">
-                {DPE_LABELS.map((d) => (
-                  <button
-                    key={d}
-                    type="button"
-                    className={`dpe-btn${dpeCible === d ? " active" : ""}`}
-                    style={dpeCible === d ? { background: DPE_DATA[d].color, color: "#fff", borderColor: DPE_DATA[d].color } : {}}
-                    onClick={() => setDpeCible(d)}
-                  >{d}</button>
-                ))}
-              </div>
-              <p className="field-hint">{cibleData.emoji} {cibleData.label}</p>
-            </div>
+                <div className="sim-result-grid" style={{ marginTop: 16 }}>
+                  <div className="result-block">
+                    <span className="result-block-label">Économies mensuelles</span>
+                    <span className="result-block-val" style={{ color: "#059669" }}>{fmtCur(res.economiesMensuelles)}/mois</span>
+                  </div>
+                  <div className="result-block">
+                    <span className="result-block-label">Économies annuelles</span>
+                    <span className="result-block-val" style={{ color: "#059669" }}>{fmtCur(res.economiesAnnuelles)}/an</span>
+                  </div>
+                  <div className="result-block">
+                    <span className="result-block-label">Valorisation du bien</span>
+                    <span className="result-block-val" style={{ color: "#2563eb" }}>+{fmtCur(res.valorisationGagnee)}</span>
+                  </div>
+                  <div className="result-block">
+                    <span className="result-block-label">Coût travaux brut</span>
+                    <span className="result-block-val">{fmtCur(res.coutBrut)}</span>
+                  </div>
+                  <div className="result-block">
+                    <span className="result-block-label">Aide MaPrimeRénov'</span>
+                    <span className="result-block-val" style={{ color: "#059669" }}>−{fmtCur(res.aideMaprime)}</span>
+                  </div>
+                  <div className="result-block">
+                    <span className="result-block-label">Coût net des travaux</span>
+                    <span className="result-block-val" style={{ fontWeight: 700 }}>{fmtCur(res.coutNet)}</span>
+                  </div>
+                </div>
 
-            <Field
-              label="Taux MaPrimeRénov' estimé"
-              value={maprimeRenov}
-              onChange={setMaprimeRenov}
-              suffix="%"
-              step={5}
-              min={0}
-              max={70}
-              hint="0% = revenus élevés, 70% = revenus très modestes"
-              tooltip="Aide de l'État pour la rénovation énergétique. Taux : 70 % pour revenus très modestes, 50 % modestes, 35 % intermédiaires, 15 % aisés."
-            />
-          </div>
-        </div>
+                <div className="dpe-roi-box" style={{
+                  background: res.roi < 8 ? "#d1fae5" : res.roi < 15 ? "#fef3c7" : "#fee2e2",
+                  borderColor: res.roi < 8 ? "#6ee7b7" : res.roi < 15 ? "#fcd34d" : "#fca5a5",
+                  marginTop: 16
+                }}>
+                  <p className="dpe-roi-label">Retour sur investissement</p>
+                  <p className="dpe-roi-val">{res.roi < 1 ? "< 1 an" : `${res.roi.toFixed(1)} ans`}</p>
+                  <p className="dpe-roi-detail">
+                    {res.roi < 8 ? "Excellent ROI — les travaux se financent rapidement."
+                    : res.roi < 15 ? "ROI acceptable, surtout si vous restez longtemps dans le bien."
+                    : "ROI long — cherchez des aides supplémentaires (CEE, Anah, éco-PTZ)."}
+                  </p>
+                </div>
 
-        <div className="sim-results-panel">
-          {!res.amelioration ? (
-            <div className="dpe-warning-box">
-              <p>⚠️ Sélectionnez un DPE cible <strong>meilleur</strong> que le DPE actuel pour simuler une rénovation.</p>
-            </div>
-          ) : (
-            <>
-              <div className="dpe-impact-cards">
-                <div className="dpe-impact-card" style={{ borderColor: actuelData.color }}>
-                  <span className="dpe-badge" style={{ background: actuelData.color }}>DPE {dpeActuel}</span>
-                  <p className="dpe-impact-label">Charges énergétiques</p>
-                  <p className="dpe-impact-val">{fmtCur(res.chargesActuelles)}/mois</p>
-                  {res.decoteActuelle > 0 && <p className="dpe-decote">Décote estimée : −{fmtCur(res.decoteActuelle)}</p>}
-                </div>
-                <div className="dpe-arrow">→</div>
-                <div className="dpe-impact-card" style={{ borderColor: cibleData.color }}>
-                  <span className="dpe-badge" style={{ background: cibleData.color }}>DPE {dpeCible}</span>
-                  <p className="dpe-impact-label">Charges énergétiques</p>
-                  <p className="dpe-impact-val" style={{ color: "#059669" }}>{fmtCur(res.chargesCibles)}/mois</p>
-                  {res.decoteActuelle > 0 && <p className="dpe-decote" style={{ color: "#059669" }}>Valorisation récupérée</p>}
-                </div>
-              </div>
-
-              <div className="sim-result-grid" style={{ marginTop: 16 }}>
-                <div className="result-block">
-                  <span className="result-block-label">Économies mensuelles</span>
-                  <span className="result-block-val" style={{ color: "#059669" }}>{fmtCur(res.economiesMensuelles)}/mois</span>
-                </div>
-                <div className="result-block">
-                  <span className="result-block-label">Économies annuelles</span>
-                  <span className="result-block-val" style={{ color: "#059669" }}>{fmtCur(res.economiesAnnuelles)}/an</span>
-                </div>
-                <div className="result-block">
-                  <span className="result-block-label">Valorisation du bien</span>
-                  <span className="result-block-val" style={{ color: "#2563eb" }}>+{fmtCur(res.valorisationGagnee)}</span>
-                </div>
-                <div className="result-block">
-                  <span className="result-block-label">Coût travaux brut</span>
-                  <span className="result-block-val">{fmtCur(res.coutBrut)}</span>
-                </div>
-                <div className="result-block">
-                  <span className="result-block-label">Aide MaPrimeRénov'</span>
-                  <span className="result-block-val" style={{ color: "#059669" }}>−{fmtCur(res.aideMaprime)}</span>
-                </div>
-                <div className="result-block">
-                  <span className="result-block-label">Coût net des travaux</span>
-                  <span className="result-block-val" style={{ fontWeight: 700 }}>{fmtCur(res.coutNet)}</span>
-                </div>
-              </div>
-
-              <div className="dpe-roi-box" style={{
-                background: res.roi < 8 ? "#d1fae5" : res.roi < 15 ? "#fef3c7" : "#fee2e2",
-                borderColor: res.roi < 8 ? "#6ee7b7" : res.roi < 15 ? "#fcd34d" : "#fca5a5",
-                marginTop: 16
-              }}>
-                <p className="dpe-roi-label">Retour sur investissement</p>
-                <p className="dpe-roi-val">{res.roi < 1 ? "< 1 an" : `${res.roi.toFixed(1)} ans`}</p>
-                <p className="dpe-roi-detail">
-                  {res.roi < 8 ? "Excellent ROI — les travaux se financent rapidement."
-                  : res.roi < 15 ? "ROI acceptable, surtout si vous restez longtemps dans le bien."
-                  : "ROI long — cherchez des aides supplémentaires (CEE, Anah, éco-PTZ)."}
+                <p className="sim-detail-note" style={{ marginTop: 12 }}>
+                  Coûts basés sur des moyennes nationales (source : ADEME). Les prix réels varient selon la région et les entreprises. Demandez plusieurs devis.
                 </p>
-              </div>
-
-              <p className="sim-detail-note" style={{ marginTop: 12 }}>
-                Coûts basés sur des moyennes nationales (source : ADEME). Les prix réels varient selon la région et les entreprises. Demandez plusieurs devis.
-              </p>
-            </>
-          )}
-        </div>
-      </div>
+              </>
+            )}
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

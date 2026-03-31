@@ -183,7 +183,7 @@ export default function SimCalendrier() {
       <SimFunnel
         steps={[
           {
-            title: "Votre situation actuelle",
+            title: "Situation actuelle",
             icon: "💰",
             content: (
               <>
@@ -194,7 +194,7 @@ export default function SimCalendrier() {
                 <Field label="Apport visé" value={v.targetApport} onChange={set("targetApport")} suffix="€"
                   hint="Minimum conseillé : 10 % du prix + frais de notaire" />
 
-                <div style={{ marginTop: 16 }} className="field">
+                <div className="field">
                   <label className="field-label">Situation professionnelle</label>
                   <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
                     <button type="button" className={`hub-filter-btn${v.hasCDI ? " hub-filter-active" : ""}`} onClick={() => setV(s => ({ ...s, hasCDI: true }))}>
@@ -209,7 +209,7 @@ export default function SimCalendrier() {
             ),
           },
           {
-            title: "Votre projet immobilier",
+            title: "Projet immobilier",
             icon: "🏠",
             content: (
               <>
