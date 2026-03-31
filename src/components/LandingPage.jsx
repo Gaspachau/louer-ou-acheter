@@ -30,6 +30,30 @@ const PRESETS = {
   budget: { price:130000, apport:15000,  rent:600,  charges:60,  duration:10, rate:3.8, loanYears:25, notaryPct:8, appRate:1.8, situation:"locataire" },
 };
 
+/* ─── Animated counter hook ──────────────────────────────── */
+function useAnimatedValue(target, duration = 450) {
+  const [displayed, setDisplayed] = useState(target);
+  const prevRef = useRef(target);
+  const rafRef  = useRef(null);
+  useEffect(() => {
+    const from = prevRef.current;
+    const to   = target;
+    if (from === to) return;
+    cancelAnimationFrame(rafRef.current);
+    const start = performance.now();
+    const easeOut = (t) => 1 - Math.pow(1 - t, 3);
+    const animate = (now) => {
+      const t = Math.min((now - start) / duration, 1);
+      setDisplayed(Math.round(from + (to - from) * easeOut(t)));
+      if (t < 1) rafRef.current = requestAnimationFrame(animate);
+      else prevRef.current = to;
+    };
+    rafRef.current = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+  return displayed;
+}
+
 /* ─── Scroll-reveal hook ─────────────────────────────────── */
 function useReveal() {
   const ref = useRef(null);
@@ -56,6 +80,14 @@ function HeroSection() {
   const maxPat = Math.max(c.patAchat, c.patLoc);
   const pctBuy  = Math.round((c.patAchat / maxPat) * 100);
   const pctRent = Math.round((c.patLoc   / maxPat) * 100);
+
+  /* Animated counters */
+  const animMensualite = useAnimatedValue(c.mensualite);
+  const animPatAchat   = useAnimatedValue(c.patAchat);
+  const animPatLoc     = useAnimatedValue(c.patLoc);
+  const animAdvantage  = useAnimatedValue(c.advantage);
+  const animPctBuy     = useAnimatedValue(pctBuy);
+  const animPctRent    = useAnimatedValue(pctRent);
 
   const launchCity = () => {
     try {
@@ -167,15 +199,15 @@ function HeroSection() {
           <div className="lph-card-metrics">
             <div className="lph-metric">
               <span className="lph-metric-lbl">💳 Mensualité crédit</span>
-              <strong className="lph-metric-val">{c.mensualite.toLocaleString("fr-FR")} €<span className="lph-unit">/mois</span></strong>
+              <strong className="lph-metric-val">{animMensualite.toLocaleString("fr-FR")} €<span className="lph-unit">/mois</span></strong>
             </div>
             <div className="lph-metric">
               <span className="lph-metric-lbl">🏠 Patrimoine achat</span>
-              <strong className="lph-metric-val lph-blue">{fmtK(c.patAchat)}</strong>
+              <strong className="lph-metric-val lph-blue">{fmtK(animPatAchat)}</strong>
             </div>
             <div className="lph-metric">
               <span className="lph-metric-lbl">🔑 Patrimoine location</span>
-              <strong className="lph-metric-val lph-cyan">{fmtK(c.patLoc)}</strong>
+              <strong className="lph-metric-val lph-cyan">{fmtK(animPatLoc)}</strong>
             </div>
           </div>
 
@@ -184,16 +216,16 @@ function HeroSection() {
             <div className="lph-bar-row">
               <span className="lph-bar-lbl">Achat</span>
               <div className="lph-bar-track">
-                <div className="lph-bar-fill lph-bar-b" style={{ width: `${pctBuy}%` }} />
+                <div className="lph-bar-fill lph-bar-b" style={{ width: `${animPctBuy}%` }} />
               </div>
-              <span className="lph-bar-pct">{pctBuy}%</span>
+              <span className="lph-bar-pct">{animPctBuy}%</span>
             </div>
             <div className="lph-bar-row">
               <span className="lph-bar-lbl">Location</span>
               <div className="lph-bar-track">
-                <div className="lph-bar-fill lph-bar-a" style={{ width: `${pctRent}%` }} />
+                <div className="lph-bar-fill lph-bar-a" style={{ width: `${animPctRent}%` }} />
               </div>
-              <span className="lph-bar-pct">{pctRent}%</span>
+              <span className="lph-bar-pct">{animPctRent}%</span>
             </div>
           </div>
 
@@ -205,7 +237,7 @@ function HeroSection() {
                 {c.isBuy ? "Acheter recommandé" : "Location avantageuse"}
               </span>
               <span className="lph-rec-detail">
-                {c.isBuy ? "+" : "−"}{fmtK(c.advantage)} en faveur de {c.isBuy ? "l'achat" : "la location"} · {c.name}
+                {c.isBuy ? "+" : "−"}{fmtK(animAdvantage)} en faveur de {c.isBuy ? "l'achat" : "la location"} · {c.name}
               </span>
             </div>
           </div>
