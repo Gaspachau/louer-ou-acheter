@@ -12177,37 +12177,102 @@ svg { display: inline-block; }  /* keep inline for icons */
 }
 
 /* ═══════════════════════════════════════════════════════════
-   §33 — PageCarteMondiale — big map override
+   §33 — PageCarteMondiale v2 — full-width map layout
    ══════════════════════════════════════════════════════════ */
 
-.cm-page-v2 { overflow-x: visible !important; }
+/* Outer wrapper — just a flex column, no overflow tricks */
+.cm-main-v2 {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-x: hidden;
+}
 
-.cm-map-section-big {
-  /* Break out of 1100px container — full viewport width */
-  width: 100vw;
-  position: relative;
-  left: 50%;
-  transform: translateX(-50%);
-  border-radius: 0 !important;
-  border-left: none !important;
-  border-right: none !important;
-  padding: 28px 40px 32px;
-  box-sizing: border-box;
+/* Inner .cm-page blocks keep their max-width */
+.cm-main-v2 .cm-page {
+  padding-bottom: 0;
+  gap: 32px;
 }
-.cm-map-section-big .cm-map-wrap {
-  border-radius: 16px;
+
+/* Map section is truly full-width — no CSS tricks needed */
+.cm-main-v2 .cm-map-section {
+  border-radius: 0;
+  border-left: none;
+  border-right: none;
+  padding: 28px clamp(16px, 4vw, 60px) 32px;
+  margin: 0;
+}
+.cm-main-v2 .cm-map-section .cm-map-wrap {
   min-height: 520px;
-  background: #e8f2ff;
-}
-.cm-map-section-big .cm-zoom-controls {
-  right: 52px;
 }
 
 @media (max-width: 768px) {
-  .cm-map-section-big {
+  .cm-main-v2 .cm-map-section {
     padding: 16px;
   }
-  .cm-map-section-big .cm-map-wrap {
-    min-height: 340px;
+  .cm-main-v2 .cm-map-section .cm-map-wrap {
+    min-height: 320px;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   §34 — Global mobile polish (phones ≤ 480px)
+   ══════════════════════════════════════════════════════════ */
+
+/* ── SimFunnel — small phones ── */
+@media (max-width: 480px) {
+  .simf { padding: 0; }
+  .simf-bar-track { margin-bottom: 20px; }
+  .simf-card { padding: 20px 14px; border-radius: 18px; }
+  .simf-card-icon { font-size: 30px; }
+  .simf-nav { gap: 8px; }
+  .simf-btn-back { padding: 10px 14px; font-size: 13px; }
+  .simf-btn-next { padding: 12px 18px; font-size: 14px; width: auto; flex: 1; }
+  /* Results panel inside funnel */
+  .simf-result-wrap .sim-results-panel { padding: 16px 14px; border-radius: 18px; }
+  .simf-result-top { gap: 8px; }
+  .simf-edit-btn { font-size: 12px; padding: 7px 12px; }
+}
+
+/* ── Blog v2 — small phones ── */
+@media (max-width: 480px) {
+  .blog-featured-section,
+  .blog-topics-section { padding-left: 12px; padding-right: 12px; }
+  .articles-section { padding: 24px 12px 0; }
+  .articles-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .blog-search-wrap { width: 100%; }
+  .blog-search-input { width: 100%; box-sizing: border-box; }
+  .blog-topics-grid { gap: 6px; }
+  .blog-topic-card { padding: 8px 12px; font-size: 12px; }
+  .blog-cta-v2 { margin: 24px 12px; }
+}
+
+/* ── SimulateurHub — small phones ── */
+@media (max-width: 480px) {
+  .shub-incontournables { padding-left: 12px; padding-right: 12px; }
+  .shub-bottom-cta { padding-left: 12px; padding-right: 12px; }
+  .shub-bottom-cta-inner { padding: 24px 16px; gap: 20px; }
+}
+
+/* ── Carte mondiale — small phones ── */
+@media (max-width: 480px) {
+  .cm-hero-v2 { padding: 40px 12px 32px; }
+  .cm-hero-v2-desc { font-size: 14px; }
+  .cm-insights { padding: 24px 12px 0; gap: 10px; }
+  .cm-france-section { padding: 32px 12px 0; }
+  .cm-france-grid { gap: 10px; }
+  .cm-cta { padding: 0 12px 32px; }
+  .cm-cta-inner { padding: 24px 16px; gap: 20px; }
+  .cm-rankings { padding: 24px 12px; gap: 16px; grid-template-columns: 1fr; }
+  .cm-map-section { padding: 12px; }
+}
+
+/* ── Carte page — .cm-page inside cm-main-v2 on phone ── */
+@media (max-width: 480px) {
+  .cm-main-v2 .cm-page { padding: 0 12px 24px; gap: 20px; }
 }

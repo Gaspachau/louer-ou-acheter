@@ -275,8 +275,9 @@ export default function PageCarteMondiale() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="cm-page cm-page-v2">
+      <main id="main-content" className="cm-main-v2">
 
+        <div className="cm-page">
         {/* ── HERO ─────────────────────────────────────────── */}
         <div className="cm-hero-v2">
           <div className="cm-hero-v2-inner">
@@ -344,9 +345,10 @@ export default function PageCarteMondiale() {
             </p>
           </div>
         </div>
+        </div>{/* end .cm-page */}
 
-        {/* ── MAP ──────────────────────────────────────────── */}
-        <div className="cm-map-section cm-map-section-big">
+        {/* ── MAP (full-width, outside max-width container) ── */}
+        <div className="cm-map-section">
           {/* Legend */}
           <div className="cm-legend">
             <span className="cm-legend-label">Taux de propriétaires :</span>
@@ -409,8 +411,9 @@ export default function PageCarteMondiale() {
           {selected && (
             <CountryPanel data={selected} onClose={() => setSelected(null)} />
           )}
-        </div>
+        </div>{/* end .cm-map-section */}
 
+        <div className="cm-page">
         {/* ── TOP 10 LISTS ─────────────────────────────────── */}
         <div className="cm-rankings">
           <div className="cm-ranking-col">
@@ -585,6 +588,7 @@ export default function PageCarteMondiale() {
             </div>
           </div>
         </div>
+        </div>{/* end .cm-page */}
 
       </main>
       <Footer />
