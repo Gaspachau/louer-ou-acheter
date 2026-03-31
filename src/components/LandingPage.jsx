@@ -139,13 +139,21 @@ function HeroSection() {
           </div>
         </div>
 
-        {/* ── Carte glassmorphism droite ── */}
+        {/* ── Carte premium droite (desktop) ── */}
         <div className="lph-card" aria-hidden="true">
-          <div className="lph-card-top">
-            <span className="lph-card-label">Simulation en cours</span>
-            <span className="lph-card-live">● LIVE</span>
+
+          {/* Barre titre style macOS */}
+          <div className="lph-card-titlebar">
+            <div className="lph-mac-dots">
+              <span className="lph-dot lph-dot-r" />
+              <span className="lph-dot lph-dot-o" />
+              <span className="lph-dot lph-dot-g" />
+            </div>
+            <span className="lph-titlebar-text">Résultat de simulation</span>
+            <span className="lph-card-live"><span className="lph-live-blink" />LIVE</span>
           </div>
 
+          {/* Pills villes */}
           <div className="lph-city-pills">
             {HERO_CITIES.map((x) => (
               <button key={x.id} type="button"
@@ -155,28 +163,23 @@ function HeroSection() {
             ))}
           </div>
 
+          {/* Métriques — label gauche, valeur droite en gras */}
           <div className="lph-card-metrics">
             <div className="lph-metric">
-              <span className="lph-metric-lbl">Mensualité crédit</span>
-              <span className="lph-metric-val">{c.mensualite.toLocaleString("fr-FR")} €<small>/mois</small></span>
+              <span className="lph-metric-lbl">💳 Mensualité crédit</span>
+              <strong className="lph-metric-val">{c.mensualite.toLocaleString("fr-FR")} €<span className="lph-unit">/mois</span></strong>
             </div>
             <div className="lph-metric">
-              <span className="lph-metric-lbl">Patrimoine achat</span>
-              <span className="lph-metric-val lph-blue">{fmtK(c.patAchat)}</span>
+              <span className="lph-metric-lbl">🏠 Patrimoine achat</span>
+              <strong className="lph-metric-val lph-blue">{fmtK(c.patAchat)}</strong>
             </div>
             <div className="lph-metric">
-              <span className="lph-metric-lbl">Patrimoine location</span>
-              <span className="lph-metric-val lph-amber">{fmtK(c.patLoc)}</span>
-            </div>
-            <div className="lph-metric lph-metric-hl">
-              <span className="lph-metric-lbl">Avantage net</span>
-              <span className={`lph-metric-val ${c.isBuy ? "lph-green" : "lph-amber"}`}>
-                {c.isBuy ? "+" : "−"}{fmtK(c.advantage)}
-                <small> {c.isBuy ? "achat" : "location"}</small>
-              </span>
+              <span className="lph-metric-lbl">🔑 Patrimoine location</span>
+              <strong className="lph-metric-val lph-cyan">{fmtK(c.patLoc)}</strong>
             </div>
           </div>
 
+          {/* Barres de progression animées */}
           <div className="lph-bars">
             <div className="lph-bar-row">
               <span className="lph-bar-lbl">Achat</span>
@@ -194,8 +197,17 @@ function HeroSection() {
             </div>
           </div>
 
-          <div className={`lph-verdict ${c.isBuy ? "lph-verdict-b" : "lph-verdict-r"}`}>
-            {c.isBuy ? "🏠 Acheter recommandé à " : "🔑 Location avantageuse à "}{c.name}
+          {/* Encadré recommandation coloré */}
+          <div className={`lph-recommend ${c.isBuy ? "lph-rec-buy" : "lph-rec-rent"}`}>
+            <span className="lph-rec-icon">{c.isBuy ? "✅" : "ℹ️"}</span>
+            <div className="lph-rec-body">
+              <span className="lph-rec-title">
+                {c.isBuy ? "Acheter recommandé" : "Location avantageuse"}
+              </span>
+              <span className="lph-rec-detail">
+                {c.isBuy ? "+" : "−"}{fmtK(c.advantage)} en faveur de {c.isBuy ? "l'achat" : "la location"} · {c.name}
+              </span>
+            </div>
           </div>
 
           <button type="button" className="lph-card-cta" onClick={launchCity}>
