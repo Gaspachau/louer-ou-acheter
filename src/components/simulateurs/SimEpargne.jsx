@@ -66,8 +66,8 @@ export default function SimEpargne() {
 
   const donutSegments = res && !res.goalReachedByInitial
     ? [
-        { value: v.initial, color: "#1a56db", label: "Apport initial" },
-        { value: Math.max(0, res.totalContributions), color: "#0d9488", label: "Versements" },
+        { value: v.initial, color: "#2563eb", label: "Apport initial" },
+        { value: Math.max(0, res.totalContributions), color: "#06b6d4", label: "Versements" },
         { value: Math.max(0, res.totalInterest), color: "#d97706", label: "Intérêts" },
       ]
     : [];
@@ -159,20 +159,20 @@ export default function SimEpargne() {
                     <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
                       <defs>
                         <linearGradient id="gradEpGrowth" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#1a56db" stopOpacity={0.22}/>
-                          <stop offset="95%" stopColor="#1a56db" stopOpacity={0.02}/>
+                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
+                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
                         </linearGradient>
                         <linearGradient id="gradEpContrib" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#0d9488" stopOpacity={0.18}/>
-                          <stop offset="95%" stopColor="#0d9488" stopOpacity={0.02}/>
+                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.18}/>
+                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.02}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
                       <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
                       <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
                       <Tooltip content={<ChartTooltip />}/>
-                      <Area type="monotone" dataKey="sansIntérêts" name="Sans intérêts" stroke="#0d9488" strokeWidth={1.5} fill="url(#gradEpContrib)" dot={false} activeDot={{ r: 4 }}/>
-                      <Area type="monotone" dataKey="avecIntérêts" name="Avec intérêts" stroke="#1a56db" strokeWidth={2} fill="url(#gradEpGrowth)" dot={false} activeDot={{ r: 4 }}/>
+                      <Area type="monotone" dataKey="sansIntérêts" name="Sans intérêts" stroke="#06b6d4" strokeWidth={1.5} fill="url(#gradEpContrib)" dot={false} activeDot={{ r: 4 }}/>
+                      <Area type="monotone" dataKey="avecIntérêts" name="Avec intérêts" stroke="#2563eb" strokeWidth={2} fill="url(#gradEpGrowth)" dot={false} activeDot={{ r: 4 }}/>
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>

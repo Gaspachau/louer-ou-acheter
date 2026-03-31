@@ -6,7 +6,7 @@ import { formatCurrency } from "../../utils/finance";
 
 const CHARGE_FIELDS = [
   { key: "loyer", label: "Loyer / mensualité", icon: "🏠", hint: "Logement principal", color: "#2563eb", tooltip: "Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." },
-  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration", color: "#0d9488", tooltip: "Dépenses alimentaires incluant courses et restaurants. Moyenne France : ~300–400 €/mois pour une personne." },
+  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration", color: "#06b6d4", tooltip: "Dépenses alimentaires incluant courses et restaurants. Moyenne France : ~300–400 €/mois pour une personne." },
   { key: "transport", label: "Transport", icon: "🚗", hint: "Voiture, transports en commun", color: "#d97706", tooltip: "Tous les frais de déplacement : carburant, transports en commun, assurance auto, entretien véhicule." },
   { key: "telecom", label: "Télécom", icon: "📱", hint: "Internet + téléphone", color: "#7c3aed", tooltip: "Internet fixe + téléphone mobile. Comptez ~30–60 €/mois pour des offres de base." },
   { key: "assurances", label: "Assurances", icon: "🛡️", hint: "Habitation, auto, santé…", color: "#0891b2", tooltip: "Mutuelle santé, assurance auto, habitation... Vérifiez qu'il n'y a pas de doublons avec les charges saisies séparément." },
@@ -44,6 +44,7 @@ export default function SimNiveauDeVie() {
       icon="📊"
       title="Calculateur de niveau de vie"
       description="Calculez votre revenu disponible après toutes vos charges fixes mensuelles."
+      simTime="3 min"
     >
       <div className="sim-layout">
         <div className="sim-card">

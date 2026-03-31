@@ -106,7 +106,7 @@ export default function SimPretImmo() {
 
   const donutSegments = res
     ? [
-        { value: v.principal, color: "#1a56db", label: "Capital" },
+        { value: v.principal, color: "#2563eb", label: "Capital" },
         { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
       ]
     : [];
@@ -203,15 +203,15 @@ export default function SimPretImmo() {
                           <stop offset="95%" stopColor="#ec4899" stopOpacity={0.02}/>
                         </linearGradient>
                         <linearGradient id="gradImmoPaid" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#1a56db" stopOpacity={0.22}/>
-                          <stop offset="95%" stopColor="#1a56db" stopOpacity={0.02}/>
+                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
+                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
                         </linearGradient>
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
                       <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
                       <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
                       <Tooltip content={<ChartTooltip />}/>
-                      <Area type="monotone" dataKey="Capital remboursé" stroke="#1a56db" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
+                      <Area type="monotone" dataKey="Capital remboursé" stroke="#2563eb" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
                       <Area type="monotone" dataKey="Capital restant" stroke="#ec4899" strokeWidth={2} fill="url(#gradImmoRemaining)" dot={false} activeDot={{ r: 4 }}/>
                     </AreaChart>
                   </ResponsiveContainer>

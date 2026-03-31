@@ -192,9 +192,9 @@ export default function SimOptimiseurApport() {
                         </div>
                       );
                     }} />
-                    <ReferenceLine x={Math.round(v.apportActuel / 1000)} stroke="#1a56db" strokeDasharray="4 3" label={{ value: "A", fill: "#1a56db", fontSize: 10 }} />
+                    <ReferenceLine x={Math.round(v.apportActuel / 1000)} stroke="#2563eb" strokeDasharray="4 3" label={{ value: "A", fill: "#2563eb", fontSize: 10 }} />
                     <ReferenceLine x={Math.round(v.apportCible / 1000)} stroke="#059669" strokeDasharray="4 3" label={{ value: "B", fill: "#059669", fontSize: 10 }} />
-                    <Line dataKey="mensualite" name="Mensualité" stroke="#1a56db" strokeWidth={2} dot={false} />
+                    <Line dataKey="mensualite" name="Mensualité" stroke="#2563eb" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>

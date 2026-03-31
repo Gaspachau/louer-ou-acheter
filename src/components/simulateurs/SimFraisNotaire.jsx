@@ -48,7 +48,7 @@ function calcFraisNotaire({ prix, type, region, deboursCustom }) {
   return { droitsMutation, emolumentsHT, emolumentsTTC, csi, debours, total, pct, taux_dmto: isNeuf ? 0.00715 : taux_dmto_ancien };
 }
 
-const COULEURS = ["#1a56db", "#0d9488", "#d97706", "#94a3b8"];
+const COULEURS = ["#2563eb", "#06b6d4", "#d97706", "#94a3b8"];
 
 function ChartTooltip({ active, payload }) {
   if (!active || !payload?.length) return null;
@@ -70,8 +70,8 @@ export default function SimFraisNotaire() {
   const res = useMemo(() => calcFraisNotaire(v), [v]);
 
   const pieData = [
-    { name: "Droits de mutation", value: Math.round(res.droitsMutation), fill: "#1a56db" },
-    { name: "Émoluments notaire (TTC)", value: Math.round(res.emolumentsTTC), fill: "#0d9488" },
+    { name: "Droits de mutation", value: Math.round(res.droitsMutation), fill: "#2563eb" },
+    { name: "Émoluments notaire (TTC)", value: Math.round(res.emolumentsTTC), fill: "#06b6d4" },
     { name: "Déb. & frais divers", value: Math.round(res.debours), fill: "#d97706" },
     { name: "C.S.I.", value: Math.round(res.csi), fill: "#94a3b8" },
   ];
@@ -84,7 +84,7 @@ export default function SimFraisNotaire() {
       label: "Droits de mutation (DMTO)",
       value: res.droitsMutation,
       pct: (res.droitsMutation / res.total) * 100,
-      color: "#1a56db",
+      color: "#2563eb",
       explain: v.type === "ancien"
         ? `${(res.taux_dmto * 100).toFixed(2)} % du prix — principal poste des frais. Perçu par le Département (4,50 %) et la Commune (1,20 % maximum).`
         : "0,715 % seulement pour un bien neuf en VEFA — c'est l'un des avantages du neuf.",
@@ -93,7 +93,7 @@ export default function SimFraisNotaire() {
       label: "Émoluments du notaire (TTC)",
       value: res.emolumentsTTC,
       pct: (res.emolumentsTTC / res.total) * 100,
-      color: "#0d9488",
+      color: "#06b6d4",
       explain: `Barème proportionnel légal (${fmtPct((res.emolumentsHT / v.prix) * 100)} HT) + TVA 20 %. Ce montant est identique quel que soit le notaire.`,
     },
     {
@@ -117,6 +117,7 @@ export default function SimFraisNotaire() {
       icon="📋"
       title="Calculateur de frais de notaire"
       description="Calculez les frais de notaire au centime près selon le barème légal 2026, pour un achat dans l'ancien ou le neuf."
+      simTime="1 min"
     >
       <div className="sim-layout">
         <div className="sim-card">

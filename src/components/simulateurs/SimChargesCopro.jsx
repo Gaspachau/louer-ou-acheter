@@ -28,7 +28,7 @@ function calcCharges({ chargesAnnuelles, tantiemesLot, totalTantièmes, fondsTra
 const BENCHMARK = [
   { label: "Paris",           val: 52,  color: "#dc2626" },
   { label: "Grandes villes",  val: 38,  color: "#d97706" },
-  { label: "Moyenne nationale", val: 30, color: "#1a56db" },
+  { label: "Moyenne nationale", val: 30, color: "#2563eb" },
   { label: "Petites villes",  val: 20,  color: "#059669" },
 ];
 
@@ -63,6 +63,7 @@ export default function SimChargesCopro() {
       icon="🏢"
       title="Calculateur de charges de copropriété"
       description="Estimez votre quote-part de charges mensuelles et annuelles selon vos tantièmes de copropriété."
+      simTime="1 min"
     >
       <div className="sim-layout">
         <div className="sim-card">

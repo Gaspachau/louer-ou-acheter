@@ -179,7 +179,7 @@ export default function SimImpactDPE() {
                 </div>
                 <div className="result-block">
                   <span className="result-block-label">Valorisation du bien</span>
-                  <span className="result-block-val" style={{ color: "#1a56db" }}>+{fmtCur(res.valorisationGagnee)}</span>
+                  <span className="result-block-val" style={{ color: "#2563eb" }}>+{fmtCur(res.valorisationGagnee)}</span>
                 </div>
                 <div className="result-block">
                   <span className="result-block-label">Coût travaux brut</span>

@@ -26,7 +26,7 @@ function buildCalendar({ salary, currentSavings, monthlySavings, targetApport, h
     steps.push({
       id: "epargne",
       icon: "💰",
-      color: "#0d9488",
+      color: "#06b6d4",
       title: "Constituer votre apport",
       desc: `Épargner ${fmtCur(monthlySavings)}/mois pour atteindre ${fmtCur(apportTarget)} (${fmtCur(currentSavings)} déjà épargnés).`,
       duration: monthsToSave,
@@ -54,7 +54,7 @@ function buildCalendar({ salary, currentSavings, monthlySavings, targetApport, h
     steps.push({
       id: "cdi",
       icon: "📄",
-      color: "#1a56db",
+      color: "#2563eb",
       title: "Obtenir un CDI ou 2 ans d'ancienneté",
       desc: "Les banques exigent généralement un CDI de plus de 6 mois ou 2 bilans comptables pour les indépendants.",
       duration: null,

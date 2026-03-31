@@ -133,6 +133,7 @@ export default function SimMachineTemps() {
       icon="⏳"
       title="Machine à remonter le temps"
       description="Et si vous aviez acheté en 2010, 2015 ou 2018 ? Calculez le gain ou la perte réelle selon la date et la ville."
+      simTime="1 min"
       saveValues={saveValues}
       onRestore={handleRestore}
     >

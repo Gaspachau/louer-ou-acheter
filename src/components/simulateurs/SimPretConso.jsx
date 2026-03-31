@@ -56,14 +56,14 @@ export default function SimPretConso() {
 
   const barData = res
     ? [
-        { name: "Capital",   value: v.principal,            fill: "#1a56db" },
+        { name: "Capital",   value: v.principal,            fill: "#2563eb" },
         { name: "Intérêts",  value: Math.max(0, res.totalInterest), fill: "#ec4899" },
       ]
     : [];
 
   const donutSegments = res
     ? [
-        { value: v.principal, color: "#1a56db", label: "Capital" },
+        { value: v.principal, color: "#2563eb", label: "Capital" },
         { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
       ]
     : [];
@@ -73,6 +73,7 @@ export default function SimPretConso() {
       icon="💳"
       title="Simulateur de prêt conso"
       description="Calculez la mensualité et le coût total d'un crédit à la consommation."
+      simTime="1 min"
     >
       <div className="sim-layout">
         <div className="sim-card">

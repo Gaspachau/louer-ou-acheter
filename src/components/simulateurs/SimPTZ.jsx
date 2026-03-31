@@ -150,7 +150,7 @@ export default function SimPTZ() {
 
               <div className="ptz-key-metrics">
                 <div className="ptz-metric">
-                  <span className="ptz-metric-val" style={{ color: "#1a56db" }}>{fmtCur(res.montantPTZ)}</span>
+                  <span className="ptz-metric-val" style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ)}</span>
                   <span className="ptz-metric-label">Montant PTZ estimé</span>
                   <span className="ptz-metric-sub">{res.ratioPTZ.toFixed(0)} % du prix d'achat</span>
                 </div>
@@ -202,7 +202,7 @@ export default function SimPTZ() {
                 </div>
                 <div className="ptz-cond-row">
                   <span>Mensualité PTZ après différé</span>
-                  <strong style={{ color: "#1a56db" }}>{fmtCur(res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
+                  <strong style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
                 </div>
                 <div className="ptz-cond-row" style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 4 }}>
                   <span>Mensualité totale (crédit + PTZ)</span>

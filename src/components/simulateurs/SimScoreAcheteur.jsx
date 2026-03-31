@@ -62,7 +62,7 @@ function calcScore(v) {
 
 const SCORE_LEVELS = [
   { min: 80, label: "Prêt à acheter", color: "#059669", bg: "#d1fae5", emoji: "🚀" },
-  { min: 60, label: "Presque prêt", color: "#0d9488", bg: "#ccfbf1", emoji: "🔜" },
+  { min: 60, label: "Presque prêt", color: "#06b6d4", bg: "#ccfbf1", emoji: "🔜" },
   { min: 40, label: "En préparation", color: "#d97706", bg: "#fef3c7", emoji: "⚙️" },
   { min: 0,  label: "Pas encore", color: "#dc2626", bg: "#fee2e2", emoji: "⏳" },
 ];
@@ -117,6 +117,7 @@ export default function SimScoreAcheteur() {
       icon="🎯"
       title="Score de préparation à l'achat"
       description="Évaluez votre maturité sur 5 dimensions clés et obtenez un plan d'action personnalisé."
+      simTime="3 min"
     >
       <div className="sim-layout">
         {/* Form */}
@@ -243,7 +244,7 @@ export default function SimScoreAcheteur() {
                           className="score-dim-bar-fill"
                           style={{
                             width: `${score}%`,
-                            background: score >= 80 ? "#059669" : score >= 60 ? "#0d9488" : score >= 40 ? "#d97706" : "#dc2626",
+                            background: score >= 80 ? "#059669" : score >= 60 ? "#06b6d4" : score >= 40 ? "#d97706" : "#dc2626",
                           }}
                         />
                       </div>

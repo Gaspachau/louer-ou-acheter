@@ -132,8 +132,8 @@ function buildTimeline(v, scenario) {
 }
 
 const TYPE_COLORS = {
-  buy: "#1a56db",
-  rent: "#0d9488",
+  buy: "#2563eb",
+  rent: "#06b6d4",
   milestone: "#7c3aed",
   win: "#059669",
   done: "#d97706",
@@ -237,7 +237,7 @@ export default function SimHistoire() {
           {/* Timeline events */}
           <div className="histoire-timeline">
             {events.map((ev, i) => {
-              const color = TYPE_COLORS[ev.type] || "#1a56db";
+              const color = TYPE_COLORS[ev.type] || "#2563eb";
               return (
                 <div key={i} className="histoire-event">
                   <div className="histoire-event-left">

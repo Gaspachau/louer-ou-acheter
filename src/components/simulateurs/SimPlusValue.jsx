@@ -126,7 +126,7 @@ export default function SimPlusValue() {
   const chartData = res && res.pvBrute > 0 && !res.exonere
     ? [
         { name: "Plus-value nette", value: Math.round(Math.max(0, res.pvNette)), fill: "#059669" },
-        { name: "Impôt IR (19%)",   value: Math.round(res.impotIR),     fill: "#1a56db" },
+        { name: "Impôt IR (19%)",   value: Math.round(res.impotIR),     fill: "#2563eb" },
         { name: "Prél. sociaux",    value: Math.round(res.impotPS),     fill: "#ec4899" },
       ]
     : [];
@@ -148,6 +148,7 @@ export default function SimPlusValue() {
       icon="📈"
       title="Simulateur de plus-value immobilière"
       description="Calculez l'impôt sur la plus-value à la revente d'un bien immobilier selon la durée de détention."
+      simTime="3 min"
     >
       <div className="sim-layout">
         <div className="sim-card">
@@ -237,7 +238,7 @@ export default function SimPlusValue() {
                 <>
                   <div className="abat-section">
                     <p className="sim-bar-label" style={{ marginBottom: 10 }}>Abattements pour durée de détention ({v.annees} ans)</p>
-                    <AbatProgress label="Impôt sur le revenu (IR)" pct={res.abIR} color="#1a56db" />
+                    <AbatProgress label="Impôt sur le revenu (IR)" pct={res.abIR} color="#2563eb" />
                     <AbatProgress label="Prélèvements sociaux (PS)" pct={res.abPS} color="#ec4899" />
                     <p className="field-hint" style={{ marginTop: 8 }}>
                       {v.annees < 22

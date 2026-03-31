@@ -44,13 +44,13 @@ export default function SimAssurancePret() {
     const taegDelegue = tauxCredit + tauxDelegue;
 
     const pieData = [
-      { name: "Capital", value: montant, color: "#1a56db" },
+      { name: "Capital", value: montant, color: "#2563eb" },
       { name: "Intérêts", value: Math.round(mensCredit * n - montant), color: "#93c5fd" },
       { name: "Assurance banque", value: Math.round(totalBanque), color: "#ef4444" },
     ];
 
     const pieDataDelegue = [
-      { name: "Capital", value: montant, color: "#1a56db" },
+      { name: "Capital", value: montant, color: "#2563eb" },
       { name: "Intérêts", value: Math.round(mensCredit * n - montant), color: "#93c5fd" },
       { name: "Assurance déléguée", value: Math.round(totalDelegue), color: "#22c55e" },
     ];

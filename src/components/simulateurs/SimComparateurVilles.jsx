@@ -133,8 +133,8 @@ export default function SimComparateurVilles() {
               <YAxis type="category" dataKey="nom" tick={{ fontSize: 11, fill: "#0c1a35" }} axisLine={false} tickLine={false} width={120}/>
               <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
               <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }}/>
-              <Bar dataKey="mensualite" name="Mensualité crédit" fill="#1a56db" radius={[0, 6, 6, 0]} barSize={9}/>
-              <Bar dataKey="loyer" name="Loyer estimé" fill="#0d9488" radius={[0, 6, 6, 0]} barSize={9}/>
+              <Bar dataKey="mensualite" name="Mensualité crédit" fill="#2563eb" radius={[0, 6, 6, 0]} barSize={9}/>
+              <Bar dataKey="loyer" name="Loyer estimé" fill="#06b6d4" radius={[0, 6, 6, 0]} barSize={9}/>
             </BarChart>
           </ResponsiveContainer>
 
@@ -153,11 +153,11 @@ export default function SimComparateurVilles() {
                   <div className="city-card-rows">
                     <div className="city-card-row">
                       <span>Mensualité crédit</span>
-                      <strong style={{ color: "#1a56db" }}>{fmtCur(d.mensualite)}/mois</strong>
+                      <strong style={{ color: "#2563eb" }}>{fmtCur(d.mensualite)}/mois</strong>
                     </div>
                     <div className="city-card-row">
                       <span>Loyer estimé</span>
-                      <strong style={{ color: "#0d9488" }}>{fmtCur(d.loyer)}/mois</strong>
+                      <strong style={{ color: "#06b6d4" }}>{fmtCur(d.loyer)}/mois</strong>
                     </div>
                     <div className="city-card-row city-card-delta">
                       <span>Différence</span>

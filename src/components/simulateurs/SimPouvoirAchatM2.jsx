@@ -25,6 +25,7 @@ export default function SimPouvoirAchatM2() {
       icon="🗺️"
       title="Pouvoir d'achat immobilier par ville"
       description="Combien de m² pouvez-vous acheter avec votre budget dans 10 grandes villes françaises ?"
+      simTime="1 min"
     >
       <div className="sim-layout">
         <div className="sim-card">
@@ -76,7 +77,7 @@ export default function SimPouvoirAchatM2() {
           <div className="pam2-table">
             {results.map((r, i) => {
               const barPct = max > 0 ? (r.m2 / max) * 100 : 0;
-              const color = r.m2 >= 60 ? "#059669" : r.m2 >= 40 ? "#1a56db" : r.m2 >= 25 ? "#d97706" : "#dc2626";
+              const color = r.m2 >= 60 ? "#059669" : r.m2 >= 40 ? "#2563eb" : r.m2 >= 25 ? "#d97706" : "#dc2626";
               return (
                 <div key={r.id} className="pam2-row">
                   <span className="pam2-rank">{i + 1}</span>

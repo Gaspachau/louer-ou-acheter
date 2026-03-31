@@ -38,7 +38,7 @@ function SemiGauge({ value }) {
   const fillLen = fillPct * halfCirc;
   const limitLen = limitPct * halfCirc;
 
-  const color = value > 35 ? "#dc2626" : value > 28 ? "#d97706" : "#0d9488";
+  const color = value > 35 ? "#dc2626" : value > 28 ? "#d97706" : "#06b6d4";
 
   // Point on arc at given fraction (0=left, 1=right through top)
   const arcPoint = (frac, rr) => {

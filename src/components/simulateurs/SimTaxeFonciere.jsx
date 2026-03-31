@@ -166,7 +166,7 @@ export default function SimTaxeFonciere() {
                 <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
                 <Bar dataKey="value" name="TF annuelle" radius={[0, 6, 6, 0]} barSize={16}>
                   {compData.map((e, i) => (
-                    <Cell key={i} fill={e.isSelected ? "#7c3aed" : "#1a56db"} opacity={e.isSelected ? 1 : 0.55}/>
+                    <Cell key={i} fill={e.isSelected ? "#7c3aed" : "#2563eb"} opacity={e.isSelected ? 1 : 0.55}/>
                   ))}
                 </Bar>
               </BarChart>

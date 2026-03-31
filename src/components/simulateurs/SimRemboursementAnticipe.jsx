@@ -97,7 +97,7 @@ export default function SimRemboursementAnticipe() {
     // Chart data
     const chartData = [
       { name: "Intérêts sans RA", val: Math.round(interetsTotaux), color: "#ef4444" },
-      { name: "Intérêts avec RA", val: Math.round(interetsTotaux - economiesInterets), color: "#1a56db" },
+      { name: "Intérêts avec RA", val: Math.round(interetsTotaux - economiesInterets), color: "#2563eb" },
       { name: "Gain épargne", val: Math.round(gainEpargne), color: "#059669" },
     ];
 
@@ -170,12 +170,12 @@ export default function SimRemboursementAnticipe() {
             {optionRA === "duree" ? (
               <div className="result-block">
                 <span className="result-block-label">Nouvelle durée</span>
-                <span className="result-block-val" style={{ color: "#1a56db" }}>{res.nouvelleDuree.toFixed(1)} ans</span>
+                <span className="result-block-val" style={{ color: "#2563eb" }}>{res.nouvelleDuree.toFixed(1)} ans</span>
               </div>
             ) : (
               <div className="result-block">
                 <span className="result-block-label">Nouvelle mensualité</span>
-                <span className="result-block-val" style={{ color: "#1a56db" }}>{fmtCur(res.nouvelleMensualite)}/mois</span>
+                <span className="result-block-val" style={{ color: "#2563eb" }}>{fmtCur(res.nouvelleMensualite)}/mois</span>
               </div>
             )}
             <div className="result-block">

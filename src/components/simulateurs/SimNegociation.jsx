@@ -128,7 +128,7 @@ export default function SimNegociation() {
     return (
       <div className="chart-tooltip">
         <p style={{ margin: 0, fontWeight: 600 }}>Réduction : {payload[0]?.payload.pct}</p>
-        <p style={{ margin: "2px 0 0", color: "#1a56db" }}>Achat : {payload[0]?.value}k€</p>
+        <p style={{ margin: "2px 0 0", color: "#2563eb" }}>Achat : {payload[0]?.value}k€</p>
         <p style={{ margin: "2px 0 0", color: "#059669" }}>Location : {payload[1]?.value}k€</p>
       </div>
     );
@@ -190,7 +190,7 @@ export default function SimNegociation() {
                 <XAxis dataKey="pct" tick={{ fontSize: 11 }} />
                 <YAxis unit="k€" tick={{ fontSize: 11 }} />
                 <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="patAchat" stroke="#1a56db" strokeWidth={2} dot={false} name="Achat" />
+                <Line type="monotone" dataKey="patAchat" stroke="#2563eb" strokeWidth={2} dot={false} name="Achat" />
                 <Line type="monotone" dataKey="patLoc" stroke="#059669" strokeWidth={2} dot={false} strokeDasharray="5 3" name="Location" />
                 <ReferenceLine x={`-${Math.round(res.pctNego)}%`} stroke={c.accent} strokeDasharray="4 2" label={{ value: "Équilibre", fontSize: 10, fill: c.accent }} />
               </LineChart>

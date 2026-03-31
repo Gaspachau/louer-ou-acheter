@@ -48,7 +48,7 @@ function ChartTooltip({ active, payload }) {
 
 const RENDEMENT_REFS = [
   { name: "Livret A (1,5%)", v: 1.5, color: "#94a3b8" },
-  { name: "SCPI (5%)",     v: 5, color: "#0d9488" },
+  { name: "SCPI (5%)",     v: 5, color: "#06b6d4" },
   { name: "Excellent (7%)", v: 7, color: "#059669" },
 ];
 
@@ -77,10 +77,10 @@ export default function SimRentabiliteLocative() {
   };
 
   const barData = [
-    { name: "Brut",     value: parseFloat(res.rendementBrut.toFixed(2)), fill: "#1a56db" },
+    { name: "Brut",     value: parseFloat(res.rendementBrut.toFixed(2)), fill: "#2563eb" },
     { name: "Net",      value: parseFloat(Math.max(0, res.rendementNet).toFixed(2)), fill: rendColor === "green" ? "#059669" : rendColor === "amber" ? "#d97706" : "#dc2626" },
     { name: "Livret A", value: 1.5, fill: "#5e6e88" },
-    { name: "SCPI",     value: 5,   fill: "#0d9488" },
+    { name: "SCPI",     value: 5,   fill: "#06b6d4" },
   ];
 
   const donutSegments = [
@@ -93,6 +93,7 @@ export default function SimRentabiliteLocative() {
       icon="🏘️"
       title="Simulateur de rentabilité locative"
       description="Calculez le rendement brut, net et votre cashflow mensuel pour un investissement locatif."
+      simTime="3 min"
     >
       <div className="sim-layout">
         <div className="sim-card">
