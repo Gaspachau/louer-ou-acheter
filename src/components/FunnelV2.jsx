@@ -122,6 +122,21 @@ function computeResult(v) {
   };
 }
 
+/* ─── Revenue segments ────────────────────────────────────── */
+const REVENU_STEPS = [
+  { val:1200, label:"1 200 €" },
+  { val:1500, label:"1 500 €" },
+  { val:2000, label:"2 000 €" },
+  { val:2500, label:"2 500 €" },
+  { val:3000, label:"3 000 €" },
+  { val:4000, label:"4 000 €" },
+  { val:5000, label:"5 000 €" },
+  { val:7500, label:"6 000 €+" },
+];
+
+/* ─── Apport presets ─────────────────────────────────────── */
+const APPORT_PRESETS = [0, 5000, 10000, 20000, 30000, 50000];
+
 /* ─── Sub-components ─────────────────────────────────────── */
 function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -190,7 +205,7 @@ function CityAutocomplete({ value, onChange }) {
   };
 
   return (
-    <div className="fv2-city-wrap" ref={ref}>
+    <div className={`fv2-city-wrap${value ? " fv2-city-has-value" : ""}`} ref={ref}>
       <div className="fv2-city-input-row">
         <span className="fv2-city-icon">📍</span>
         <input
@@ -475,36 +490,73 @@ function Step1({ v, set, applyCity, onNext }) {
    STEP 2 — FINANCES
    ════════════════════════════════════════════════════════════ */
 function Step2({ v, set, onNext }) {
+  const [customApport, setCustomApport] = useState(false);
+  const borrowPower = Math.round(
+    v.revenus * 0.35 * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12)
+  );
+
   return (
     <div className="fv2-card">
       <div className="fv2-card-kicker">FINANCES</div>
       <h1 className="fv2-card-title">Parlons de vos moyens</h1>
 
-      <Slider
-        label="Revenus mensuels nets"
-        value={v.revenus}
-        onChange={set("revenus")}
-        min={1000} max={10000} step={100}
-        format={(x) => `${x.toLocaleString("fr-FR")} €/mois`}
-        hint={`Capacité d'emprunt théorique : ${fmt(v.revenus * 0.35 * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12))}`}
-      />
+      {/* ── Revenus ── */}
+      <div className="fv2-slider-wrap">
+        <div className="fv2-slider-header">
+          <span className="fv2-slider-label">Revenus mensuels nets</span>
+          <span className="fv2-slider-val">{v.revenus.toLocaleString("fr-FR")} €/mois</span>
+        </div>
+        <div className="fv2-revenu-grid">
+          {REVENU_STEPS.map((s) => (
+            <button
+              key={s.val} type="button"
+              className={`fv2-revenu-btn${v.revenus === s.val ? " fv2-revenu-active" : ""}`}
+              onClick={() => set("revenus")(s.val)}
+            >{s.label}</button>
+          ))}
+        </div>
+        <p className="fv2-hint">Capacité d'emprunt théorique : <strong>{fmt(borrowPower)}</strong></p>
+      </div>
 
-      <NumberInput
-        label="Apport disponible"
-        value={v.apport}
-        onChange={set("apport")}
-        suffix="€"
-        hint="Épargne mobilisable pour le projet (hors réserve d'urgence)"
-      />
+      {/* ── Apport ── */}
+      <div className="fv2-slider-wrap">
+        <div className="fv2-slider-header">
+          <span className="fv2-slider-label">Apport disponible</span>
+          <span className="fv2-slider-val">{fmt(v.apport)}</span>
+        </div>
+        <div className="fv2-apport-pills">
+          {APPORT_PRESETS.map((p) => (
+            <button key={p} type="button"
+              className={`fv2-apport-pill${v.apport === p && !customApport ? " fv2-apport-active" : ""}`}
+              onClick={() => { set("apport")(p); setCustomApport(false); }}
+            >{p === 0 ? "Aucun" : fmtK(p)}</button>
+          ))}
+          <button type="button"
+            className={`fv2-apport-pill${customApport ? " fv2-apport-active" : ""}`}
+            onClick={() => setCustomApport(true)}
+          >Autre</button>
+        </div>
+        {customApport && (
+          <div className="fv2-field-row" style={{ marginTop: 10 }}>
+            <input type="number" min={0} step={1000} className="fv2-field-input"
+              value={v.apport}
+              onChange={(e) => set("apport")(Number(e.target.value) || 0)}
+            />
+            <span className="fv2-field-suffix">€</span>
+          </div>
+        )}
+        <p className="fv2-hint">Épargne mobilisable hors réserve d'urgence</p>
+      </div>
 
-      <div style={{ marginTop: 24 }}>
+      {/* ── Situation pro ── */}
+      <div style={{ marginTop: 20 }}>
         <p className="fv2-field-label" style={{ marginBottom: 10 }}>Situation professionnelle</p>
-        <div className="fv2-choices-row">
+        <div className="fv2-emploi-grid">
           {[
-            { id:"cdi",         label:"CDI",          icon:"👔" },
-            { id:"freelance",   label:"Freelance",    icon:"💻" },
-            { id:"fonctionnaire",label:"Fonctionnaire",icon:"🏛️" },
-            { id:"autre",       label:"Autre",        icon:"🔧" },
+            { id:"cdi",          label:"CDI",          icon:"👔" },
+            { id:"fonctionnaire",label:"Fonctionnaire", icon:"🏛️" },
+            { id:"freelance",    label:"Indépendant",  icon:"💻" },
+            { id:"autre",        label:"Autre",        icon:"🔧" },
           ].map((e) => (
             <ChoiceBtn key={e.id} active={v.emploi === e.id}
               onClick={() => set("emploi")(e.id)} icon={e.icon} label={e.label} />
@@ -556,20 +608,17 @@ function Step3({ v, set, onNext }) {
 
       <div style={{ marginTop: 24 }}>
         <Slider
-          label="Durée prévue dans ce bien"
+          label="Combien d'années prévoyez-vous d'y rester ?"
           value={v.duration}
           onChange={set("duration")}
           min={1} max={25} step={1}
           format={(x) => `${x} an${x > 1 ? "s" : ""}`}
+          hint={v.duration < 6
+            ? "⚠️ Horizon court : louer est souvent plus avantageux en dessous de 6 ans."
+            : v.duration >= 10
+            ? "✓ Horizon long : l'achat a le temps de s'amortir pleinement."
+            : "Autour de 7–9 ans : le résultat dépend du marché local."}
         />
-        <div className="fv2-alert-red">
-          <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-            <circle cx="7" cy="7" r="6" stroke="#dc2626" strokeWidth="1.3"/>
-            <path d="M7 4v3.5" stroke="#dc2626" strokeWidth="1.5" strokeLinecap="round"/>
-            <circle cx="7" cy="10" r=".8" fill="#dc2626"/>
-          </svg>
-          C'est le facteur le plus important pour savoir si acheter est rentable.
-        </div>
       </div>
 
       <button className="btn-primary fv2-cta" onClick={onNext}>
@@ -607,26 +656,27 @@ function Step4({ v, set, onNext }) {
         </div>
       </div>
 
-      <Slider
-        label="Taux d'intérêt"
-        value={v.rate}
-        onChange={set("rate")}
-        min={1.0} max={6.0} step={0.1}
-        format={(x) => `${x.toFixed(1)} %`}
-        hint="Taux fixe moyen 20 ans en 2026 : 3,5–4,0 %"
-      />
-
-      <Slider
-        label="Durée du crédit"
-        value={v.loanYears}
-        onChange={set("loanYears")}
-        min={10} max={25} step={1}
-        format={(x) => `${x} ans`}
-      />
+      <div className="fv2-compact-sliders">
+        <Slider
+          label="Taux d'intérêt"
+          value={v.rate}
+          onChange={set("rate")}
+          min={1.5} max={5.5} step={0.1}
+          format={(x) => `${x.toFixed(1)} %`}
+          hint="Moyenne 20 ans en 2026 : 3,4–3,9 %"
+        />
+        <Slider
+          label="Durée du crédit"
+          value={v.loanYears}
+          onChange={set("loanYears")}
+          min={10} max={25} step={1}
+          format={(x) => `${x} ans`}
+        />
+      </div>
 
       <div className="fv2-notary-row">
-        <span className="fv2-field-label">Frais de notaire</span>
-        <span className="fv2-notary-val">{v.notaryPct} % — {fmt(notary)} <span className="fv2-auto-tag">Auto</span></span>
+        <span className="fv2-field-label">Frais de notaire <span className="fv2-auto-tag">Auto</span></span>
+        <span className="fv2-notary-val">{v.notaryPct} % → {fmt(notary)}</span>
       </div>
 
       <button
@@ -691,18 +741,22 @@ function Step5({ v, set, onNext }) {
         hint="Charges récupérables (eau, ordures…) non incluses dans le loyer"
       />
 
-      <label className="fv2-checkbox-row">
-        <input
-          type="checkbox"
-          className="fv2-checkbox"
-          checked={v.rentRise}
-          onChange={(e) => set("rentRise")(e.target.checked)}
-        />
-        <span className="fv2-checkbox-label">
+      <div
+        className="fv2-toggle-row"
+        role="switch"
+        aria-checked={v.rentRise}
+        tabIndex={0}
+        onClick={() => set("rentRise")(!v.rentRise)}
+        onKeyDown={(e) => (e.key === " " || e.key === "Enter") && set("rentRise")(!v.rentRise)}
+      >
+        <div className={`fv2-toggle${v.rentRise ? " fv2-toggle-on" : ""}`}>
+          <div className="fv2-toggle-thumb" />
+        </div>
+        <span className="fv2-toggle-label">
           Mon loyer va probablement augmenter
-          <span className="fv2-checkbox-sub">Indexation IRL ~1,8 %/an prise en compte</span>
+          <span className="fv2-toggle-sub">Indexation IRL ~1,8 %/an prise en compte</span>
         </span>
-      </label>
+      </div>
 
       <div className="fv2-recap-box">
         <p className="fv2-recap-title">📊 Récapitulatif de votre projet</p>
@@ -726,158 +780,132 @@ function Step5({ v, set, onNext }) {
    ════════════════════════════════════════════════════════════ */
 function Step6({ v, result, onEdit, onEmail }) {
   const [chartReady, setChartReady] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setChartReady(true), 120); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(() => setChartReady(true), 150); return () => clearTimeout(t); }, []);
 
   const { isBuyBetter, advantage, breakEven, yearlyData, monthlyPayment, ownerMonthly,
           ownerNWEnd, renterPortfolio, notary } = result;
 
-  const title = isBuyBetter
-    ? breakEven
-      ? `Acheter devient plus rentable après ${breakEven} an${breakEven > 1 ? "s" : ""}`
-      : "Acheter est rentable dès le départ"
-    : "Louer reste plus avantageux dans votre situation";
-
-  const heroColor = isBuyBetter ? "#059669" : "#d97706";
+  const buyColor  = "#1a56db";
+  const rentColor = "#f59e0b";
+  const verdictBg = isBuyBetter ? "linear-gradient(135deg,#0f4c81,#1a56db)" : "linear-gradient(135deg,#92400e,#d97706)";
 
   const maxNW = Math.max(...yearlyData.map((d) => Math.max(d.ownerNW, d.renterNW)));
   const minNW = Math.min(...yearlyData.map((d) => Math.min(d.ownerNW, d.renterNW)));
 
   return (
     <div className="fv2-result">
-      {/* Header */}
-      <div className="fv2-result-header">
-        <div className="fv2-result-kicker" style={{ color: heroColor }}>
-          {isBuyBetter ? "✅ ACHETER RECOMMANDÉ" : "🔵 LOCATION AVANTAGEUSE"}
+
+      {/* ── Verdict banner ── */}
+      <div className="fv2-verdict-banner" style={{ background: verdictBg }}>
+        <div className="fv2-verdict-pill">
+          {isBuyBetter ? "🏠 Acheter" : "🔑 Louer"}
         </div>
-        <h1 className="fv2-result-title">{title}</h1>
-        <p className="fv2-result-insight">
-          Dans votre situation, {isBuyBetter
-            ? `acheter vous permettrait d'accumuler environ `
-            : `louer vous permet de préserver environ `}
-          <strong style={{ color: heroColor }}>{fmt(Math.abs(advantage))}</strong>
+        <h1 className="fv2-verdict-title">
           {isBuyBetter
-            ? ` de patrimoine supplémentaire sur ${v.duration} ans.`
-            : ` de plus que l'achat sur ${v.duration} ans.`}
+            ? breakEven
+              ? `Rentable après ${breakEven} an${breakEven > 1 ? "s" : ""}`
+              : "Rentable dès maintenant"
+            : "La location reste avantageuse"}
+        </h1>
+        <p className="fv2-verdict-sub">
+          {isBuyBetter
+            ? `Sur ${v.duration} ans, acheter vous fait gagner `
+            : `Sur ${v.duration} ans, louer préserve `}
+          <strong>{fmt(Math.abs(advantage))}</strong>
+          {isBuyBetter ? " de patrimoine de plus" : " de plus que l'achat"}
         </p>
       </div>
 
-      {/* Chart */}
+      {/* ── Patrimoine comparé ── */}
+      <div className="fv2-patrimoine-row">
+        <div className="fv2-pat-card fv2-pat-buy">
+          <span className="fv2-pat-label">Patrimoine acheteur</span>
+          <span className="fv2-pat-val">{fmt(ownerNWEnd)}</span>
+          <span className="fv2-pat-sub">Valeur bien − capital dû − frais cession</span>
+        </div>
+        <div className="fv2-pat-vs">vs</div>
+        <div className="fv2-pat-card fv2-pat-rent">
+          <span className="fv2-pat-label">Patrimoine locataire</span>
+          <span className="fv2-pat-val">{fmt(renterPortfolio)}</span>
+          <span className="fv2-pat-sub">Apport + surplus placés à 3,5 %/an</span>
+        </div>
+      </div>
+
+      {/* ── Chart ── */}
       <div className="fv2-chart-wrap">
-        <p className="fv2-chart-title">Évolution du patrimoine net sur {v.duration} ans</p>
+        <p className="fv2-chart-title">Évolution du patrimoine net — {v.duration} ans</p>
         {chartReady && (
-          <ResponsiveContainer width="100%" height={220}>
-            <LineChart data={yearlyData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
-              <XAxis
-                dataKey="year" tickLine={false} axisLine={false}
-                tick={{ fontSize: 11, fill: "#94a3b8" }}
-                tickFormatter={(y) => `${y}a`}
-              />
-              <YAxis
-                tickLine={false} axisLine={false}
-                tick={{ fontSize: 11, fill: "#94a3b8" }} width={48}
+          <ResponsiveContainer width="100%" height={210}>
+            <LineChart data={yearlyData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.05)" />
+              <XAxis dataKey="year" tickLine={false} axisLine={false}
+                tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(y) => `${y}a`} />
+              <YAxis tickLine={false} axisLine={false}
+                tick={{ fontSize: 11, fill: "#94a3b8" }} width={52}
                 tickFormatter={fmtK}
-                domain={[Math.min(0, minNW * 1.1), maxNW * 1.1]}
+                domain={[Math.min(0, Math.floor(minNW * 1.15 / 10000) * 10000), Math.ceil(maxNW * 1.1 / 10000) * 10000]}
               />
               <Tooltip content={<ChartTip />} />
               {breakEven && (
-                <ReferenceLine
-                  x={breakEven}
-                  stroke="#6366f1"
-                  strokeDasharray="4 3"
-                  label={{ value: `Équilibre`, position: "top", fontSize: 10, fill: "#6366f1" }}
-                />
+                <ReferenceLine x={breakEven} stroke="#6366f1" strokeDasharray="4 3"
+                  label={{ value: `Équilibre`, position: "insideTopRight", fontSize: 10, fill: "#6366f1" }} />
               )}
-              <Line
-                type="monotone" dataKey="ownerNW" name="Acheter"
-                stroke="#1a56db" strokeWidth={2.5} dot={false}
-                animationDuration={1200} animationEasing="ease-out"
-              />
-              <Line
-                type="monotone" dataKey="renterNW" name="Louer + investir"
-                stroke="#f59e0b" strokeWidth={2.5} dot={false}
-                animationDuration={1400} animationEasing="ease-out"
-              />
+              <Line type="monotone" dataKey="ownerNW" name="Acheter"
+                stroke={buyColor} strokeWidth={2.5} dot={false}
+                animationDuration={1200} animationEasing="ease-out" />
+              <Line type="monotone" dataKey="renterNW" name="Louer + placer"
+                stroke={rentColor} strokeWidth={2.5} dot={false}
+                animationDuration={1400} animationEasing="ease-out" />
             </LineChart>
           </ResponsiveContainer>
         )}
         <div className="fv2-chart-legend">
-          <span><span className="fv2-leg-dot" style={{ background: "#1a56db" }} />Acheter</span>
-          <span><span className="fv2-leg-dot" style={{ background: "#f59e0b" }} />Louer + investir</span>
-          {breakEven && <span><span className="fv2-leg-dot" style={{ background: "#6366f1" }} />Point d'équilibre</span>}
+          <span><span className="fv2-leg-dot" style={{ background: buyColor }} />Acheter</span>
+          <span><span className="fv2-leg-dot" style={{ background: rentColor }} />Louer + placer</span>
+          {breakEven && <span><span className="fv2-leg-dot" style={{ background: "#6366f1" }} />Équilibre</span>}
         </div>
       </div>
 
-      {/* Summary cards */}
-      <div className="fv2-summary-grid">
-        <div className="fv2-sum-card fv2-sum-blue">
-          <span className="fv2-sum-label">Patrimoine acheteur</span>
-          <span className="fv2-sum-val">{fmt(ownerNWEnd)}</span>
-          <span className="fv2-sum-sub">Valeur du bien — capital restant</span>
-        </div>
-        <div className="fv2-sum-card fv2-sum-amber">
-          <span className="fv2-sum-label">Patrimoine locataire</span>
-          <span className="fv2-sum-val">{fmt(renterPortfolio)}</span>
-          <span className="fv2-sum-sub">Apport + frais placés à 3,5 %/an</span>
-        </div>
-        <div className={`fv2-sum-card ${isBuyBetter ? "fv2-sum-green" : "fv2-sum-orange"}`}>
-          <span className="fv2-sum-label">Avantage</span>
-          <span className="fv2-sum-val">{isBuyBetter ? "+" : "−"}{fmt(Math.abs(advantage))}</span>
-          <span className="fv2-sum-sub">En faveur de {isBuyBetter ? "l'achat" : "la location"}</span>
-        </div>
-      </div>
-
-      {/* Key figures */}
+      {/* ── Détails clés ── */}
       <div className="fv2-key-figures">
         <div className="fv2-kf-row">
-          <span>🏦 Mensualité crédit</span>
+          <span>💳 Mensualité crédit</span>
           <strong>{fmt(monthlyPayment)}/mois</strong>
         </div>
         <div className="fv2-kf-row">
-          <span>📊 Coût total mensuel propriétaire</span>
+          <span>🏠 Coût total propriétaire</span>
           <strong>{fmt(ownerMonthly)}/mois</strong>
         </div>
         <div className="fv2-kf-row">
-          <span>🏷️ Frais de notaire</span>
+          <span>📋 Frais de notaire</span>
           <strong>{fmt(notary)}</strong>
-        </div>
-        <div className="fv2-kf-row">
-          <span>📅 Horizon de comparaison</span>
-          <strong>{v.duration} ans</strong>
         </div>
         {breakEven && (
           <div className="fv2-kf-row fv2-kf-highlight">
-            <span>⚖️ Point d'équilibre achat/location</span>
+            <span>⚖️ Point d'équilibre achat / location</span>
             <strong>{breakEven} ans</strong>
           </div>
         )}
       </div>
 
-      {/* CTAs */}
+      {/* ── CTAs ── */}
       <div className="fv2-result-ctas">
         <button type="button" className="btn-primary fv2-cta" onClick={onEmail}>
-          📨 Recevoir mon analyse détaillée
+          Recevoir mon analyse complète
         </button>
-        <a
-          href="https://www.meilleursagents.com/conseils-immobilier/courtier/"
-          target="_blank" rel="noopener noreferrer"
-          className="fv2-btn-secondary"
-        >
-          💬 Parler à un expert
-        </a>
+        <button type="button" className="fv2-btn-secondary" onClick={onEdit}>
+          Modifier mes paramètres
+        </button>
       </div>
 
       <div className="fv2-result-actions-row">
-        <button type="button" className="fv2-edit-btn" onClick={onEdit}>
-          ↩ Modifier mes paramètres
-        </button>
         <Link to="/simulateurs" className="fv2-edit-btn">
-          🧮 Autres simulateurs
+          Autres simulateurs →
         </Link>
       </div>
 
       <p className="fv2-disclaimer">
-        Simulation indicative basée sur vos données. Consultez un conseiller financier avant toute décision.
+        Simulation indicative. Les projections dépendent des hypothèses saisies — consultez un conseiller avant toute décision.
       </p>
     </div>
   );

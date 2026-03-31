@@ -7855,15 +7855,219 @@ input[type="radio"] {
 }
 .fv2-modal-success-icon { font-size: 40px; }
 
+/* ─── City selected state ────────────────────────────────── */
+.fv2-city-has-value .fv2-city-input-row {
+  border-color: #059669;
+  box-shadow: 0 0 0 3px rgba(5,150,105,.1);
+}
+
+/* ─── Revenue segment grid ───────────────────────────────── */
+.fv2-revenu-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 7px;
+  margin-top: 10px;
+}
+.fv2-revenu-btn {
+  padding: 9px 6px;
+  border: 1.5px solid var(--line, #e2e8f0);
+  border-radius: 10px;
+  background: var(--card, #f8fafc);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #0c1a35);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+  font-family: inherit;
+  text-align: center;
+}
+.fv2-revenu-btn:hover { border-color: #93c5fd; background: #f0f7ff; }
+.fv2-revenu-active {
+  border-color: #1a56db;
+  background: #eff6ff;
+  color: #1a56db;
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+}
+
+/* ─── Apport quick-pick pills ────────────────────────────── */
+.fv2-apport-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 10px;
+}
+.fv2-apport-pill {
+  padding: 8px 14px;
+  border: 1.5px solid var(--line, #e2e8f0);
+  border-radius: 20px;
+  background: var(--card, #f8fafc);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text, #0c1a35);
+  cursor: pointer;
+  transition: border-color .15s, background .15s, color .15s;
+  font-family: inherit;
+  white-space: nowrap;
+}
+.fv2-apport-pill:hover { border-color: #93c5fd; background: #f0f7ff; }
+.fv2-apport-active {
+  border-color: #1a56db;
+  background: #eff6ff;
+  color: #1a56db;
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+}
+
+/* ─── Emploi 2x2 grid ────────────────────────────────────── */
+.fv2-emploi-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.fv2-emploi-grid .fv2-choice { width: 100%; }
+.fv2-emploi-grid .fv2-choice-body { align-items: flex-start; }
+.fv2-emploi-grid .fv2-choice-label { font-size: 13px; }
+
+/* ─── Compact sliders (Step 4) ───────────────────────────── */
+.fv2-compact-sliders .fv2-slider-wrap { margin-bottom: 12px; }
+.fv2-compact-sliders .fv2-slider-minmax { font-size: 11px; }
+
+/* ─── Toggle switch (Step 5) ─────────────────────────────── */
+.fv2-toggle-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  border: 1.5px solid var(--line, #e2e8f0);
+  border-radius: 14px;
+  background: var(--card, #f8fafc);
+  cursor: pointer;
+  margin-bottom: 20px;
+  user-select: none;
+  transition: border-color .15s, background .15s;
+}
+.fv2-toggle-row:hover { border-color: #93c5fd; background: #f0f7ff; }
+.fv2-toggle {
+  flex-shrink: 0;
+  width: 42px;
+  height: 24px;
+  background: #cbd5e1;
+  border-radius: 12px;
+  position: relative;
+  transition: background .2s;
+  margin-top: 1px;
+}
+.fv2-toggle-on { background: #1a56db; }
+.fv2-toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,.2);
+  transition: transform .2s;
+}
+.fv2-toggle-on .fv2-toggle-thumb { transform: translateX(18px); }
+.fv2-toggle-label {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text, #0c1a35);
+}
+.fv2-toggle-sub { font-size: 12px; color: var(--muted, #64748b); font-weight: 400; }
+
+/* ─── Result — verdict banner ────────────────────────────── */
+.fv2-verdict-banner {
+  border-radius: 24px 24px 0 0;
+  padding: 32px 28px 28px;
+  color: white;
+  text-align: center;
+}
+.fv2-verdict-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  background: rgba(255,255,255,.18);
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .05em;
+  margin-bottom: 14px;
+}
+.fv2-verdict-title {
+  font-size: 24px;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+  margin: 0 0 10px;
+}
+.fv2-verdict-sub {
+  font-size: 15px;
+  opacity: .88;
+  margin: 0;
+  line-height: 1.5;
+}
+.fv2-verdict-sub strong { opacity: 1; font-size: 16px; }
+
+/* ─── Result — patrimoine row ────────────────────────────── */
+.fv2-patrimoine-row {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: white;
+  border-top: 1px solid var(--line, #e2e8f0);
+}
+.fv2-pat-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 18px 16px;
+  text-align: center;
+}
+.fv2-pat-vs {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--muted, #94a3b8);
+  padding: 0 8px;
+  flex-shrink: 0;
+}
+.fv2-pat-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--muted, #64748b);
+}
+.fv2-pat-val {
+  font-size: 18px;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.fv2-pat-sub {
+  font-size: 10px;
+  color: var(--muted, #94a3b8);
+  line-height: 1.3;
+}
+.fv2-pat-buy .fv2-pat-val { color: #1a56db; }
+.fv2-pat-rent .fv2-pat-val { color: #d97706; }
+
 /* ─── Mobile ──────────────────────────────────────────────── */
 @media (max-width: 560px) {
   .fv2-card { padding: 24px 18px 28px; border-radius: 22px; }
   .fv2-card-title { font-size: 22px; }
   .fv2-finance-summary { grid-template-columns: 1fr 1fr; }
   .fv2-finance-summary .fv2-fs-highlight { grid-column: 1 / -1; }
-  .fv2-summary-grid { grid-template-columns: 1fr 1fr; }
-  .fv2-summary-grid .fv2-sum-card:last-child { grid-column: 1 / -1; border-top: 1px solid var(--line, #e2e8f0); }
-  .fv2-result-title { font-size: 19px; }
+  .fv2-verdict-title { font-size: 20px; }
+  .fv2-patrimoine-row { flex-direction: column; }
+  .fv2-pat-card { border-bottom: 1px solid var(--line, #e2e8f0); }
+  .fv2-pat-vs { display: none; }
+  .fv2-revenu-grid { grid-template-columns: repeat(4, 1fr); }
   .fv2-choices-row .fv2-choice { flex: none; width: calc(50% - 4px); }
 }
 
