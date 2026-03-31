@@ -49,7 +49,7 @@ export default function PageMentionsLegales() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="blog-page">
+      <main id="main-content" className="page-main">
 
         {/* Hero */}
         <div className="blog-hero-v2">
@@ -63,6 +63,7 @@ export default function PageMentionsLegales() {
           </div>
         </div>
 
+        <div className="blog-page">
         <div className="ml-content-wrapper">
 
           {/* 1. Éditeur */}
@@ -338,6 +339,7 @@ export default function PageMentionsLegales() {
           </div>
 
         </div>
+        </div>{/* end .blog-page */}
       </main>
       <Footer />
     </div>

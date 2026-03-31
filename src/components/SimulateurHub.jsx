@@ -357,7 +357,7 @@ export default function SimulateurHub() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="shub-page">
+      <main id="main-content" className="page-main">
 
         {/* ── Hero ── */}
         <div className="shub-hero">
@@ -386,6 +386,7 @@ export default function SimulateurHub() {
           </div>
         </div>
 
+        <div className="shub-page">
         {/* ── Featured: main simulator ── */}
         <Link to={featuredSim.href} className="shub-featured">
           <div className="shub-featured-left">
@@ -527,6 +528,7 @@ export default function SimulateurHub() {
             </div>
           </div>
         </div>
+        </div>{/* end .shub-page */}
 
       </main>
       <Footer />

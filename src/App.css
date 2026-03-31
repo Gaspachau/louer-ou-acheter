@@ -854,9 +854,12 @@ body { color: var(--text); font-size: 15px; }
 .tag-purple { background: #ede9fe; color: #7c3aed; }
 .tag-teal   { background: #e0f2fe; color: #0369a1; }
 
+/* ─── Full-width page wrapper (hero lives here, outside max-width) ─── */
+.page-main { flex: 1; display: flex; flex-direction: column; width: 100%; overflow-x: hidden; }
+
 /* ─── Blog list page ─────────────────────────────────────── */
 .blog-page {
-  flex: 1; max-width: 960px; width: 100%; margin: 0 auto;
+  max-width: 960px; width: 100%; margin: 0 auto;
   padding: 52px 24px 80px; display: flex; flex-direction: column; gap: 48px;
 }
 
@@ -5051,7 +5054,7 @@ html, body {
    ═══════════════════════════════════════════════════════════ */
 
 .shub-page {
-  flex: 1; max-width: 1080px; width: 100%; margin: 0 auto;
+  max-width: 1080px; width: 100%; margin: 0 auto;
   padding: 40px 24px 80px;
   display: flex; flex-direction: column; gap: 28px;
 }
