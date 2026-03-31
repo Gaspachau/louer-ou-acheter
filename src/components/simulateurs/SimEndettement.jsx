@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import { formatCurrency } from "../../utils/finance";
 
 function calcEndettement({ revenus, chargesExistantes, taux, duree }) {
@@ -126,72 +127,82 @@ export default function SimEndettement() {
       description="Évaluez votre taux d'endettement et estimez votre capacité d'emprunt maximale."
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/niveau-de-vie", "/simulateurs/budget-maximum"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre situation financière</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois" hint="Tous revenus réguliers (salaires, revenus locatifs…)" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
-            </div>
-            <div className="field-full">
-              <Field label="Charges de crédit existantes" value={v.chargesExistantes} onChange={set("chargesExistantes")} suffix="€/mois" hint="Somme de toutes vos mensualités de crédit en cours" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
-            </div>
-          </div>
-
-          <p className="sim-card-legend" style={{ marginTop: 16 }}>Nouveau crédit envisagé</p>
-          <div className="step-fields">
-            <Field label="Taux annuel" value={v.taux} onChange={set("taux")} suffix="%" hint="Taux moyen France 2026 : 3,3–3,7 % sur 20 ans" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          {!res ? (
-            <p className="sim-empty">Renseignez vos revenus pour voir les résultats.</p>
-          ) : (
-            <>
-              {verdict && (
-                <div className={`sim-verdict sim-verdict-${verdict.color}`}>
-                  <strong>{verdict.label}</strong>
-                  <p>{verdict.msg}</p>
+      <SimFunnel
+        steps={[
+          {
+            title: "Vos revenus",
+            icon: "💰",
+            content: (
+              <div className="step-fields">
+                <div className="field-full">
+                  <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois" hint="Tous revenus réguliers (salaires, revenus locatifs…)" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
                 </div>
-              )}
-              {verdict?.color === "red" && (
-                <div className="sim-info-box" style={{ marginTop: 12, borderLeft: "3px solid #dc2626" }}>
-                  <p className="sim-info-title">🛠️ Plan d'action pour améliorer votre dossier</p>
-                  <p className="sim-info-body">
-                    <strong>1. Soldez un crédit existant :</strong> supprimer {formatCurrency(Math.ceil((v.chargesExistantes - v.revenus * 0.35) / 1) + 50)}/mois de charges vous ramène sous les 35 %.<br/>
-                    <strong>2. Augmentez l'apport :</strong> un apport plus élevé réduit le capital à emprunter et donc la mensualité.<br/>
-                    <strong>3. Allongez la durée :</strong> passer à 25 ans réduit la mensualité d'environ 15–20 % (mais augmente le coût total).<br/>
-                    <strong>4. Rachat de crédits :</strong> regrouper vos crédits peut abaisser significativement votre taux d'endettement global.
-                  </p>
-                </div>
-              )}
-
-              <SemiGauge value={res.tauxActuel} />
-
-              <div className="sim-stats-grid">
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Revenus mensuels</span>
-                  <span className="sim-stat-card-value">{formatCurrency(v.revenus)}</span>
-                </div>
-                <div className="sim-stat-card sim-stat-card-blue">
-                  <span className="sim-stat-card-label">Capacité mensuelle dispo</span>
-                  <span className="sim-stat-card-value">{formatCurrency(res.capaciteRestante)}</span>
-                </div>
-                <div className={`sim-stat-card ${res.montantEmpruntable > 0 ? "sim-stat-card-green" : ""}`}>
-                  <span className="sim-stat-card-label">Montant empruntable max</span>
-                  <span className="sim-stat-card-value">{formatCurrency(res.montantEmpruntable)}</span>
-                </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Seuil HCSF (35%)</span>
-                  <span className="sim-stat-card-value">{formatCurrency(v.revenus * 0.35)}/mois</span>
+                <div className="field-full">
+                  <Field label="Charges de crédit existantes" value={v.chargesExistantes} onChange={set("chargesExistantes")} suffix="€/mois" hint="Somme de toutes vos mensualités de crédit en cours" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
                 </div>
               </div>
-            </>
-          )}
-        </div>
-      </div>
+            ),
+          },
+          {
+            title: "Le crédit envisagé",
+            icon: "🏦",
+            content: (
+              <div className="step-fields">
+                <Field label="Taux annuel" value={v.taux} onChange={set("taux")} suffix="%" hint="Taux moyen France 2026 : 3,3–3,7 % sur 20 ans" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+              </div>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res ? (
+              <p className="sim-empty">Renseignez vos revenus pour voir les résultats.</p>
+            ) : (
+              <>
+                {verdict && (
+                  <div className={`sim-verdict sim-verdict-${verdict.color}`}>
+                    <strong>{verdict.label}</strong>
+                    <p>{verdict.msg}</p>
+                  </div>
+                )}
+                {verdict?.color === "red" && (
+                  <div className="sim-info-box" style={{ marginTop: 12, borderLeft: "3px solid #dc2626" }}>
+                    <p className="sim-info-title">🛠️ Plan d'action pour améliorer votre dossier</p>
+                    <p className="sim-info-body">
+                      <strong>1. Soldez un crédit existant :</strong> supprimer {formatCurrency(Math.ceil((v.chargesExistantes - v.revenus * 0.35) / 1) + 50)}/mois de charges vous ramène sous les 35 %.<br/>
+                      <strong>2. Augmentez l'apport :</strong> un apport plus élevé réduit le capital à emprunter et donc la mensualité.<br/>
+                      <strong>3. Allongez la durée :</strong> passer à 25 ans réduit la mensualité d'environ 15–20 % (mais augmente le coût total).<br/>
+                      <strong>4. Rachat de crédits :</strong> regrouper vos crédits peut abaisser significativement votre taux d'endettement global.
+                    </p>
+                  </div>
+                )}
+
+                <SemiGauge value={res.tauxActuel} />
+
+                <div className="sim-stats-grid">
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Revenus mensuels</span>
+                    <span className="sim-stat-card-value">{formatCurrency(v.revenus)}</span>
+                  </div>
+                  <div className="sim-stat-card sim-stat-card-blue">
+                    <span className="sim-stat-card-label">Capacité mensuelle dispo</span>
+                    <span className="sim-stat-card-value">{formatCurrency(res.capaciteRestante)}</span>
+                  </div>
+                  <div className={`sim-stat-card ${res.montantEmpruntable > 0 ? "sim-stat-card-green" : ""}`}>
+                    <span className="sim-stat-card-label">Montant empruntable max</span>
+                    <span className="sim-stat-card-value">{formatCurrency(res.montantEmpruntable)}</span>
+                  </div>
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Seuil HCSF (35%)</span>
+                    <span className="sim-stat-card-value">{formatCurrency(v.revenus * 0.35)}/mois</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

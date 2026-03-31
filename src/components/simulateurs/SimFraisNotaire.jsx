@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import { formatCurrency } from "../../utils/finance";
 
 /** Calcul des émoluments proportionnels du notaire (barème 2026, hors TVA) */
@@ -120,130 +121,138 @@ export default function SimFraisNotaire() {
       simTime="1 min"
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre achat immobilier</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Prix d'achat net vendeur" value={v.prix} onChange={set("prix")} suffix="€"
-                hint="Prix mentionné dans le compromis de vente, hors mobilier" tooltip="Prix mentionné dans le compromis de vente, hors frais de notaire et hors mobilier. Si vous achetez dans le neuf, choisissez le type 'Neuf' pour des frais réduits (~2–3 %)." />
-            </div>
-          </div>
-
-          <div style={{ marginTop: 16 }}>
-            <label className="field-label">Type de bien</label>
-            <div className="loan-type-grid" style={{ marginTop: 8 }}>
-              <button type="button" className={`loan-type-btn${v.type === "ancien" ? " loan-type-active" : ""}`} onClick={() => set("type")("ancien")}>
-                <span>🏘️</span><span>Ancien</span>
-              </button>
-              <button type="button" className={`loan-type-btn${v.type === "neuf" ? " loan-type-active" : ""}`} onClick={() => set("type")("neuf")}>
-                <span>🏗️</span><span>Neuf / VEFA</span>
-              </button>
-            </div>
-            <p className="field-hint" style={{ marginTop: 8 }}>
-              {v.type === "ancien"
-                ? "Bien existant construit depuis + de 5 ans — droits de mutation élevés (5,81 %)"
-                : "Construction neuve ou VEFA — droits de mutation réduits (0,715 %)"}
-            </p>
-          </div>
-
-          {v.type === "ancien" && (
-            <div style={{ marginTop: 16 }}>
-              <label className="field-label">Taux de droits de mutation</label>
-              <div className="loan-type-grid" style={{ marginTop: 8, gridTemplateColumns: "repeat(3, 1fr)" }}>
-                <button type="button" className={`loan-type-btn${v.region === "standard" ? " loan-type-active" : ""}`}
-                  onClick={() => set("region")("standard")} style={{ flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontWeight: 700 }}>5,81 %</span>
-                  <span style={{ fontSize: 11 }}>Majorité</span>
-                </button>
-                <button type="button" className={`loan-type-btn${v.region === "idf_plein" ? " loan-type-active" : ""}`}
-                  onClick={() => set("region")("idf_plein")} style={{ flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontWeight: 700 }}>5,91 %</span>
-                  <span style={{ fontSize: 11 }}>Certaines villes</span>
-                </button>
-                <button type="button" className={`loan-type-btn${v.region === "reduit" ? " loan-type-active" : ""}`}
-                  onClick={() => set("region")("reduit")} style={{ flexDirection: "column", gap: 2 }}>
-                  <span style={{ fontWeight: 700 }}>3,80 %</span>
-                  <span style={{ fontSize: 11 }}>Indre (36)</span>
-                </button>
-              </div>
-              <p className="field-hint" style={{ marginTop: 6 }}>
-                {v.region === "standard" ? "Taux standard appliqué dans la grande majorité des départements français."
-                  : v.region === "idf_plein" ? "Certaines communes ont voté la majoration communale de 0,1 % (applicable surtout en Île-de-France)."
-                  : "L'Indre (36) et Mayotte maintiennent un taux réduit de 3,80 %."}
-              </p>
-            </div>
-          )}
-
-          <div style={{ marginTop: 16 }}>
-            <Field label="Débours estimés" value={v.deboursCustom} onChange={set("deboursCustom")} suffix="€"
-              hint="Frais avancés par le notaire (cadastre, état civil, docs). Généralement 800–1 400 €." tooltip="Les débours couvrent les frais que le notaire avance pour votre compte : extraits cadastraux, état civil, relevés hypothécaires, documents d'urbanisme. Varie entre 800 et 1 400 €." />
-          </div>
-
-          <div className="sim-info-box" style={{ marginTop: 20 }}>
-            <p className="sim-info-title">💡 Astuce négociation</p>
-            <p className="sim-info-body">Les frais de notaire se calculent sur le prix net vendeur. Séparer la valeur des meubles (cuisine équipée, garde-robe…) du prix du bien peut légalement réduire l'assiette de calcul.</p>
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          <div className="sim-stat-hero">
-            <span className="sim-stat-label">Total frais de notaire estimés</span>
-            <span className="sim-stat-value">
-              {formatCurrency(res.total)}
-            </span>
-            <span className="sim-stat-sub">{fmtPct(res.pct)} du prix d'achat</span>
-          </div>
-
-          <div className="sim-stats-grid">
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Prix d'achat</span>
-              <span className="sim-stat-card-value">{formatCurrency(v.prix)}</span>
-            </div>
-            <div className="sim-stat-card sim-stat-card-blue">
-              <span className="sim-stat-card-label">Frais de notaire</span>
-              <span className="sim-stat-card-value">{formatCurrency(res.total)}</span>
-            </div>
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Budget total</span>
-              <span className="sim-stat-card-value">{formatCurrency(v.prix + res.total)}</span>
-            </div>
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Taux global</span>
-              <span className="sim-stat-card-value">{fmtPct(res.pct)}</span>
-            </div>
-          </div>
-
-          <div className="sim-chart-wrap">
-            <p className="sim-chart-title">Répartition des frais de notaire</p>
-            <ResponsiveContainer width="100%" height={180}>
-              <PieChart>
-                <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
-                  {pieData.map((e, i) => <Cell key={i} fill={e.fill}/>)}
-                </Pie>
-                <Tooltip content={<ChartTooltip />}/>
-                <Legend iconType="circle" iconSize={9} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} formatter={(v) => <span style={{ color: "#64748b" }}>{v}</span>}/>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="notaire-details">
-            <p className="sim-bar-label" style={{ marginBottom: 12 }}>Détail par poste</p>
-            {details.map((d) => (
-              <div key={d.label} className="notaire-detail-row">
-                <div className="notaire-detail-header">
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span className="sim-donut-dot" style={{ background: d.color, flexShrink: 0 }} />
-                    <strong className="notaire-detail-label">{d.label}</strong>
-                  </div>
-                  <span className="notaire-detail-value">{fmtCur(d.value)}</span>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre achat",
+            icon: "📋",
+            content: (
+              <div className="step-fields">
+                <div className="field-full">
+                  <Field label="Prix d'achat net vendeur" value={v.prix} onChange={set("prix")} suffix="€"
+                    hint="Prix mentionné dans le compromis de vente, hors mobilier" tooltip="Prix mentionné dans le compromis de vente, hors frais de notaire et hors mobilier. Si vous achetez dans le neuf, choisissez le type 'Neuf' pour des frais réduits (~2–3 %)." />
                 </div>
-                <p className="notaire-detail-explain">{d.explain}</p>
+
+                <div className="field-full" style={{ marginTop: 16 }}>
+                  <label className="field-label">Type de bien</label>
+                  <div className="loan-type-grid" style={{ marginTop: 8 }}>
+                    <button type="button" className={`loan-type-btn${v.type === "ancien" ? " loan-type-active" : ""}`} onClick={() => set("type")("ancien")}>
+                      <span>🏘️</span><span>Ancien</span>
+                    </button>
+                    <button type="button" className={`loan-type-btn${v.type === "neuf" ? " loan-type-active" : ""}`} onClick={() => set("type")("neuf")}>
+                      <span>🏗️</span><span>Neuf / VEFA</span>
+                    </button>
+                  </div>
+                  <p className="field-hint" style={{ marginTop: 8 }}>
+                    {v.type === "ancien"
+                      ? "Bien existant construit depuis + de 5 ans — droits de mutation élevés (5,81 %)"
+                      : "Construction neuve ou VEFA — droits de mutation réduits (0,715 %)"}
+                  </p>
+                </div>
+
+                {v.type === "ancien" && (
+                  <div className="field-full" style={{ marginTop: 16 }}>
+                    <label className="field-label">Taux de droits de mutation</label>
+                    <div className="loan-type-grid" style={{ marginTop: 8, gridTemplateColumns: "repeat(3, 1fr)" }}>
+                      <button type="button" className={`loan-type-btn${v.region === "standard" ? " loan-type-active" : ""}`}
+                        onClick={() => set("region")("standard")} style={{ flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontWeight: 700 }}>5,81 %</span>
+                        <span style={{ fontSize: 11 }}>Majorité</span>
+                      </button>
+                      <button type="button" className={`loan-type-btn${v.region === "idf_plein" ? " loan-type-active" : ""}`}
+                        onClick={() => set("region")("idf_plein")} style={{ flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontWeight: 700 }}>5,91 %</span>
+                        <span style={{ fontSize: 11 }}>Certaines villes</span>
+                      </button>
+                      <button type="button" className={`loan-type-btn${v.region === "reduit" ? " loan-type-active" : ""}`}
+                        onClick={() => set("region")("reduit")} style={{ flexDirection: "column", gap: 2 }}>
+                        <span style={{ fontWeight: 700 }}>3,80 %</span>
+                        <span style={{ fontSize: 11 }}>Indre (36)</span>
+                      </button>
+                    </div>
+                    <p className="field-hint" style={{ marginTop: 6 }}>
+                      {v.region === "standard" ? "Taux standard appliqué dans la grande majorité des départements français."
+                        : v.region === "idf_plein" ? "Certaines communes ont voté la majoration communale de 0,1 % (applicable surtout en Île-de-France)."
+                        : "L'Indre (36) et Mayotte maintiennent un taux réduit de 3,80 %."}
+                    </p>
+                  </div>
+                )}
+
+                <div className="field-full" style={{ marginTop: 16 }}>
+                  <Field label="Débours estimés" value={v.deboursCustom} onChange={set("deboursCustom")} suffix="€"
+                    hint="Frais avancés par le notaire (cadastre, état civil, docs). Généralement 800–1 400 €." tooltip="Les débours couvrent les frais que le notaire avance pour votre compte : extraits cadastraux, état civil, relevés hypothécaires, documents d'urbanisme. Varie entre 800 et 1 400 €." />
+                </div>
+
+                <div className="field-full">
+                  <div className="sim-info-box" style={{ marginTop: 20 }}>
+                    <p className="sim-info-title">💡 Astuce négociation</p>
+                    <p className="sim-info-body">Les frais de notaire se calculent sur le prix net vendeur. Séparer la valeur des meubles (cuisine équipée, garde-robe…) du prix du bien peut légalement réduire l'assiette de calcul.</p>
+                  </div>
+                </div>
               </div>
-            ))}
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className="sim-stat-hero">
+              <span className="sim-stat-label">Total frais de notaire estimés</span>
+              <span className="sim-stat-value">
+                {formatCurrency(res.total)}
+              </span>
+              <span className="sim-stat-sub">{fmtPct(res.pct)} du prix d'achat</span>
+            </div>
+
+            <div className="sim-stats-grid">
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Prix d'achat</span>
+                <span className="sim-stat-card-value">{formatCurrency(v.prix)}</span>
+              </div>
+              <div className="sim-stat-card sim-stat-card-blue">
+                <span className="sim-stat-card-label">Frais de notaire</span>
+                <span className="sim-stat-card-value">{formatCurrency(res.total)}</span>
+              </div>
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Budget total</span>
+                <span className="sim-stat-card-value">{formatCurrency(v.prix + res.total)}</span>
+              </div>
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Taux global</span>
+                <span className="sim-stat-card-value">{fmtPct(res.pct)}</span>
+              </div>
+            </div>
+
+            <div className="sim-chart-wrap">
+              <p className="sim-chart-title">Répartition des frais de notaire</p>
+              <ResponsiveContainer width="100%" height={180}>
+                <PieChart>
+                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
+                    {pieData.map((e, i) => <Cell key={i} fill={e.fill}/>)}
+                  </Pie>
+                  <Tooltip content={<ChartTooltip />}/>
+                  <Legend iconType="circle" iconSize={9} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} formatter={(v) => <span style={{ color: "#64748b" }}>{v}</span>}/>
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="notaire-details">
+              <p className="sim-bar-label" style={{ marginBottom: 12 }}>Détail par poste</p>
+              {details.map((d) => (
+                <div key={d.label} className="notaire-detail-row">
+                  <div className="notaire-detail-header">
+                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                      <span className="sim-donut-dot" style={{ background: d.color, flexShrink: 0 }} />
+                      <strong className="notaire-detail-label">{d.label}</strong>
+                    </div>
+                    <span className="notaire-detail-value">{fmtCur(d.value)}</span>
+                  </div>
+                  <p className="notaire-detail-explain">{d.explain}</p>
+                </div>
+              ))}
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

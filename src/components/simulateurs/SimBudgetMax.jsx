@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const fmtCur = (v) =>
@@ -104,114 +105,127 @@ export default function SimBudgetMax() {
       description="Calculez précisément jusqu'où vous pouvez aller — et découvrez dans quelles villes vous pouvez acheter."
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/frais-notaire"]}
     >
-      <div className="sim-layout">
-        {/* Inputs */}
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre situation financière</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois"
-                hint="Tous les revenus réguliers du foyer" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
-            </div>
-            <div className="field-full">
-              <Field label="Charges mensuelles de crédit" value={v.chargesExist} onChange={set("chargesExist")} suffix="€/mois"
-                hint="Mensualités de crédits en cours (auto, conso…)" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
-            </div>
-            <div className="field-full">
-              <Field label="Apport personnel disponible" value={v.apport} onChange={set("apport")} suffix="€"
-                hint="Épargne mobilisable pour l'achat" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-            </div>
-            <div className="field-full">
-              <Field label="Taux du crédit envisagé" value={v.taux} onChange={set("taux")} suffix="%" step="0.1"
-                hint="Mars 2026 : entre 3,3 % et 4,0 %" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            </div>
-          </div>
-
-          {res && (
-            <div className="sim-info-box" style={{ marginTop: 16 }}>
-              <p className="sim-info-title">📊 Votre capacité mensuelle</p>
-              <p className="sim-info-body">
-                Au taux d'endettement HCSF de 35 %, votre mensualité maximale est de <strong>{fmtCur(res.capaciteRestante)}/mois</strong>.
-                {v.chargesExist > 0 && ` (Après déduction de ${fmtCur(v.chargesExist)}/mois de crédits existants.)`}
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Results */}
-        <div className="sim-results-panel">
-          {!res ? (
-            <p className="sim-empty">Renseignez vos revenus pour voir votre budget maximum.</p>
-          ) : (
-            <>
-              {/* Hero */}
-              <div className="sim-stat-hero sim-hero-blue" style={{ marginBottom: 20 }}>
-                <span className="sim-stat-label">Budget maximum d'achat (20 ans)</span>
-                <span className="sim-stat-value">{fmtCur(res.maxPrice20)}</span>
-                <p className="sim-stat-hero-summary">
-                  Mensualité de {fmtCur(res.budgets.find(b => b.duree === 20)?.mensualite ?? 0)}/mois · apport {fmtCur(v.apport)} · {res.nbVilles} ville{res.nbVilles > 1 ? "s" : ""} accessibles sur 25 ans.
-                </p>
-              </div>
-
-              {/* Budget par durée */}
-              <p className="sim-card-legend" style={{ marginBottom: 10 }}>Budget maximum selon la durée</p>
-              <div className="budget-duree-grid">
-                {res.budgets.map(({ duree, maxPrice, mensualite }) => (
-                  <div key={duree} className={`budget-duree-card${duree === 20 ? " budget-duree-featured" : ""}`}>
-                    <p className="budget-duree-label">{duree} ans</p>
-                    <p className="budget-duree-price">{fmtCur(maxPrice)}</p>
-                    <p className="budget-duree-mens">{fmtCur(mensualite)}/mois</p>
-                    {duree === 20 && <span className="budget-duree-badge">Recommandé</span>}
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre situation financière",
+            icon: "👤",
+            content: (
+              <>
+                <div className="step-fields">
+                  <div className="field-full">
+                    <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois"
+                      hint="Tous les revenus réguliers du foyer" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
                   </div>
-                ))}
+                  <div className="field-full">
+                    <Field label="Charges mensuelles de crédit" value={v.chargesExist} onChange={set("chargesExist")} suffix="€/mois"
+                      hint="Mensualités de crédits en cours (auto, conso…)" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
+                  </div>
+                </div>
+                {res && (
+                  <div className="sim-info-box" style={{ marginTop: 16 }}>
+                    <p className="sim-info-title">📊 Votre capacité mensuelle</p>
+                    <p className="sim-info-body">
+                      Au taux d'endettement HCSF de 35 %, votre mensualité maximale est de <strong>{fmtCur(res.capaciteRestante)}/mois</strong>.
+                      {v.chargesExist > 0 && ` (Après déduction de ${fmtCur(v.chargesExist)}/mois de crédits existants.)`}
+                    </p>
+                  </div>
+                )}
+              </>
+            ),
+          },
+          {
+            title: "Votre projet immobilier",
+            icon: "🏠",
+            content: (
+              <div className="step-fields">
+                <div className="field-full">
+                  <Field label="Apport personnel disponible" value={v.apport} onChange={set("apport")} suffix="€"
+                    hint="Épargne mobilisable pour l'achat" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+                </div>
+                <div className="field-full">
+                  <Field label="Taux du crédit envisagé" value={v.taux} onChange={set("taux")} suffix="%" step="0.1"
+                    hint="Mars 2026 : entre 3,3 % et 4,0 %" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                </div>
               </div>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res ? (
+              <p className="sim-empty">Renseignez vos revenus pour voir votre budget maximum.</p>
+            ) : (
+              <>
+                {/* Hero */}
+                <div className="sim-stat-hero sim-hero-blue" style={{ marginBottom: 20 }}>
+                  <span className="sim-stat-label">Budget maximum d'achat (20 ans)</span>
+                  <span className="sim-stat-value">{fmtCur(res.maxPrice20)}</span>
+                  <p className="sim-stat-hero-summary">
+                    Mensualité de {fmtCur(res.budgets.find(b => b.duree === 20)?.mensualite ?? 0)}/mois · apport {fmtCur(v.apport)} · {res.nbVilles} ville{res.nbVilles > 1 ? "s" : ""} accessibles sur 25 ans.
+                  </p>
+                </div>
 
-              {/* Cities grid */}
-              <div style={{ marginTop: 24 }}>
-                <p className="sim-card-legend" style={{ marginBottom: 10 }}>
-                  Ce que vous pouvez acheter dans 12 villes
-                  <span style={{ fontWeight: 400, fontSize: 11, marginLeft: 6, color: "var(--muted)" }}>
-                    — sur 25 ans, {res.nbVilles}/12 villes accessibles
-                  </span>
-                </p>
-                <div className="budget-cities-grid">
-                  {res.villes.map((ville) => (
-                    <div
-                      key={ville.nom}
-                      className={`budget-city-card ${!ville.bestType ? "budget-city-out" : ville.canT3 ? "budget-city-t3" : ville.canT2 ? "budget-city-t2" : "budget-city-t1"}`}
-                    >
-                      <div className="budget-city-header">
-                        <span className="budget-city-flag">{ville.flag}</span>
-                        <span className="budget-city-nom">{ville.nom}</span>
-                        <span className={`budget-city-badge ${!ville.bestType ? "badge-out" : ville.canT3 ? "badge-t3" : ville.canT2 ? "badge-t2" : "badge-t1"}`}>
-                          {!ville.bestType ? "Hors budget" : ville.canT3 ? "T3 accessible" : ville.canT2 ? "T2 accessible" : "T1 accessible"}
-                        </span>
-                      </div>
-                      <div className="budget-city-rows">
-                        {[
-                          { type: "T1", prix: ville.prixT1, can: ville.canT1 },
-                          { type: "T2", prix: ville.prixT2, can: ville.canT2 },
-                          { type: "T3", prix: ville.prixT3, can: ville.canT3 },
-                        ].map(({ type, prix, can }) => (
-                          <div key={type} className="budget-city-row">
-                            <span className={`budget-type-label ${can ? "budget-type-yes" : "budget-type-no"}`}>
-                              {can ? "✓" : "✗"} {type}
-                            </span>
-                            <span style={{ color: "var(--muted)", fontSize: 12 }}>{fmtCur(prix)}</span>
-                          </div>
-                        ))}
-                        <div className="budget-city-m2">
-                          {fmtCur(ville.m2)}/m² · {ville.m2 > 4000 ? "Marché tendu" : "Marché accessible"}
-                        </div>
-                      </div>
+                {/* Budget par durée */}
+                <p className="sim-card-legend" style={{ marginBottom: 10 }}>Budget maximum selon la durée</p>
+                <div className="budget-duree-grid">
+                  {res.budgets.map(({ duree, maxPrice, mensualite }) => (
+                    <div key={duree} className={`budget-duree-card${duree === 20 ? " budget-duree-featured" : ""}`}>
+                      <p className="budget-duree-label">{duree} ans</p>
+                      <p className="budget-duree-price">{fmtCur(maxPrice)}</p>
+                      <p className="budget-duree-mens">{fmtCur(mensualite)}/mois</p>
+                      {duree === 20 && <span className="budget-duree-badge">Recommandé</span>}
                     </div>
                   ))}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+
+                {/* Cities grid */}
+                <div style={{ marginTop: 24 }}>
+                  <p className="sim-card-legend" style={{ marginBottom: 10 }}>
+                    Ce que vous pouvez acheter dans 12 villes
+                    <span style={{ fontWeight: 400, fontSize: 11, marginLeft: 6, color: "var(--muted)" }}>
+                      — sur 25 ans, {res.nbVilles}/12 villes accessibles
+                    </span>
+                  </p>
+                  <div className="budget-cities-grid">
+                    {res.villes.map((ville) => (
+                      <div
+                        key={ville.nom}
+                        className={`budget-city-card ${!ville.bestType ? "budget-city-out" : ville.canT3 ? "budget-city-t3" : ville.canT2 ? "budget-city-t2" : "budget-city-t1"}`}
+                      >
+                        <div className="budget-city-header">
+                          <span className="budget-city-flag">{ville.flag}</span>
+                          <span className="budget-city-nom">{ville.nom}</span>
+                          <span className={`budget-city-badge ${!ville.bestType ? "badge-out" : ville.canT3 ? "badge-t3" : ville.canT2 ? "badge-t2" : "badge-t1"}`}>
+                            {!ville.bestType ? "Hors budget" : ville.canT3 ? "T3 accessible" : ville.canT2 ? "T2 accessible" : "T1 accessible"}
+                          </span>
+                        </div>
+                        <div className="budget-city-rows">
+                          {[
+                            { type: "T1", prix: ville.prixT1, can: ville.canT1 },
+                            { type: "T2", prix: ville.prixT2, can: ville.canT2 },
+                            { type: "T3", prix: ville.prixT3, can: ville.canT3 },
+                          ].map(({ type, prix, can }) => (
+                            <div key={type} className="budget-city-row">
+                              <span className={`budget-type-label ${can ? "budget-type-yes" : "budget-type-no"}`}>
+                                {can ? "✓" : "✗"} {type}
+                              </span>
+                              <span style={{ color: "var(--muted)", fontSize: 12 }}>{fmtCur(prix)}</span>
+                            </div>
+                          ))}
+                          <div className="budget-city-m2">
+                            {fmtCur(ville.m2)}/m² · {ville.m2 > 4000 ? "Marché tendu" : "Marché accessible"}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

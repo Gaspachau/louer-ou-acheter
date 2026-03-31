@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
@@ -179,78 +180,92 @@ export default function SimCalendrier() {
       description="Votre feuille de route complète vers les clés — étapes, délais et conseils selon votre situation personnelle."
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/frais-notaire", "/simulateurs/endettement"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre situation</p>
-          <div className="step-fields">
-            <Field label="Épargne actuelle" value={v.currentSavings} onChange={set("currentSavings")} suffix="€"
-              hint="Total de votre épargne disponible pour l'apport" />
-            <Field label="Épargne mensuelle" value={v.monthlySavings} onChange={set("monthlySavings")} suffix="€/mois"
-              hint="Ce que vous mettez de côté chaque mois" />
-            <Field label="Apport visé" value={v.targetApport} onChange={set("targetApport")} suffix="€"
-              hint="Minimum conseillé : 10 % du prix + frais de notaire" />
-            <Field label="Prix du bien visé" value={v.purchasePrice} onChange={set("purchasePrice")} suffix="€"
-              hint="Budget total d'achat" />
-          </div>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre situation actuelle",
+            icon: "💰",
+            content: (
+              <>
+                <Field label="Épargne actuelle" value={v.currentSavings} onChange={set("currentSavings")} suffix="€"
+                  hint="Total de votre épargne disponible pour l'apport" />
+                <Field label="Épargne mensuelle" value={v.monthlySavings} onChange={set("monthlySavings")} suffix="€/mois"
+                  hint="Ce que vous mettez de côté chaque mois" />
+                <Field label="Apport visé" value={v.targetApport} onChange={set("targetApport")} suffix="€"
+                  hint="Minimum conseillé : 10 % du prix + frais de notaire" />
 
-          <div style={{ marginTop: 16 }} className="field">
-            <label className="field-label">Situation professionnelle</label>
-            <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
-              <button type="button" className={`hub-filter-btn${v.hasCDI ? " hub-filter-active" : ""}`} onClick={() => setV(s => ({ ...s, hasCDI: true }))}>
-                CDI / Fonctionnaire
-              </button>
-              <button type="button" className={`hub-filter-btn${!v.hasCDI ? " hub-filter-active" : ""}`} onClick={() => setV(s => ({ ...s, hasCDI: false }))}>
-                Autre (CDD, indépendant)
-              </button>
+                <div style={{ marginTop: 16 }} className="field">
+                  <label className="field-label">Situation professionnelle</label>
+                  <div style={{ display: "flex", gap: 8, marginTop: 8 }}>
+                    <button type="button" className={`hub-filter-btn${v.hasCDI ? " hub-filter-active" : ""}`} onClick={() => setV(s => ({ ...s, hasCDI: true }))}>
+                      CDI / Fonctionnaire
+                    </button>
+                    <button type="button" className={`hub-filter-btn${!v.hasCDI ? " hub-filter-active" : ""}`} onClick={() => setV(s => ({ ...s, hasCDI: false }))}>
+                      Autre (CDD, indépendant)
+                    </button>
+                  </div>
+                </div>
+              </>
+            ),
+          },
+          {
+            title: "Votre projet immobilier",
+            icon: "🏠",
+            content: (
+              <>
+                <Field label="Prix du bien visé" value={v.purchasePrice} onChange={set("purchasePrice")} suffix="€"
+                  hint="Budget total d'achat" />
+
+                <div className="sim-info-box" style={{ marginTop: 20 }}>
+                  <p className="sim-info-title">📅 Horizon estimé</p>
+                  <p className="sim-info-body">
+                    Sur la base de vos données, vous pourriez obtenir les clés aux alentours de{" "}
+                    <strong>{addMonths(new Date(), totalMonths)}</strong> (dans environ {totalMonths} mois).
+                  </p>
+                </div>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className="sim-stat-hero sim-hero-blue">
+              <span className="sim-stat-label">Durée estimée jusqu'aux clés</span>
+              <span className="sim-stat-value">{totalMonths} <span className="sim-stat-unit">mois</span></span>
+              <p className="sim-stat-hero-summary">
+                Soit environ {Math.ceil(totalMonths / 12)} an{Math.ceil(totalMonths / 12) > 1 ? "s" : ""}.
+                Objectif : {addMonths(new Date(), totalMonths)}.
+              </p>
+            </div>
+
+            <div className="cal-timeline">
+              {steps.map((step, i) => (
+                <div key={step.id} className="cal-step">
+                  <div className="cal-step-left">
+                    <div className="cal-step-icon" style={{ background: step.color + "22", color: step.color }}>
+                      {step.icon}
+                    </div>
+                    {i < steps.length - 1 && <div className="cal-step-connector" />}
+                  </div>
+                  <div className="cal-step-body">
+                    <div className="cal-step-header">
+                      <span className="cal-step-date">{step.date}</span>
+                      <span className="cal-step-tag" style={{ background: step.color + "22", color: step.color }}>{step.tag}</span>
+                    </div>
+                    <p className="cal-step-title">{step.title}</p>
+                    <p className="cal-step-desc">{step.desc}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="sim-info-box">
+              <p className="sim-info-title">⚠️ Estimation indicative</p>
+              <p className="sim-info-body">Ce calendrier est basé sur des moyennes nationales. Les délais réels varient selon le marché local, votre banque, le notaire et les conditions de chaque transaction.</p>
             </div>
           </div>
-
-          <div className="sim-info-box" style={{ marginTop: 20 }}>
-            <p className="sim-info-title">📅 Horizon estimé</p>
-            <p className="sim-info-body">
-              Sur la base de vos données, vous pourriez obtenir les clés aux alentours de{" "}
-              <strong>{addMonths(new Date(), totalMonths)}</strong> (dans environ {totalMonths} mois).
-            </p>
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          <div className="sim-stat-hero sim-hero-blue">
-            <span className="sim-stat-label">Durée estimée jusqu'aux clés</span>
-            <span className="sim-stat-value">{totalMonths} <span className="sim-stat-unit">mois</span></span>
-            <p className="sim-stat-hero-summary">
-              Soit environ {Math.ceil(totalMonths / 12)} an{Math.ceil(totalMonths / 12) > 1 ? "s" : ""}.
-              Objectif : {addMonths(new Date(), totalMonths)}.
-            </p>
-          </div>
-
-          <div className="cal-timeline">
-            {steps.map((step, i) => (
-              <div key={step.id} className="cal-step">
-                <div className="cal-step-left">
-                  <div className="cal-step-icon" style={{ background: step.color + "22", color: step.color }}>
-                    {step.icon}
-                  </div>
-                  {i < steps.length - 1 && <div className="cal-step-connector" />}
-                </div>
-                <div className="cal-step-body">
-                  <div className="cal-step-header">
-                    <span className="cal-step-date">{step.date}</span>
-                    <span className="cal-step-tag" style={{ background: step.color + "22", color: step.color }}>{step.tag}</span>
-                  </div>
-                  <p className="cal-step-title">{step.title}</p>
-                  <p className="cal-step-desc">{step.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="sim-info-box">
-            <p className="sim-info-title">⚠️ Estimation indicative</p>
-            <p className="sim-info-body">Ce calendrier est basé sur des moyennes nationales. Les délais réels varient selon le marché local, votre banque, le notaire et les conditions de chaque transaction.</p>
-          </div>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
@@ -79,131 +80,145 @@ export default function SimEpargne() {
       description="Calculez combien épargner chaque mois pour atteindre votre objectif financier."
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/rentabilite-locative", "/simulateurs/niveau-de-vie"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre objectif</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Objectif à atteindre" value={v.goal} onChange={set("goal")} suffix="€" hint="Capital cible (achat, retraite, projet…)" tooltip="Montant total que vous souhaitez accumuler. Ex. : apport immobilier, achat voiture, retraite anticipée." />
-            </div>
-            <Field label="Capital de départ" value={v.initial} onChange={set("initial")} suffix="€" hint="Épargne déjà constituée" tooltip="Épargne déjà constituée que vous allez placer immédiatement." />
-            <Field label="Rendement annuel" value={v.annualReturn} onChange={set("annualReturn")} suffix="%" hint={`Livret A 1,5 % · ETF ≈ 7–8 % · ${fmtCur(v.initial)} → ${fmtCur(Math.round(v.initial * Math.pow(1 + v.annualReturn/100, v.years)))} dans ${v.years} ans`} tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
-            <div className="field-full">
-              <label className="field-label">Horizon</label>
-              <div className="horizon-box" style={{ marginTop: 6 }}>
-                <div className="horizon-row">
-                  <p className="horizon-explain">Dans combien d'années souhaitez-vous atteindre l'objectif ?</p>
-                  <strong className="horizon-value" aria-live="polite">{v.years} ans</strong>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre objectif",
+            icon: "🎯",
+            content: (
+              <div className="step-fields">
+                <div className="field-full">
+                  <Field label="Objectif à atteindre" value={v.goal} onChange={set("goal")} suffix="€" hint="Capital cible (achat, retraite, projet…)" tooltip="Montant total que vous souhaitez accumuler. Ex. : apport immobilier, achat voiture, retraite anticipée." />
                 </div>
-                <input
-                  type="range" min="1" max="40" step="1"
-                  value={v.years}
-                  onChange={(e) => set("years")(Number(e.target.value))}
-                  style={{ "--range-pct": `${((v.years - 1) / (40 - 1)) * 100}%` }}
-                  aria-label={`Horizon : ${v.years} ans`}
-                />
-                <div className="horizon-ticks"><span>1 an</span><span>20 ans</span><span>40 ans</span></div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          {!res ? (
-            <p className="sim-empty">Renseignez un objectif pour voir les résultats.</p>
-          ) : res.goalReachedByInitial ? (
-            <div className="sim-result-ok">
-              <span className="sim-ok-icon">✅</span>
-              <p>Votre capital de départ atteint déjà l'objectif avec les intérêts.</p>
-              <p className="sim-ok-sub">
-                {formatCurrency(v.initial)} placé à {v.annualReturn} %/an pendant {v.years} ans →{" "}
-                <strong>{formatCurrency(v.initial * Math.pow(1 + v.annualReturn / 100, v.years))}</strong>
-              </p>
-            </div>
-          ) : (
-            <>
-              <div className="sim-stat-hero">
-                <span className="sim-stat-label">Épargne mensuelle nécessaire</span>
-                <span className="sim-stat-value">
-                  {formatCurrency(res.monthlySavings)}<span className="sim-stat-unit">/mois</span>
-                </span>
-                <p className="sim-stat-hero-summary">
-                  En épargnant {formatCurrency(res.monthlySavings)}/mois pendant {v.years} ans à {v.annualReturn} %/an,
-                  vous atteindrez {formatCurrency(v.goal)}. Les intérêts représentent {formatCurrency(Math.max(0, res.totalInterest))} —
-                  {res.totalInterest > 0 ? ` soit ${((res.totalInterest / v.goal) * 100).toFixed(0)} % de votre objectif financé par les rendements.` : " l'épargne seule couvre l'objectif."}
-                </p>
-              </div>
-
-              <div className="sim-stats-grid">
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Objectif</span>
-                  <span className="sim-stat-card-value">{formatCurrency(v.goal)}</span>
-                </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Apport initial</span>
-                  <span className="sim-stat-card-value">{formatCurrency(v.initial)}</span>
-                </div>
-                <div className="sim-stat-card sim-stat-card-blue">
-                  <span className="sim-stat-card-label">Versements totaux</span>
-                  <span className="sim-stat-card-value">{formatCurrency(res.totalContributions)}</span>
-                </div>
-                <div className="sim-stat-card sim-stat-card-green">
-                  <span className="sim-stat-card-label">Intérêts générés</span>
-                  <span className="sim-stat-card-value">{formatCurrency(Math.max(0, res.totalInterest))}</span>
-                </div>
-              </div>
-
-              {chartData.length > 1 && (
-                <div className="sim-chart-wrap">
-                  <p className="sim-chart-title">Croissance du capital sur {v.years} ans</p>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
-                      <defs>
-                        <linearGradient id="gradEpGrowth" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
-                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
-                        </linearGradient>
-                        <linearGradient id="gradEpContrib" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.18}/>
-                          <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.02}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
-                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
-                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
-                      <Tooltip content={<ChartTooltip />}/>
-                      <Area type="monotone" dataKey="sansIntérêts" name="Sans intérêts" stroke="#06b6d4" strokeWidth={1.5} fill="url(#gradEpContrib)" dot={false} activeDot={{ r: 4 }}/>
-                      <Area type="monotone" dataKey="avecIntérêts" name="Avec intérêts" stroke="#2563eb" strokeWidth={2} fill="url(#gradEpGrowth)" dot={false} activeDot={{ r: 4 }}/>
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              {donutSegments.length > 0 && (
-                <div className="sim-donut-section">
-                  <DonutChart
-                    segments={donutSegments}
-                    size={130}
-                    thickness={22}
-                    label={formatCurrency(v.goal)}
-                    subLabel="objectif"
-                  />
-                  <div className="sim-donut-legend">
-                    <p className="sim-bar-label" style={{ marginBottom: 8 }}>Composition de l'objectif</p>
-                    {donutSegments.map((seg) => (
-                      <div key={seg.label} className="sim-donut-legend-item">
-                        <span className="sim-donut-dot" style={{ background: seg.color }} />
-                        <span className="sim-donut-legend-label">{seg.label}</span>
-                        <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
-                      </div>
-                    ))}
+                <div className="field-full">
+                  <label className="field-label">Horizon</label>
+                  <div className="horizon-box" style={{ marginTop: 6 }}>
+                    <div className="horizon-row">
+                      <p className="horizon-explain">Dans combien d'années souhaitez-vous atteindre l'objectif ?</p>
+                      <strong className="horizon-value" aria-live="polite">{v.years} ans</strong>
+                    </div>
+                    <input
+                      type="range" min="1" max="40" step="1"
+                      value={v.years}
+                      onChange={(e) => set("years")(Number(e.target.value))}
+                      style={{ "--range-pct": `${((v.years - 1) / (40 - 1)) * 100}%` }}
+                      aria-label={`Horizon : ${v.years} ans`}
+                    />
+                    <div className="horizon-ticks"><span>1 an</span><span>20 ans</span><span>40 ans</span></div>
                   </div>
                 </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+              </div>
+            ),
+          },
+          {
+            title: "Votre épargne",
+            icon: "💰",
+            content: (
+              <div className="step-fields">
+                <Field label="Capital de départ" value={v.initial} onChange={set("initial")} suffix="€" hint="Épargne déjà constituée" tooltip="Épargne déjà constituée que vous allez placer immédiatement." />
+                <Field label="Rendement annuel" value={v.annualReturn} onChange={set("annualReturn")} suffix="%" hint={`Livret A 1,5 % · ETF ≈ 7–8 % · ${fmtCur(v.initial)} → ${fmtCur(Math.round(v.initial * Math.pow(1 + v.annualReturn/100, v.years)))} dans ${v.years} ans`} tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
+              </div>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res ? (
+              <p className="sim-empty">Renseignez un objectif pour voir les résultats.</p>
+            ) : res.goalReachedByInitial ? (
+              <div className="sim-result-ok">
+                <span className="sim-ok-icon">✅</span>
+                <p>Votre capital de départ atteint déjà l'objectif avec les intérêts.</p>
+                <p className="sim-ok-sub">
+                  {formatCurrency(v.initial)} placé à {v.annualReturn} %/an pendant {v.years} ans →{" "}
+                  <strong>{formatCurrency(v.initial * Math.pow(1 + v.annualReturn / 100, v.years))}</strong>
+                </p>
+              </div>
+            ) : (
+              <>
+                <div className="sim-stat-hero">
+                  <span className="sim-stat-label">Épargne mensuelle nécessaire</span>
+                  <span className="sim-stat-value">
+                    {formatCurrency(res.monthlySavings)}<span className="sim-stat-unit">/mois</span>
+                  </span>
+                  <p className="sim-stat-hero-summary">
+                    En épargnant {formatCurrency(res.monthlySavings)}/mois pendant {v.years} ans à {v.annualReturn} %/an,
+                    vous atteindrez {formatCurrency(v.goal)}. Les intérêts représentent {formatCurrency(Math.max(0, res.totalInterest))} —
+                    {res.totalInterest > 0 ? ` soit ${((res.totalInterest / v.goal) * 100).toFixed(0)} % de votre objectif financé par les rendements.` : " l'épargne seule couvre l'objectif."}
+                  </p>
+                </div>
+
+                <div className="sim-stats-grid">
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Objectif</span>
+                    <span className="sim-stat-card-value">{formatCurrency(v.goal)}</span>
+                  </div>
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Apport initial</span>
+                    <span className="sim-stat-card-value">{formatCurrency(v.initial)}</span>
+                  </div>
+                  <div className="sim-stat-card sim-stat-card-blue">
+                    <span className="sim-stat-card-label">Versements totaux</span>
+                    <span className="sim-stat-card-value">{formatCurrency(res.totalContributions)}</span>
+                  </div>
+                  <div className="sim-stat-card sim-stat-card-green">
+                    <span className="sim-stat-card-label">Intérêts générés</span>
+                    <span className="sim-stat-card-value">{formatCurrency(Math.max(0, res.totalInterest))}</span>
+                  </div>
+                </div>
+
+                {chartData.length > 1 && (
+                  <div className="sim-chart-wrap">
+                    <p className="sim-chart-title">Croissance du capital sur {v.years} ans</p>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
+                        <defs>
+                          <linearGradient id="gradEpGrowth" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
+                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
+                          </linearGradient>
+                          <linearGradient id="gradEpContrib" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.18}/>
+                            <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.02}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
+                        <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
+                        <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
+                        <Tooltip content={<ChartTooltip />}/>
+                        <Area type="monotone" dataKey="sansIntérêts" name="Sans intérêts" stroke="#06b6d4" strokeWidth={1.5} fill="url(#gradEpContrib)" dot={false} activeDot={{ r: 4 }}/>
+                        <Area type="monotone" dataKey="avecIntérêts" name="Avec intérêts" stroke="#2563eb" strokeWidth={2} fill="url(#gradEpGrowth)" dot={false} activeDot={{ r: 4 }}/>
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                {donutSegments.length > 0 && (
+                  <div className="sim-donut-section">
+                    <DonutChart
+                      segments={donutSegments}
+                      size={130}
+                      thickness={22}
+                      label={formatCurrency(v.goal)}
+                      subLabel="objectif"
+                    />
+                    <div className="sim-donut-legend">
+                      <p className="sim-bar-label" style={{ marginBottom: 8 }}>Composition de l'objectif</p>
+                      {donutSegments.map((seg) => (
+                        <div key={seg.label} className="sim-donut-legend-item">
+                          <span className="sim-donut-dot" style={{ background: seg.color }} />
+                          <span className="sim-donut-legend-label">{seg.label}</span>
+                          <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

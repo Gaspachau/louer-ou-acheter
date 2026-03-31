@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
@@ -52,140 +53,154 @@ export default function SimNiveauDeVie() {
       simTime="3 min"
       suggestions={["/simulateurs/endettement", "/simulateurs/epargne", "/simulateurs/pret-immobilier"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Vos revenus et charges</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Salaire net mensuel" value={v.salaire} onChange={set("salaire")} suffix="€/mois" hint="Après impôts et cotisations" tooltip="Votre salaire net après prélèvement à la source et cotisations. Regardez votre fiche de paie, ligne 'net à payer avant impôt'." />
+      <SimFunnel
+        steps={[
+          {
+            title: "Vos revenus",
+            icon: "💰",
+            content: (
+              <div className="step-fields">
+                <div className="field-full">
+                  <Field label="Salaire net mensuel" value={v.salaire} onChange={set("salaire")} suffix="€/mois" hint="Après impôts et cotisations" tooltip="Votre salaire net après prélèvement à la source et cotisations. Regardez votre fiche de paie, ligne 'net à payer avant impôt'." />
+                </div>
+              </div>
+            ),
+          },
+          {
+            title: "Vos charges mensuelles",
+            icon: "📊",
+            content: (
+              <div className="step-fields">
+                {CHARGE_FIELDS.map((f) => (
+                  <Field key={f.key} label={`${f.icon} ${f.label}`} value={v[f.key]} onChange={set(f.key)} suffix="€/mois" hint={f.hint} tooltip={f.tooltip} />
+                ))}
+              </div>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className={`sim-stat-hero sim-hero-${color}`}>
+              <span className="sim-stat-label">Revenu disponible</span>
+              <span className="sim-stat-value">
+                {res.disponible < 0 ? "−" : ""}{formatCurrency(Math.abs(res.disponible))}
+                <span className="sim-stat-unit">/mois</span>
+              </span>
+              {res.disponible < 0 && <span className="sim-hero-badge sim-badge-red">Budget déficitaire</span>}
             </div>
-            {CHARGE_FIELDS.map((f) => (
-              <Field key={f.key} label={`${f.icon} ${f.label}`} value={v[f.key]} onChange={set(f.key)} suffix="€/mois" hint={f.hint} tooltip={f.tooltip} />
-            ))}
-          </div>
-        </div>
 
-        <div className="sim-results-panel">
-          <div className={`sim-stat-hero sim-hero-${color}`}>
-            <span className="sim-stat-label">Revenu disponible</span>
-            <span className="sim-stat-value">
-              {res.disponible < 0 ? "−" : ""}{formatCurrency(Math.abs(res.disponible))}
-              <span className="sim-stat-unit">/mois</span>
-            </span>
-            {res.disponible < 0 && <span className="sim-hero-badge sim-badge-red">Budget déficitaire</span>}
-          </div>
+            <div className="sim-stats-grid">
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Revenus nets</span>
+                <span className="sim-stat-card-value">{formatCurrency(v.salaire)}</span>
+              </div>
+              <div className={`sim-stat-card ${res.tauxCharges > 70 ? "sim-stat-card-red" : "sim-stat-card-blue"}`}>
+                <span className="sim-stat-card-label">Total charges</span>
+                <span className="sim-stat-card-value">{formatCurrency(res.totalCharges)}</span>
+              </div>
+              <div className={`sim-stat-card ${res.tauxCharges > 70 ? "sim-stat-card-red" : res.tauxCharges > 50 ? "sim-stat-card-amber" : "sim-stat-card-green"}`}>
+                <span className="sim-stat-card-label">Taux de charges</span>
+                <span className="sim-stat-card-value">{res.tauxCharges.toFixed(0)} %</span>
+              </div>
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Disponible / an</span>
+                <span className="sim-stat-card-value">{formatCurrency(res.disponible * 12)}</span>
+              </div>
+            </div>
 
-          <div className="sim-stats-grid">
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Revenus nets</span>
-              <span className="sim-stat-card-value">{formatCurrency(v.salaire)}</span>
-            </div>
-            <div className={`sim-stat-card ${res.tauxCharges > 70 ? "sim-stat-card-red" : "sim-stat-card-blue"}`}>
-              <span className="sim-stat-card-label">Total charges</span>
-              <span className="sim-stat-card-value">{formatCurrency(res.totalCharges)}</span>
-            </div>
-            <div className={`sim-stat-card ${res.tauxCharges > 70 ? "sim-stat-card-red" : res.tauxCharges > 50 ? "sim-stat-card-amber" : "sim-stat-card-green"}`}>
-              <span className="sim-stat-card-label">Taux de charges</span>
-              <span className="sim-stat-card-value">{res.tauxCharges.toFixed(0)} %</span>
-            </div>
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Disponible / an</span>
-              <span className="sim-stat-card-value">{formatCurrency(res.disponible * 12)}</span>
-            </div>
-          </div>
-
-          {/* Donut + category bars */}
-          <div className="sim-donut-section">
-            <DonutChart
-              segments={donutSegments}
-              size={130}
-              thickness={22}
-              label={formatCurrency(v.salaire)}
-              subLabel="revenus"
-            />
-            <div className="sim-donut-legend" style={{ flex: 1 }}>
-              <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition par poste</p>
-              <div className="charge-category-bars">
-                {CHARGE_FIELDS.map((f) => {
-                  const pct = v.salaire > 0 ? Math.min(100, ((v[f.key] || 0) / v.salaire) * 100) : 0;
-                  return (
-                    <div key={f.key} className="charge-bar-row">
-                      <span className="charge-bar-row-icon">{f.icon}</span>
-                      <span className="charge-bar-row-label">{f.label}</span>
-                      <div className="charge-bar-track">
-                        <div
-                          className="charge-bar-fill"
-                          style={{ width: `${pct}%`, background: f.color }}
-                        />
+            {/* Donut + category bars */}
+            <div className="sim-donut-section">
+              <DonutChart
+                segments={donutSegments}
+                size={130}
+                thickness={22}
+                label={formatCurrency(v.salaire)}
+                subLabel="revenus"
+              />
+              <div className="sim-donut-legend" style={{ flex: 1 }}>
+                <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition par poste</p>
+                <div className="charge-category-bars">
+                  {CHARGE_FIELDS.map((f) => {
+                    const pct = v.salaire > 0 ? Math.min(100, ((v[f.key] || 0) / v.salaire) * 100) : 0;
+                    return (
+                      <div key={f.key} className="charge-bar-row">
+                        <span className="charge-bar-row-icon">{f.icon}</span>
+                        <span className="charge-bar-row-label">{f.label}</span>
+                        <div className="charge-bar-track">
+                          <div
+                            className="charge-bar-fill"
+                            style={{ width: `${pct}%`, background: f.color }}
+                          />
+                        </div>
+                        <span className="charge-bar-row-value">{formatCurrency(v[f.key] || 0)}</span>
                       </div>
-                      <span className="charge-bar-row-value">{formatCurrency(v[f.key] || 0)}</span>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            <div className="sim-budget-rule">
+              <p className="sim-bar-label">Règle 50/30/20 recommandée</p>
+              <div className="budget-rule-rows">
+                <div className="budget-rule-row">
+                  <span className="budget-rule-cat">Besoins essentiels (50%)</span>
+                  <span className="budget-rule-target">{formatCurrency(v.salaire * 0.5)}</span>
+                </div>
+                <div className="budget-rule-row">
+                  <span className="budget-rule-cat">Loisirs &amp; extras (30%)</span>
+                  <span className="budget-rule-target">{formatCurrency(v.salaire * 0.3)}</span>
+                </div>
+                <div className="budget-rule-row budget-rule-highlight">
+                  <span className="budget-rule-cat">Épargne (20%)</span>
+                  <span className="budget-rule-target">{formatCurrency(v.salaire * 0.2)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Comparaison médiane France */}
+            <div className="sim-info-box" style={{ marginTop: 16 }}>
+              <p className="sim-info-title">🇫🇷 Comparaison à la médiane française (2026)</p>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 8 }}>
+                {[
+                  { label: "Salaire médian", yours: v.salaire, median: MEDIANE_FR.salaire, suffix: "€/mois" },
+                  { label: "Charges médianes", yours: res.totalCharges, median: MEDIANE_TOTAL_CHARGES, suffix: "€/mois", invertColor: true },
+                  { label: "Reste à vivre médian", yours: Math.max(0, res.disponible), median: MEDIANE_DISPONIBLE, suffix: "€/mois" },
+                ].map(({ label, yours, median, suffix, invertColor }) => {
+                  const better = invertColor ? yours <= median : yours >= median;
+                  return (
+                    <div key={label} style={{ background: "var(--bg)", borderRadius: 10, padding: "10px 12px", border: "1px solid var(--line)" }}>
+                      <p style={{ fontSize: 11, color: "var(--muted)", marginBottom: 4 }}>{label}</p>
+                      <p style={{ fontWeight: 800, fontSize: 15, color: better ? "#059669" : "#dc2626", marginBottom: 2 }}>{formatCurrency(yours)}</p>
+                      <p style={{ fontSize: 11, color: "var(--muted)" }}>médiane : {formatCurrency(median)}</p>
                     </div>
                   );
                 })}
               </div>
+              <p className="sim-info-body" style={{ marginTop: 8 }}>
+                {res.disponible >= MEDIANE_DISPONIBLE
+                  ? `Votre reste à vivre est supérieur à la médiane française (+${formatCurrency(res.disponible - MEDIANE_DISPONIBLE)}/mois). Vous avez une bonne marge pour épargner.`
+                  : `Votre reste à vivre est inférieur à la médiane française (−${formatCurrency(MEDIANE_DISPONIBLE - Math.max(0, res.disponible))}/mois). Revoyez vos charges fixes en priorité.`}
+              </p>
             </div>
-          </div>
 
-          <div className="sim-budget-rule">
-            <p className="sim-bar-label">Règle 50/30/20 recommandée</p>
-            <div className="budget-rule-rows">
-              <div className="budget-rule-row">
-                <span className="budget-rule-cat">Besoins essentiels (50%)</span>
-                <span className="budget-rule-target">{formatCurrency(v.salaire * 0.5)}</span>
-              </div>
-              <div className="budget-rule-row">
-                <span className="budget-rule-cat">Loisirs &amp; extras (30%)</span>
-                <span className="budget-rule-target">{formatCurrency(v.salaire * 0.3)}</span>
-              </div>
-              <div className="budget-rule-row budget-rule-highlight">
-                <span className="budget-rule-cat">Épargne (20%)</span>
-                <span className="budget-rule-target">{formatCurrency(v.salaire * 0.2)}</span>
-              </div>
-            </div>
+            {(() => {
+              const maxMens = v.salaire * 0.35;
+              const capitalCapacity = maxMens * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12);
+              return (
+                <div className="sim-info-box" style={{ marginTop: 16 }}>
+                  <p className="sim-info-title">🏠 Capacité d'achat indicative</p>
+                  <p className="sim-info-body">
+                    À 35 % de vos revenus, votre mensualité max est de <strong>{formatCurrency(Math.round(maxMens))}/mois</strong>.
+                    Cela correspond à une capacité d'emprunt d'environ <strong>{formatCurrency(Math.round(capitalCapacity))}</strong> sur 20 ans à 3,5 %.
+                    {res.tauxCharges > 65 ? " ⚠️ Votre taux de charges actuel est élevé — réduire certains postes améliorera votre dossier bancaire." : ""}
+                  </p>
+                </div>
+              );
+            })()}
           </div>
-
-          {/* Comparaison médiane France */}
-          <div className="sim-info-box" style={{ marginTop: 16 }}>
-            <p className="sim-info-title">🇫🇷 Comparaison à la médiane française (2026)</p>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 8 }}>
-              {[
-                { label: "Salaire médian", yours: v.salaire, median: MEDIANE_FR.salaire, suffix: "€/mois" },
-                { label: "Charges médianes", yours: res.totalCharges, median: MEDIANE_TOTAL_CHARGES, suffix: "€/mois", invertColor: true },
-                { label: "Reste à vivre médian", yours: Math.max(0, res.disponible), median: MEDIANE_DISPONIBLE, suffix: "€/mois" },
-              ].map(({ label, yours, median, suffix, invertColor }) => {
-                const better = invertColor ? yours <= median : yours >= median;
-                return (
-                  <div key={label} style={{ background: "var(--bg)", borderRadius: 10, padding: "10px 12px", border: "1px solid var(--line)" }}>
-                    <p style={{ fontSize: 11, color: "var(--muted)", marginBottom: 4 }}>{label}</p>
-                    <p style={{ fontWeight: 800, fontSize: 15, color: better ? "#059669" : "#dc2626", marginBottom: 2 }}>{formatCurrency(yours)}</p>
-                    <p style={{ fontSize: 11, color: "var(--muted)" }}>médiane : {formatCurrency(median)}</p>
-                  </div>
-                );
-              })}
-            </div>
-            <p className="sim-info-body" style={{ marginTop: 8 }}>
-              {res.disponible >= MEDIANE_DISPONIBLE
-                ? `Votre reste à vivre est supérieur à la médiane française (+${formatCurrency(res.disponible - MEDIANE_DISPONIBLE)}/mois). Vous avez une bonne marge pour épargner.`
-                : `Votre reste à vivre est inférieur à la médiane française (−${formatCurrency(MEDIANE_DISPONIBLE - Math.max(0, res.disponible))}/mois). Revoyez vos charges fixes en priorité.`}
-            </p>
-          </div>
-
-          {(() => {
-            const maxMens = v.salaire * 0.35;
-            const capitalCapacity = maxMens * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12);
-            return (
-              <div className="sim-info-box" style={{ marginTop: 16 }}>
-                <p className="sim-info-title">🏠 Capacité d'achat indicative</p>
-                <p className="sim-info-body">
-                  À 35 % de vos revenus, votre mensualité max est de <strong>{formatCurrency(Math.round(maxMens))}/mois</strong>.
-                  Cela correspond à une capacité d'emprunt d'environ <strong>{formatCurrency(Math.round(capitalCapacity))}</strong> sur 20 ans à 3,5 %.
-                  {res.tauxCharges > 65 ? " ⚠️ Votre taux de charges actuel est élevé — réduire certains postes améliorera votre dossier bancaire." : ""}
-                </p>
-              </div>
-            );
-          })()}
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

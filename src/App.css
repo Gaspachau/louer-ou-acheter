@@ -11993,3 +11993,221 @@ svg { display: inline-block; }  /* keep inline for icons */
   .cm-cta-actions { width: 100%; flex-direction: column; }
   .cm-cta-sec { text-align: center; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   §32 — SimFunnel — step wizard
+   ══════════════════════════════════════════════════════════ */
+
+.simf-bar-track {
+  height: 4px;
+  background: var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 28px;
+}
+.simf-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #1a56db, #0ea5e9);
+  border-radius: 4px;
+  transition: width 0.45s cubic-bezier(.4,0,.2,1);
+}
+
+.simf-inner {
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.simf-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.simf-dot {
+  width: 10px; height: 10px;
+  border-radius: 50%;
+  background: var(--line);
+  border: none; padding: 0;
+  cursor: default;
+  transition: background .2s, transform .2s, width .2s, height .2s;
+  flex-shrink: 0;
+}
+.simf-dot-done {
+  background: #93c5fd;
+  cursor: pointer;
+}
+.simf-dot-done:hover { background: var(--blue); }
+.simf-dot-active {
+  background: var(--blue);
+  width: 28px;
+  height: 10px;
+  border-radius: 5px;
+  box-shadow: 0 0 0 3px rgba(26,86,219,.15);
+}
+.simf-dots-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--muted);
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.simf-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 22px;
+  border-top: 4px solid var(--blue);
+  padding: 32px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 4px 24px rgba(10,20,50,.08);
+  animation: simfCardIn .25s ease both;
+}
+@keyframes simfCardIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.simf-card-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.simf-card-icon {
+  font-size: 40px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+.simf-card-title {
+  font-size: clamp(18px, 3vw, 23px);
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.2;
+  margin: 0;
+  letter-spacing: -.02em;
+}
+.simf-card-desc {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.65;
+  margin: 0;
+}
+.simf-card-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+/* Let existing step-fields grid work inside simf-card-fields */
+.simf-card-fields .step-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.simf-card-fields .field-full { grid-column: 1 / -1; }
+
+.simf-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.simf-btn-back {
+  background: none;
+  border: 1.5px solid var(--line);
+  color: var(--muted);
+  font-size: 14px; font-weight: 600;
+  padding: 11px 20px; border-radius: 12px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.simf-btn-back:hover { border-color: var(--blue); color: var(--blue); }
+.simf-btn-next {
+  background: var(--blue);
+  color: white; border: none;
+  font-size: 15px; font-weight: 700;
+  padding: 13px 30px; border-radius: 12px;
+  cursor: pointer;
+  transition: background .15s, transform .1s;
+  flex-shrink: 0;
+}
+.simf-btn-next:hover { background: var(--blue-dark); }
+.simf-btn-next:active { transform: scale(.98); }
+
+/* Results */
+.simf-result-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  animation: simfCardIn .3s ease both;
+}
+.simf-result-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+.simf-edit-btn {
+  background: none;
+  border: 1.5px solid var(--line);
+  color: var(--muted);
+  font-size: 13px; font-weight: 600;
+  padding: 8px 16px; border-radius: 10px;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.simf-edit-btn:hover { border-color: var(--blue); color: var(--blue); }
+.simf-done-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: #dcfce7;
+  color: #059669;
+  font-size: 12px; font-weight: 700;
+  padding: 5px 13px; border-radius: 20px;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .simf-inner { max-width: none; }
+  .simf-card { padding: 22px 18px; gap: 14px; }
+  .simf-card-fields .step-fields { grid-template-columns: 1fr; }
+  .simf-btn-next { font-size: 14px; padding: 12px 22px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   §33 — PageCarteMondiale — big map override
+   ══════════════════════════════════════════════════════════ */
+
+.cm-page-v2 { overflow-x: visible !important; }
+
+.cm-map-section-big {
+  /* Break out of 1100px container — full viewport width */
+  width: 100vw;
+  position: relative;
+  left: 50%;
+  transform: translateX(-50%);
+  border-radius: 0 !important;
+  border-left: none !important;
+  border-right: none !important;
+  padding: 28px 40px 32px;
+  box-sizing: border-box;
+}
+.cm-map-section-big .cm-map-wrap {
+  border-radius: 16px;
+  min-height: 520px;
+  background: #e8f2ff;
+}
+.cm-map-section-big .cm-zoom-controls {
+  right: 52px;
+}
+
+@media (max-width: 768px) {
+  .cm-map-section-big {
+    padding: 16px;
+  }
+  .cm-map-section-big .cm-map-wrap {
+    min-height: 340px;
+  }
+}

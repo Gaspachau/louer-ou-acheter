@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer } from "recharts";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const STATUTS = [
@@ -120,185 +121,199 @@ export default function SimScoreAcheteur() {
       simTime="3 min"
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
-      <div className="sim-layout">
-        {/* Form */}
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre projet</p>
-          <div className="step-fields">
-            <Field label="Prix du bien visé" value={v.prixBien} onChange={set("prixBien")} suffix="€" hint="Incluant les frais de notaire (~8%)" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-            <Field label="Apport disponible" value={v.apport} onChange={set("apport")} suffix="€" hint="Épargne que vous allez mobiliser" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-          </div>
-
-          <p className="sim-card-legend" style={{ marginTop: 16 }}>Votre situation financière</p>
-          <div className="step-fields">
-            <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€" hint="Tous foyers : salaires + revenus réguliers" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
-            <Field label="Crédits en cours" value={v.chargesActuelles} onChange={set("chargesActuelles")} suffix="€/mois" hint="Mensualités de crédits existants" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
-            <Field label="Autres charges fixes" value={v.autresCharges} onChange={set("autresCharges")} suffix="€/mois" hint="Transport, abonnements, assurances..." />
-            <Field label="Épargne de réserve" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€" hint="Argent conservé après l'achat" tooltip="Argent disponible après l'achat pour faire face aux imprévus. Minimum recommandé : 3 à 6 mois de mensualités." />
-          </div>
-
-          <p className="sim-card-legend" style={{ marginTop: 16 }}>Crédit envisagé</p>
-          <div className="step-fields">
-            <Field label="Taux du prêt" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-          </div>
-
-          <div style={{ marginTop: 16 }}>
-            <label className="field-label">Statut professionnel</label>
-            <div className="score-statut-grid">
-              {STATUTS.map((s) => (
-                <button
-                  key={s.label}
-                  type="button"
-                  className={`score-statut-btn${v.statutScore === s.score ? " score-statut-active" : ""}`}
-                  onClick={() => setV((x) => ({ ...x, statutScore: s.score }))}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div style={{ marginTop: 16 }}>
-            <div className="horizon-box">
-              <div className="horizon-row">
-                <div>
-                  <label className="horizon-label">Horizon de détention prévu</label>
-                  <p className="horizon-explain">Dans combien d'années envisagez-vous de revendre ?</p>
-                </div>
-                <strong className="horizon-value">{v.horizon} ans</strong>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre projet",
+            icon: "🏠",
+            content: (
+              <div className="step-fields">
+                <Field label="Prix du bien visé" value={v.prixBien} onChange={set("prixBien")} suffix="€" hint="Incluant les frais de notaire (~8%)" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+                <Field label="Apport disponible" value={v.apport} onChange={set("apport")} suffix="€" hint="Épargne que vous allez mobiliser" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
               </div>
-              <input
-                type="range" min="1" max="25" step="1"
-                value={v.horizon}
-                onChange={(e) => setV((x) => ({ ...x, horizon: Number(e.target.value) }))}
-                style={{ "--range-pct": `${((v.horizon - 1) / 24) * 100}%` }}
-                aria-label={`Horizon : ${v.horizon} ans`}
-              />
-              <div className="horizon-ticks"><span>1 an</span><span>10 ans</span><span>25 ans</span></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Results */}
-        <div className="sim-results-panel">
-          {!res ? (
-            <p className="sim-empty">Renseignez le prix du bien pour voir votre score.</p>
-          ) : (
-            <>
-              {/* Overall score */}
-              <div className="score-overall-card" style={{ background: level.bg, borderColor: level.color }}>
-                <div className="score-overall-top">
-                  <span className="score-overall-emoji">{level.emoji}</span>
-                  <div>
-                    <p className="score-overall-label">Score global de préparation</p>
-                    <p className="score-overall-verdict" style={{ color: level.color }}>{level.label}</p>
-                  </div>
-                </div>
-                <div className="score-overall-number" style={{ color: level.color }}>
-                  {res.overall}<span>/100</span>
-                </div>
-                <div className="score-overall-bar">
-                  <div
-                    className="score-overall-fill"
-                    style={{ width: `${res.overall}%`, background: level.color }}
-                  />
-                </div>
+            ),
+          },
+          {
+            title: "Finances",
+            icon: "💰",
+            content: (
+              <div className="step-fields">
+                <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€" hint="Tous foyers : salaires + revenus réguliers" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
+                <Field label="Crédits en cours" value={v.chargesActuelles} onChange={set("chargesActuelles")} suffix="€/mois" hint="Mensualités de crédits existants" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
+                <Field label="Autres charges fixes" value={v.autresCharges} onChange={set("autresCharges")} suffix="€/mois" hint="Transport, abonnements, assurances..." />
+                <Field label="Épargne de réserve" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€" hint="Argent conservé après l'achat" tooltip="Argent disponible après l'achat pour faire face aux imprévus. Minimum recommandé : 3 à 6 mois de mensualités." />
               </div>
+            ),
+          },
+          {
+            title: "Crédit & profil",
+            icon: "📋",
+            content: (
+              <>
+                <div className="step-fields">
+                  <Field label="Taux du prêt" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                  <Field label="Durée" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+                </div>
 
-              {/* Radar */}
-              <div className="sim-chart-wrap" style={{ marginTop: 16 }}>
-                <p className="sim-chart-title">Profil sur 5 dimensions</p>
-                <ResponsiveContainer width="100%" height={220}>
-                  <RadarChart data={radarData} margin={{ top: 10, right: 24, bottom: 10, left: 24 }}>
-                    <PolarGrid stroke="#e2e8f0" />
-                    <PolarAngleAxis
-                      dataKey="dim"
-                      tick={{ fontSize: 11, fill: "#0c1a35", fontWeight: 600 }}
-                    />
-                    <Radar
-                      dataKey="score"
-                      stroke={level.color}
-                      fill={level.color}
-                      fillOpacity={0.2}
-                      dot={{ r: 3, fill: level.color }}
-                    />
-                  </RadarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Dimension breakdown */}
-              <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
-                {Object.entries(res.scores).map(([dim, score]) => {
-                  const isWeak = score < 60;
-                  const tip = DIM_ACTIONS[dim];
-                  return (
-                    <div key={dim} className="score-dim-row">
-                      <div className="score-dim-header">
-                        <span className="score-dim-name">{dim}</span>
-                        <span className="score-dim-value" style={{ color: isWeak ? "#dc2626" : "#059669" }}>
-                          {score}/100
-                        </span>
-                      </div>
-                      <div className="score-dim-bar-track">
-                        <div
-                          className="score-dim-bar-fill"
-                          style={{
-                            width: `${score}%`,
-                            background: score >= 80 ? "#059669" : score >= 60 ? "#06b6d4" : score >= 40 ? "#d97706" : "#dc2626",
-                          }}
-                        />
-                      </div>
-                      {isWeak && tip && (
-                        <p className="score-dim-tip">{tip.low}</p>
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Action plan — top 2 weakest dimensions */}
-              {(() => {
-                const sorted = Object.entries(res.scores).sort((a, b) => a[1] - b[1]).slice(0, 2).filter(([, s]) => s < 80);
-                if (sorted.length === 0) return null;
-                return (
-                  <div className="sim-info-box" style={{ marginTop: 16 }}>
-                    <p className="sim-info-title">🎯 Plan d'action prioritaire</p>
-                    {sorted.map(([dim, score]) => (
-                      <div key={dim} className="score-action-row">
-                        <span className="score-action-dim">{dim} — {score}/100</span>
-                        <p className="score-action-tip">{DIM_ACTIONS[dim]?.low}</p>
-                      </div>
+                <div style={{ marginTop: 16 }}>
+                  <label className="field-label">Statut professionnel</label>
+                  <div className="score-statut-grid">
+                    {STATUTS.map((s) => (
+                      <button
+                        key={s.label}
+                        type="button"
+                        className={`score-statut-btn${v.statutScore === s.score ? " score-statut-active" : ""}`}
+                        onClick={() => setV((x) => ({ ...x, statutScore: s.score }))}
+                      >
+                        {s.label}
+                      </button>
                     ))}
                   </div>
-                );
-              })()}
+                </div>
 
-              {/* Quick stats */}
-              <div className="sim-stats-grid" style={{ marginTop: 16 }}>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Mensualité estimée</span>
-                  <span className="sim-stat-card-value">
-                    {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(res.mensualite)}/mois
-                  </span>
+                <div style={{ marginTop: 16 }}>
+                  <div className="horizon-box">
+                    <div className="horizon-row">
+                      <div>
+                        <label className="horizon-label">Horizon de détention prévu</label>
+                        <p className="horizon-explain">Dans combien d'années envisagez-vous de revendre ?</p>
+                      </div>
+                      <strong className="horizon-value">{v.horizon} ans</strong>
+                    </div>
+                    <input
+                      type="range" min="1" max="25" step="1"
+                      value={v.horizon}
+                      onChange={(e) => setV((x) => ({ ...x, horizon: Number(e.target.value) }))}
+                      style={{ "--range-pct": `${((v.horizon - 1) / 24) * 100}%` }}
+                      aria-label={`Horizon : ${v.horizon} ans`}
+                    />
+                    <div className="horizon-ticks"><span>1 an</span><span>10 ans</span><span>25 ans</span></div>
+                  </div>
                 </div>
-                <div className={`sim-stat-card ${res.tauxEndet > 35 ? "sim-stat-card-red" : res.tauxEndet > 28 ? "sim-stat-card-amber" : "sim-stat-card-green"}`}>
-                  <span className="sim-stat-card-label">Taux d'endettement</span>
-                  <span className="sim-stat-card-value">{res.tauxEndet.toFixed(1)} %</span>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res ? (
+              <p className="sim-empty">Renseignez le prix du bien pour voir votre score.</p>
+            ) : (
+              <>
+                {/* Overall score */}
+                <div className="score-overall-card" style={{ background: level.bg, borderColor: level.color }}>
+                  <div className="score-overall-top">
+                    <span className="score-overall-emoji">{level.emoji}</span>
+                    <div>
+                      <p className="score-overall-label">Score global de préparation</p>
+                      <p className="score-overall-verdict" style={{ color: level.color }}>{level.label}</p>
+                    </div>
+                  </div>
+                  <div className="score-overall-number" style={{ color: level.color }}>
+                    {res.overall}<span>/100</span>
+                  </div>
+                  <div className="score-overall-bar">
+                    <div
+                      className="score-overall-fill"
+                      style={{ width: `${res.overall}%`, background: level.color }}
+                    />
+                  </div>
                 </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Apport</span>
-                  <span className="sim-stat-card-value">{res.apportPct.toFixed(1)} % du prix</span>
+
+                {/* Radar */}
+                <div className="sim-chart-wrap" style={{ marginTop: 16 }}>
+                  <p className="sim-chart-title">Profil sur 5 dimensions</p>
+                  <ResponsiveContainer width="100%" height={220}>
+                    <RadarChart data={radarData} margin={{ top: 10, right: 24, bottom: 10, left: 24 }}>
+                      <PolarGrid stroke="#e2e8f0" />
+                      <PolarAngleAxis
+                        dataKey="dim"
+                        tick={{ fontSize: 11, fill: "#0c1a35", fontWeight: 600 }}
+                      />
+                      <Radar
+                        dataKey="score"
+                        stroke={level.color}
+                        fill={level.color}
+                        fillOpacity={0.2}
+                        dot={{ r: 3, fill: level.color }}
+                      />
+                    </RadarChart>
+                  </ResponsiveContainer>
                 </div>
-                <div className={`sim-stat-card ${res.overall >= 60 ? "sim-stat-card-green" : "sim-stat-card-amber"}`}>
-                  <span className="sim-stat-card-label">Verdict banque</span>
-                  <span className="sim-stat-card-value">{res.overall >= 70 ? "Dossier solide" : res.overall >= 50 ? "Dossier correct" : "Dossier fragile"}</span>
+
+                {/* Dimension breakdown */}
+                <div style={{ marginTop: 16, display: "flex", flexDirection: "column", gap: 8 }}>
+                  {Object.entries(res.scores).map(([dim, score]) => {
+                    const isWeak = score < 60;
+                    const tip = DIM_ACTIONS[dim];
+                    return (
+                      <div key={dim} className="score-dim-row">
+                        <div className="score-dim-header">
+                          <span className="score-dim-name">{dim}</span>
+                          <span className="score-dim-value" style={{ color: isWeak ? "#dc2626" : "#059669" }}>
+                            {score}/100
+                          </span>
+                        </div>
+                        <div className="score-dim-bar-track">
+                          <div
+                            className="score-dim-bar-fill"
+                            style={{
+                              width: `${score}%`,
+                              background: score >= 80 ? "#059669" : score >= 60 ? "#06b6d4" : score >= 40 ? "#d97706" : "#dc2626",
+                            }}
+                          />
+                        </div>
+                        {isWeak && tip && (
+                          <p className="score-dim-tip">{tip.low}</p>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+
+                {/* Action plan — top 2 weakest dimensions */}
+                {(() => {
+                  const sorted = Object.entries(res.scores).sort((a, b) => a[1] - b[1]).slice(0, 2).filter(([, s]) => s < 80);
+                  if (sorted.length === 0) return null;
+                  return (
+                    <div className="sim-info-box" style={{ marginTop: 16 }}>
+                      <p className="sim-info-title">🎯 Plan d'action prioritaire</p>
+                      {sorted.map(([dim, score]) => (
+                        <div key={dim} className="score-action-row">
+                          <span className="score-action-dim">{dim} — {score}/100</span>
+                          <p className="score-action-tip">{DIM_ACTIONS[dim]?.low}</p>
+                        </div>
+                      ))}
+                    </div>
+                  );
+                })()}
+
+                {/* Quick stats */}
+                <div className="sim-stats-grid" style={{ marginTop: 16 }}>
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Mensualité estimée</span>
+                    <span className="sim-stat-card-value">
+                      {new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(res.mensualite)}/mois
+                    </span>
+                  </div>
+                  <div className={`sim-stat-card ${res.tauxEndet > 35 ? "sim-stat-card-red" : res.tauxEndet > 28 ? "sim-stat-card-amber" : "sim-stat-card-green"}`}>
+                    <span className="sim-stat-card-label">Taux d'endettement</span>
+                    <span className="sim-stat-card-value">{res.tauxEndet.toFixed(1)} %</span>
+                  </div>
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Apport</span>
+                    <span className="sim-stat-card-value">{res.apportPct.toFixed(1)} % du prix</span>
+                  </div>
+                  <div className={`sim-stat-card ${res.overall >= 60 ? "sim-stat-card-green" : "sim-stat-card-amber"}`}>
+                    <span className="sim-stat-card-label">Verdict banque</span>
+                    <span className="sim-stat-card-value">{res.overall >= 70 ? "Dossier solide" : res.overall >= 50 ? "Dossier correct" : "Dossier fragile"}</span>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import { formatCurrency } from "../../utils/finance";
 
 /**
@@ -79,102 +80,111 @@ export default function SimTaxeFonciere() {
       description="Estimez votre taxe foncière annuelle selon la ville, le type de bien et la surface — basé sur la valeur locative cadastrale."
       suggestions={["/simulateurs/charges-copro", "/simulateurs/rentabilite-locative", "/simulateurs/plus-value"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre bien immobilier</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Surface habitable" value={v.surface} onChange={set("surface")} suffix="m²"
-                hint="Surface en m² inscrite sur votre acte de propriété ou déclaration fiscale" tooltip="Surface habitable en m² inscrite sur votre acte de propriété. La taxe foncière est calculée sur la valeur locative cadastrale, elle-même liée à la superficie." />
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre bien",
+            icon: "🏛️",
+            content: (
+              <>
+                <p className="sim-card-legend">Votre bien immobilier</p>
+                <div className="step-fields">
+                  <div className="field-full">
+                    <Field label="Surface habitable" value={v.surface} onChange={set("surface")} suffix="m²"
+                      hint="Surface en m² inscrite sur votre acte de propriété ou déclaration fiscale" tooltip="Surface habitable en m² inscrite sur votre acte de propriété. La taxe foncière est calculée sur la valeur locative cadastrale, elle-même liée à la superficie." />
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                  <label className="field-label">Type de bien</label>
+                  <div className="loan-type-grid" style={{ marginTop: 8 }}>
+                    <button type="button" className={`loan-type-btn${v.typeBien === "appt" ? " loan-type-active" : ""}`} onClick={() => set("typeBien")("appt")}>
+                      <span>🏢</span><span>Appartement</span>
+                    </button>
+                    <button type="button" className={`loan-type-btn${v.typeBien === "maison" ? " loan-type-active" : ""}`} onClick={() => set("typeBien")("maison")}>
+                      <span>🏡</span><span>Maison</span>
+                    </button>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                  <label className="field-label">Commune</label>
+                  <select
+                    className="input-select"
+                    value={v.villeId}
+                    onChange={(e) => set("villeId")(e.target.value)}
+                  >
+                    {VILLES.map((vi) => (
+                      <option key={vi.id} value={vi.id}>{vi.name} {vi.taux ? `— ${vi.taux} %` : ""}</option>
+                    ))}
+                  </select>
+                  <p className="field-hint" style={{ marginTop: 6 }}>
+                    Les taux varient de 13,5 % (Paris) à 43,5 % (Rennes) selon les choix fiscaux municipaux.
+                  </p>
+                </div>
+
+                {v.villeId === "autre" && (
+                  <div style={{ marginTop: 12 }}>
+                    <Field label="Taux total de taxe foncière (%)" value={v.taux} onChange={set("taux")} suffix="%"
+                      hint="Taux communal + taux intercommunal + taux départemental. Consultez impots.gouv.fr" tooltip="Taux total de taxe foncière = taux communal + intercommunal + départemental. Consultez impots.gouv.fr pour votre commune." />
+                  </div>
+                )}
+
+                <div className="sim-info-box" style={{ marginTop: 20 }}>
+                  <p className="sim-info-title">📌 Comment ça marche ?</p>
+                  <p className="sim-info-body">La taxe foncière est calculée sur la valeur locative cadastrale (VLC) de votre bien, réduite de moitié (abattement légal), multipliée par le taux voté par la commune. Ici, la VLC est estimée selon les surfaces et zones — l'avis d'imposition réel peut différer.</p>
+                </div>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className={`sim-stat-hero sim-hero-${tfColor}`}>
+              <span className="sim-stat-label">Taxe foncière estimée</span>
+              <span className="sim-stat-value">
+                {formatCurrency(res.tfAnnuelle)}<span className="sim-stat-unit">/an</span>
+              </span>
+              <span className="sim-stat-sub">Soit {formatCurrency(res.tfMensuelle)}/mois à provisionner</span>
+            </div>
+
+            <div className="sim-stats-grid">
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Valeur locative estimée</span>
+                <span className="sim-stat-card-value">{formatCurrency(res.vlcBrute)}/an</span>
+              </div>
+              <div className="sim-stat-card sim-stat-card-blue">
+                <span className="sim-stat-card-label">Base imposable (50 %)</span>
+                <span className="sim-stat-card-value">{formatCurrency(res.base)}/an</span>
+              </div>
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Taux communal total</span>
+                <span className="sim-stat-card-value">{res.tauxTotal} %</span>
+              </div>
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">VLC estimée /m²/mois</span>
+                <span className="sim-stat-card-value">{res.vlcM2.toFixed(2)} €</span>
+              </div>
+            </div>
+
+            <div className="sim-chart-wrap" style={{ marginTop: 0 }}>
+              <p className="sim-chart-title">Comparaison inter-villes — même bien ({v.surface} m²)</p>
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart data={compData} layout="vertical" margin={{ top: 4, right: 20, bottom: 4, left: 0 }}>
+                  <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 9, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
+                  <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} width={76}/>
+                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
+                  <Bar dataKey="value" name="TF annuelle" radius={[0, 6, 6, 0]} barSize={16}>
+                    {compData.map((e, i) => (
+                      <Cell key={i} fill={e.isSelected ? "#7c3aed" : "#2563eb"} opacity={e.isSelected ? 1 : 0.55}/>
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </div>
           </div>
-
-          <div style={{ marginTop: 16 }}>
-            <label className="field-label">Type de bien</label>
-            <div className="loan-type-grid" style={{ marginTop: 8 }}>
-              <button type="button" className={`loan-type-btn${v.typeBien === "appt" ? " loan-type-active" : ""}`} onClick={() => set("typeBien")("appt")}>
-                <span>🏢</span><span>Appartement</span>
-              </button>
-              <button type="button" className={`loan-type-btn${v.typeBien === "maison" ? " loan-type-active" : ""}`} onClick={() => set("typeBien")("maison")}>
-                <span>🏡</span><span>Maison</span>
-              </button>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 16 }}>
-            <label className="field-label">Commune</label>
-            <select
-              className="input-select"
-              value={v.villeId}
-              onChange={(e) => set("villeId")(e.target.value)}
-            >
-              {VILLES.map((vi) => (
-                <option key={vi.id} value={vi.id}>{vi.name} {vi.taux ? `— ${vi.taux} %` : ""}</option>
-              ))}
-            </select>
-            <p className="field-hint" style={{ marginTop: 6 }}>
-              Les taux varient de 13,5 % (Paris) à 43,5 % (Rennes) selon les choix fiscaux municipaux.
-            </p>
-          </div>
-
-          {v.villeId === "autre" && (
-            <div style={{ marginTop: 12 }}>
-              <Field label="Taux total de taxe foncière (%)" value={v.taux} onChange={set("taux")} suffix="%"
-                hint="Taux communal + taux intercommunal + taux départemental. Consultez impots.gouv.fr" tooltip="Taux total de taxe foncière = taux communal + intercommunal + départemental. Consultez impots.gouv.fr pour votre commune." />
-            </div>
-          )}
-
-          <div className="sim-info-box" style={{ marginTop: 20 }}>
-            <p className="sim-info-title">📌 Comment ça marche ?</p>
-            <p className="sim-info-body">La taxe foncière est calculée sur la valeur locative cadastrale (VLC) de votre bien, réduite de moitié (abattement légal), multipliée par le taux voté par la commune. Ici, la VLC est estimée selon les surfaces et zones — l'avis d'imposition réel peut différer.</p>
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          <div className={`sim-stat-hero sim-hero-${tfColor}`}>
-            <span className="sim-stat-label">Taxe foncière estimée</span>
-            <span className="sim-stat-value">
-              {formatCurrency(res.tfAnnuelle)}<span className="sim-stat-unit">/an</span>
-            </span>
-            <span className="sim-stat-sub">Soit {formatCurrency(res.tfMensuelle)}/mois à provisionner</span>
-          </div>
-
-          <div className="sim-stats-grid">
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Valeur locative estimée</span>
-              <span className="sim-stat-card-value">{formatCurrency(res.vlcBrute)}/an</span>
-            </div>
-            <div className="sim-stat-card sim-stat-card-blue">
-              <span className="sim-stat-card-label">Base imposable (50 %)</span>
-              <span className="sim-stat-card-value">{formatCurrency(res.base)}/an</span>
-            </div>
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">Taux communal total</span>
-              <span className="sim-stat-card-value">{res.tauxTotal} %</span>
-            </div>
-            <div className="sim-stat-card">
-              <span className="sim-stat-card-label">VLC estimée /m²/mois</span>
-              <span className="sim-stat-card-value">{res.vlcM2.toFixed(2)} €</span>
-            </div>
-          </div>
-
-          <div className="sim-chart-wrap" style={{ marginTop: 0 }}>
-            <p className="sim-chart-title">Comparaison inter-villes — même bien ({v.surface} m²)</p>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart data={compData} layout="vertical" margin={{ top: 4, right: 20, bottom: 4, left: 0 }}>
-                <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 9, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
-                <YAxis type="category" dataKey="name" tick={{ fontSize: 10, fill: "#64748b" }} axisLine={false} tickLine={false} width={76}/>
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
-                <Bar dataKey="value" name="TF annuelle" radius={[0, 6, 6, 0]} barSize={16}>
-                  {compData.map((e, i) => (
-                    <Cell key={i} fill={e.isSelected ? "#7c3aed" : "#2563eb"} opacity={e.isSelected ? 1 : 0.55}/>
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

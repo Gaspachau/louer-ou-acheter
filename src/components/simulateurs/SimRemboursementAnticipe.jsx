@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, Cell } from "recharts";
 
@@ -116,109 +117,123 @@ export default function SimRemboursementAnticipe() {
       conseils={CONSEILS}
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/epargne", "/simulateurs/endettement"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre crédit actuel</p>
-          <div className="step-fields">
-            <Field label="Capital restant dû" value={capitalRestant} onChange={setCapitalRestant} suffix="€" tooltip="Montant qu'il vous reste à rembourser à votre banque. Retrouvez ce chiffre sur votre tableau d'amortissement ou votre dernier relevé de prêt." />
-            <Field label="Taux d'intérêt actuel" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée restante" value={dureeRestante} onChange={setDureeRestante} suffix="ans" step={1} min={1} max={30} tooltip="Nombre d'années restantes avant la fin du crédit. Disponible sur votre tableau d'amortissement." />
-            <Field label="Montant du remboursement anticipé" value={montantRA} onChange={setMontantRA} suffix="€" tooltip="Somme que vous souhaitez rembourser par anticipation. Les IRA sont plafonnées à 3 % du capital ou 6 mois d'intérêts." />
-            <Field label="Rendement épargne alternatif" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Assurance-vie fonds euro, PEA…" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
-          </div>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre prêt actuel",
+            icon: "🏦",
+            content: (
+              <>
+                <Field label="Capital restant dû" value={capitalRestant} onChange={setCapitalRestant} suffix="€" tooltip="Montant qu'il vous reste à rembourser à votre banque. Retrouvez ce chiffre sur votre tableau d'amortissement ou votre dernier relevé de prêt." />
+                <Field label="Taux d'intérêt actuel" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                <Field label="Durée restante" value={dureeRestante} onChange={setDureeRestante} suffix="ans" step={1} min={1} max={30} tooltip="Nombre d'années restantes avant la fin du crédit. Disponible sur votre tableau d'amortissement." />
+              </>
+            ),
+          },
+          {
+            title: "Le remboursement",
+            icon: "⚡",
+            content: (
+              <>
+                <Field label="Montant du remboursement anticipé" value={montantRA} onChange={setMontantRA} suffix="€" tooltip="Somme que vous souhaitez rembourser par anticipation. Les IRA sont plafonnées à 3 % du capital ou 6 mois d'intérêts." />
+                <Field label="Rendement épargne alternatif" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Assurance-vie fonds euro, PEA…" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
 
-          <p className="sim-card-legend" style={{ marginTop: 20 }}>Option de remboursement</p>
-          <div className="ra-option-btns">
-            <button
-              type="button"
-              className={`ra-option-btn${optionRA === "duree" ? " active" : ""}`}
-              onClick={() => setOptionRA("duree")}
-            >
-              <strong>Réduire la durée</strong>
-              <span>Même mensualité, crédit fini plus tôt</span>
-            </button>
-            <button
-              type="button"
-              className={`ra-option-btn${optionRA === "mensualite" ? " active" : ""}`}
-              onClick={() => setOptionRA("mensualite")}
-            >
-              <strong>Réduire la mensualité</strong>
-              <span>Même durée, mensualité allégée</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          <div className={`ra-verdict ${res.recommandation === "rembourser" ? "ra-verdict-green" : "ra-verdict-blue"}`}>
-            <span className="ra-verdict-icon">{res.recommandation === "rembourser" ? "💰" : "📈"}</span>
-            <div>
-              <p className="ra-verdict-title">
-                {res.recommandation === "rembourser"
-                  ? "Rembourser par anticipation est avantageux"
-                  : `Placer à ${rendementEpargne}% est plus rentable`}
-              </p>
-              <p className="ra-verdict-sub">
-                Gain net : <strong>{fmtCur(Math.abs(res.netRA))}</strong> en faveur du {res.recommandation === "rembourser" ? "remboursement" : "placement"}
-              </p>
-            </div>
-          </div>
-
-          <div className="sim-result-grid" style={{ marginTop: 12 }}>
-            <div className="result-block">
-              <span className="result-block-label">Mensualité actuelle</span>
-              <span className="result-block-val">{fmtCur(res.mensActuelle)}/mois</span>
-            </div>
-            {optionRA === "duree" ? (
-              <div className="result-block">
-                <span className="result-block-label">Nouvelle durée</span>
-                <span className="result-block-val" style={{ color: "#2563eb" }}>{res.nouvelleDuree.toFixed(1)} ans</span>
+                <p className="sim-card-legend" style={{ marginTop: 20 }}>Option de remboursement</p>
+                <div className="ra-option-btns">
+                  <button
+                    type="button"
+                    className={`ra-option-btn${optionRA === "duree" ? " active" : ""}`}
+                    onClick={() => setOptionRA("duree")}
+                  >
+                    <strong>Réduire la durée</strong>
+                    <span>Même mensualité, crédit fini plus tôt</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={`ra-option-btn${optionRA === "mensualite" ? " active" : ""}`}
+                    onClick={() => setOptionRA("mensualite")}
+                  >
+                    <strong>Réduire la mensualité</strong>
+                    <span>Même durée, mensualité allégée</span>
+                  </button>
+                </div>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className={`ra-verdict ${res.recommandation === "rembourser" ? "ra-verdict-green" : "ra-verdict-blue"}`}>
+              <span className="ra-verdict-icon">{res.recommandation === "rembourser" ? "💰" : "📈"}</span>
+              <div>
+                <p className="ra-verdict-title">
+                  {res.recommandation === "rembourser"
+                    ? "Rembourser par anticipation est avantageux"
+                    : `Placer à ${rendementEpargne}% est plus rentable`}
+                </p>
+                <p className="ra-verdict-sub">
+                  Gain net : <strong>{fmtCur(Math.abs(res.netRA))}</strong> en faveur du {res.recommandation === "rembourser" ? "remboursement" : "placement"}
+                </p>
               </div>
-            ) : (
+            </div>
+
+            <div className="sim-result-grid" style={{ marginTop: 12 }}>
               <div className="result-block">
-                <span className="result-block-label">Nouvelle mensualité</span>
-                <span className="result-block-val" style={{ color: "#2563eb" }}>{fmtCur(res.nouvelleMensualite)}/mois</span>
+                <span className="result-block-label">Mensualité actuelle</span>
+                <span className="result-block-val">{fmtCur(res.mensActuelle)}/mois</span>
               </div>
-            )}
-            <div className="result-block">
-              <span className="result-block-label">Économies d'intérêts</span>
-              <span className="result-block-val" style={{ color: "#059669" }}>+{fmtCur(res.economiesInterets)}</span>
+              {optionRA === "duree" ? (
+                <div className="result-block">
+                  <span className="result-block-label">Nouvelle durée</span>
+                  <span className="result-block-val" style={{ color: "#2563eb" }}>{res.nouvelleDuree.toFixed(1)} ans</span>
+                </div>
+              ) : (
+                <div className="result-block">
+                  <span className="result-block-label">Nouvelle mensualité</span>
+                  <span className="result-block-val" style={{ color: "#2563eb" }}>{fmtCur(res.nouvelleMensualite)}/mois</span>
+                </div>
+              )}
+              <div className="result-block">
+                <span className="result-block-label">Économies d'intérêts</span>
+                <span className="result-block-val" style={{ color: "#059669" }}>+{fmtCur(res.economiesInterets)}</span>
+              </div>
+              <div className="result-block">
+                <span className="result-block-label">IRA estimées</span>
+                <span className="result-block-val" style={{ color: "#d97706" }}>−{fmtCur(res.ira)}</span>
+              </div>
+              <div className="result-block">
+                <span className="result-block-label">Gain si placé à {rendementEpargne}%</span>
+                <span className="result-block-val" style={{ color: "#7c3aed" }}>{fmtCur(res.gainEpargne)}</span>
+              </div>
+              <div className="result-block">
+                <span className="result-block-label">Bilan net vs placement</span>
+                <span className="result-block-val" style={{ color: res.netRA > 0 ? "#059669" : "#dc2626", fontWeight: 700 }}>
+                  {res.netRA > 0 ? "+" : ""}{fmtCur(res.netRA)}
+                </span>
+              </div>
             </div>
-            <div className="result-block">
-              <span className="result-block-label">IRA estimées</span>
-              <span className="result-block-val" style={{ color: "#d97706" }}>−{fmtCur(res.ira)}</span>
-            </div>
-            <div className="result-block">
-              <span className="result-block-label">Gain si placé à {rendementEpargne}%</span>
-              <span className="result-block-val" style={{ color: "#7c3aed" }}>{fmtCur(res.gainEpargne)}</span>
-            </div>
-            <div className="result-block">
-              <span className="result-block-label">Bilan net vs placement</span>
-              <span className="result-block-val" style={{ color: res.netRA > 0 ? "#059669" : "#dc2626", fontWeight: 700 }}>
-                {res.netRA > 0 ? "+" : ""}{fmtCur(res.netRA)}
-              </span>
-            </div>
-          </div>
 
-          <div style={{ marginTop: 16 }}>
-            <p className="sim-card-legend">Comparaison intérêts vs gain épargne</p>
-            <ResponsiveContainer width="100%" height={180}>
-              <BarChart data={res.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
-                <XAxis dataKey="name" tick={{ fontSize: 10 }} />
-                <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${Math.round(v / 1000)}k€`} />
-                <Tooltip formatter={(v) => fmtCur(v)} />
-                <Bar dataKey="val" radius={[4, 4, 0, 0]}>
-                  {res.chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
+            <div style={{ marginTop: 16 }}>
+              <p className="sim-card-legend">Comparaison intérêts vs gain épargne</p>
+              <ResponsiveContainer width="100%" height={180}>
+                <BarChart data={res.chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                  <XAxis dataKey="name" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={(v) => `${Math.round(v / 1000)}k€`} />
+                  <Tooltip formatter={(v) => fmtCur(v)} />
+                  <Bar dataKey="val" radius={[4, 4, 0, 0]}>
+                    {res.chartData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
 
-          <p className="sim-detail-note">
-            IRA plafonnées à 3 % du capital ou 6 mois d'intérêts (art. L313-47 CConso). Consultez votre contrat de prêt pour les conditions exactes.
-          </p>
-        </div>
-      </div>
+            <p className="sim-detail-note">
+              IRA plafonnées à 3 % du capital ou 6 mois d'intérêts (art. L313-47 CConso). Consultez votre contrat de prêt pour les conditions exactes.
+            </p>
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

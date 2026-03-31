@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
@@ -79,104 +80,114 @@ export default function SimAssurancePret() {
       conseils={CONSEILS}
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/frais-notaire"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre crédit</p>
-          <div className="step-fields">
-            <Field label="Montant emprunté" value={montant} onChange={setMontant} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-            <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} min={5} max={30} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-            <Field label="Taux du crédit" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-          </div>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre prêt",
+            icon: "🏦",
+            content: (
+              <>
+                <Field label="Montant emprunté" value={montant} onChange={setMontant} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+                <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} min={5} max={30} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+                <Field label="Taux du crédit" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+              </>
+            ),
+          },
+          {
+            title: "Les taux d'assurance",
+            icon: "🛡️",
+            content: (
+              <>
+                <Field
+                  label="Taux assurance banque (TAEA)"
+                  value={tauxBanque}
+                  onChange={setTauxBanque}
+                  suffix="%"
+                  step={0.01}
+                  hint="Moyen : 0,25–0,45 % selon profil et banque"
+                  tooltip="Taux Annuel Effectif d'Assurance proposé par votre banque. Souvent entre 0,25 % et 0,45 % du capital initial."
+                />
+                <Field
+                  label="Taux assurance déléguée (TAEA)"
+                  value={tauxDelegue}
+                  onChange={setTauxDelegue}
+                  suffix="%"
+                  step={0.01}
+                  hint="Moyen : 0,08–0,25 % selon profil et assureur"
+                  tooltip="Taux d'une assurance externe (Comparateur en ligne, courtier). Souvent 2× moins cher que l'assurance banque pour les profils sains."
+                />
 
-          <p className="sim-card-legend" style={{ marginTop: 20 }}>Assurances (TAEA en % du capital initial/an)</p>
-          <div className="step-fields">
-            <Field
-              label="Taux assurance banque (TAEA)"
-              value={tauxBanque}
-              onChange={setTauxBanque}
-              suffix="%"
-              step={0.01}
-              hint="Moyen : 0,25–0,45 % selon profil et banque"
-              tooltip="Taux Annuel Effectif d'Assurance proposé par votre banque. Souvent entre 0,25 % et 0,45 % du capital initial."
-            />
-            <Field
-              label="Taux assurance déléguée (TAEA)"
-              value={tauxDelegue}
-              onChange={setTauxDelegue}
-              suffix="%"
-              step={0.01}
-              hint="Moyen : 0,08–0,25 % selon profil et assureur"
-              tooltip="Taux d'une assurance externe (Comparateur en ligne, courtier). Souvent 2× moins cher que l'assurance banque pour les profils sains."
-            />
-          </div>
+                <div className="assur-taux-tip">
+                  <p>💡 Obtenez votre taux banque dans votre offre de prêt (ligne TAEA). Comparez sur des courtiers en ligne pour la délégation.</p>
+                </div>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className="assur-economie-banner" style={{ borderColor: econColors[economieNiveau] }}>
+              <p className="assur-economie-label">Économie potentielle en changeant d'assurance</p>
+              <p className="assur-economie-val" style={{ color: "#059669" }}>{fmtCur(res.economie)}</p>
+              <p className="assur-economie-sub">soit {fmtCur(res.economieMois)}/mois pendant {duree} ans</p>
+            </div>
 
-          <div className="assur-taux-tip">
-            <p>💡 Obtenez votre taux banque dans votre offre de prêt (ligne TAEA). Comparez sur des courtiers en ligne pour la délégation.</p>
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          <div className="assur-economie-banner" style={{ borderColor: econColors[economieNiveau] }}>
-            <p className="assur-economie-label">Économie potentielle en changeant d'assurance</p>
-            <p className="assur-economie-val" style={{ color: "#059669" }}>{fmtCur(res.economie)}</p>
-            <p className="assur-economie-sub">soit {fmtCur(res.economieMois)}/mois pendant {duree} ans</p>
-          </div>
-
-          <div className="assur-compare-grid">
-            <div className="assur-compare-col">
-              <p className="assur-compare-title">Assurance banque</p>
-              <p className="assur-compare-mens">{fmtCur(res.mensAvecBanque)}/mois</p>
-              <div className="assur-compare-detail">
-                <span>TAEA</span><strong>{tauxBanque} %</strong>
+            <div className="assur-compare-grid">
+              <div className="assur-compare-col">
+                <p className="assur-compare-title">Assurance banque</p>
+                <p className="assur-compare-mens">{fmtCur(res.mensAvecBanque)}/mois</p>
+                <div className="assur-compare-detail">
+                  <span>TAEA</span><strong>{tauxBanque} %</strong>
+                </div>
+                <div className="assur-compare-detail">
+                  <span>Cotisation mois</span><strong>{fmtCur(res.cotisationBanqueMois)}</strong>
+                </div>
+                <div className="assur-compare-detail">
+                  <span>Total sur {duree} ans</span><strong style={{ color: "#ef4444" }}>{fmtCur(res.totalBanque)}</strong>
+                </div>
+                <div className="assur-compare-detail">
+                  <span>TAEG global</span><strong>{res.taegBanque.toFixed(2)} %</strong>
+                </div>
               </div>
-              <div className="assur-compare-detail">
-                <span>Cotisation mois</span><strong>{fmtCur(res.cotisationBanqueMois)}</strong>
-              </div>
-              <div className="assur-compare-detail">
-                <span>Total sur {duree} ans</span><strong style={{ color: "#ef4444" }}>{fmtCur(res.totalBanque)}</strong>
-              </div>
-              <div className="assur-compare-detail">
-                <span>TAEG global</span><strong>{res.taegBanque.toFixed(2)} %</strong>
+
+              <div className="assur-compare-col assur-compare-col-green">
+                <p className="assur-compare-title">Assurance déléguée</p>
+                <p className="assur-compare-mens" style={{ color: "#059669" }}>{fmtCur(res.mensAvecDelegue)}/mois</p>
+                <div className="assur-compare-detail">
+                  <span>TAEA</span><strong>{tauxDelegue} %</strong>
+                </div>
+                <div className="assur-compare-detail">
+                  <span>Cotisation mois</span><strong>{fmtCur(res.cotisationDelegueMois)}</strong>
+                </div>
+                <div className="assur-compare-detail">
+                  <span>Total sur {duree} ans</span><strong style={{ color: "#059669" }}>{fmtCur(res.totalDelegue)}</strong>
+                </div>
+                <div className="assur-compare-detail">
+                  <span>TAEG global</span><strong>{res.taegDelegue.toFixed(2)} %</strong>
+                </div>
               </div>
             </div>
 
-            <div className="assur-compare-col assur-compare-col-green">
-              <p className="assur-compare-title">Assurance déléguée</p>
-              <p className="assur-compare-mens" style={{ color: "#059669" }}>{fmtCur(res.mensAvecDelegue)}/mois</p>
-              <div className="assur-compare-detail">
-                <span>TAEA</span><strong>{tauxDelegue} %</strong>
-              </div>
-              <div className="assur-compare-detail">
-                <span>Cotisation mois</span><strong>{fmtCur(res.cotisationDelegueMois)}</strong>
-              </div>
-              <div className="assur-compare-detail">
-                <span>Total sur {duree} ans</span><strong style={{ color: "#059669" }}>{fmtCur(res.totalDelegue)}</strong>
-              </div>
-              <div className="assur-compare-detail">
-                <span>TAEG global</span><strong>{res.taegDelegue.toFixed(2)} %</strong>
-              </div>
+            <div style={{ marginTop: 20 }}>
+              <p className="sim-card-legend">Répartition du coût total (assurance banque)</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <PieChart>
+                  <Pie data={res.pieData} cx="50%" cy="50%" outerRadius={75} dataKey="value">
+                    {res.pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
+                  </Pie>
+                  <Tooltip formatter={(v) => fmtCur(v)} />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+
+            <div className="assur-loi-box">
+              <strong>📋 Loi Lemoine 2022</strong>
+              <p>Vous pouvez changer d'assurance à tout moment, sans frais ni délai de résiliation. La banque doit accepter si les garanties sont équivalentes (fiche standardisée d'information).</p>
             </div>
           </div>
-
-          <div style={{ marginTop: 20 }}>
-            <p className="sim-card-legend">Répartition du coût total (assurance banque)</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <PieChart>
-                <Pie data={res.pieData} cx="50%" cy="50%" outerRadius={75} dataKey="value">
-                  {res.pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                </Pie>
-                <Tooltip formatter={(v) => fmtCur(v)} />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-
-          <div className="assur-loi-box">
-            <strong>📋 Loi Lemoine 2022</strong>
-            <p>Vous pouvez changer d'assurance à tout moment, sans frais ni délai de résiliation. La banque doit accepter si les garanties sont équivalentes (fiche standardisée d'information).</p>
-          </div>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

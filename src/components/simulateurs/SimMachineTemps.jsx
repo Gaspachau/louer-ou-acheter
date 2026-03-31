@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import CityPicker from "../CityPicker";
 import { CITY_LIST, PRICE_INDEX, CITY_INDEX_MULTIPLIER } from "../../data/cityData";
 
@@ -138,116 +139,130 @@ export default function SimMachineTemps() {
       onRestore={handleRestore}
       suggestions={["/simulateurs/rentabilite-locative", "/simulateurs/plus-value", "/simulateurs/comparateur-villes"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Paramètres de la simulation historique</p>
+      <SimFunnel
+        steps={[
+          {
+            title: "L'époque et la ville",
+            icon: "⏳",
+            content: (
+              <>
+                <CityPicker cityId={cityId} onChange={setCityId} label="Ville d'achat hypothétique" />
 
-          <CityPicker cityId={cityId} onChange={setCityId} label="Ville d'achat hypothétique" />
+                <div className="field">
+                  <label className="field-label">Année d'achat hypothétique</label>
+                  <div className="horizon-box" style={{ marginTop: 8 }}>
+                    <div className="horizon-row">
+                      <p className="horizon-explain">Quelle année auriez-vous acheté ?</p>
+                      <strong className="horizon-value">{yearBought}</strong>
+                    </div>
+                    <input type="range" min="2010" max="2023" step="1" value={yearBought}
+                      onChange={(e) => setYearBought(Number(e.target.value))}
+                      style={{ "--range-pct": `${((yearBought - 2010) / (2023 - 2010)) * 100}%` }} />
+                    <div className="horizon-ticks"><span>2010</span><span>2016</span><span>2023</span></div>
+                  </div>
+                </div>
+              </>
+            ),
+          },
+          {
+            title: "Le bien",
+            icon: "🏠",
+            content: (
+              <>
+                <div className="field" style={{ marginTop: 16 }}>
+                  <label className="field-label">Surface du bien</label>
+                  <div className="horizon-box" style={{ marginTop: 8 }}>
+                    <div className="horizon-row">
+                      <p className="horizon-explain">En m²</p>
+                      <strong className="horizon-value">{surface} m²</strong>
+                    </div>
+                    <input type="range" min="20" max="120" step="5" value={surface}
+                      onChange={(e) => setSurface(Number(e.target.value))}
+                      style={{ "--range-pct": `${((surface - 20) / (120 - 20)) * 100}%` }} />
+                    <div className="horizon-ticks"><span>20 m²</span><span>70 m²</span><span>120 m²</span></div>
+                  </div>
+                </div>
 
-          <div className="field">
-            <label className="field-label">Année d'achat hypothétique</label>
-            <div className="horizon-box" style={{ marginTop: 8 }}>
-              <div className="horizon-row">
-                <p className="horizon-explain">Quelle année auriez-vous acheté ?</p>
-                <strong className="horizon-value">{yearBought}</strong>
+                {res && (
+                  <div className="sim-info-box" style={{ marginTop: 16 }}>
+                    <p className="sim-info-title">📊 Données historiques reconstituées</p>
+                    <p className="sim-info-body">
+                      Prix estimé en {yearBought} à {CITY_LIST.find(c=>c.id===cityId)?.name} : {fmtCur(res.pastPricePerM2)}/m² (vs {fmtCur(res.currentPricePerM2)}/m² aujourd'hui).
+                      Taux de crédit simulé : {res.rate} %. Durée d'occupation : {res.yearsOwned} ans.
+                    </p>
+                  </div>
+                )}
+              </>
+            ),
+          },
+        ]}
+        result={
+          res && (
+            <div className="sim-results-panel">
+              <div className={`sim-stat-hero sim-hero-${heroColor}`}>
+                <span className="sim-stat-label">
+                  {isBuyingBetter ? "L'achat était gagnant" : "La location était gagnante"}
+                </span>
+                <span className="sim-stat-value">
+                  {fmtCur(Math.abs(res.advantage))}
+                </span>
+                <p className="sim-stat-hero-summary">
+                  {isBuyingBetter
+                    ? `Acheter en ${yearBought} vous aurait rapporté ${fmtCur(res.advantage)} de plus que rester locataire et placer la différence.`
+                    : `Rester locataire et investir vous aurait rapporté ${fmtCur(-res.advantage)} de plus qu'acheter en ${yearBought}.`
+                  }
+                </p>
               </div>
-              <input type="range" min="2010" max="2023" step="1" value={yearBought}
-                onChange={(e) => setYearBought(Number(e.target.value))}
-                style={{ "--range-pct": `${((yearBought - 2010) / (2023 - 2010)) * 100}%` }} />
-              <div className="horizon-ticks"><span>2010</span><span>2016</span><span>2023</span></div>
-            </div>
-          </div>
 
-          <div className="field" style={{ marginTop: 16 }}>
-            <label className="field-label">Surface du bien</label>
-            <div className="horizon-box" style={{ marginTop: 8 }}>
-              <div className="horizon-row">
-                <p className="horizon-explain">En m²</p>
-                <strong className="horizon-value">{surface} m²</strong>
+              <div className="sim-stats-grid">
+                <div className="sim-stat-card sim-stat-card-blue">
+                  <span className="sim-stat-card-label">Prix d'achat {yearBought}</span>
+                  <span className="sim-stat-card-value">{fmtCur(res.prixAchat)}</span>
+                </div>
+                <div className="sim-stat-card">
+                  <span className="sim-stat-card-label">Valeur actuelle</span>
+                  <span className="sim-stat-card-value">{fmtCur(res.currentPricePerM2 * surface)}</span>
+                </div>
+                <div className={`sim-stat-card ${isBuyingBetter ? "sim-stat-card-green" : "sim-stat-card-red"}`}>
+                  <span className="sim-stat-card-label">Patrimoine achat net</span>
+                  <span className="sim-stat-card-value">{fmtCur(res.ownerWorth)}</span>
+                </div>
+                <div className="sim-stat-card">
+                  <span className="sim-stat-card-label">Portefeuille locataire</span>
+                  <span className="sim-stat-card-value">{fmtCur(res.renterPortfolio)}</span>
+                </div>
               </div>
-              <input type="range" min="20" max="120" step="5" value={surface}
-                onChange={(e) => setSurface(Number(e.target.value))}
-                style={{ "--range-pct": `${((surface - 20) / (120 - 20)) * 100}%` }} />
-              <div className="horizon-ticks"><span>20 m²</span><span>70 m²</span><span>120 m²</span></div>
-            </div>
-          </div>
 
-          {res && (
-            <div className="sim-info-box" style={{ marginTop: 16 }}>
-              <p className="sim-info-title">📊 Données historiques reconstituées</p>
-              <p className="sim-info-body">
-                Prix estimé en {yearBought} à {CITY_LIST.find(c=>c.id===cityId)?.name} : {fmtCur(res.pastPricePerM2)}/m² (vs {fmtCur(res.currentPricePerM2)}/m² aujourd'hui).
-                Taux de crédit simulé : {res.rate} %. Durée d'occupation : {res.yearsOwned} ans.
-              </p>
-            </div>
-          )}
-        </div>
+              <div className="sim-chart-wrap">
+                <p className="sim-chart-title">Évolution des deux patrimoines depuis {yearBought}</p>
+                <ResponsiveContainer width="100%" height={200}>
+                  <AreaChart data={res.timelineData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
+                    <defs>
+                      <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} /><stop offset="95%" stopColor="#2563eb" stopOpacity={0.02} />
+                      </linearGradient>
+                      <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.15} /><stop offset="95%" stopColor="#ec4899" stopOpacity={0.02} />
+                      </linearGradient>
+                    </defs>
+                    <XAxis dataKey="year" tick={{ fontSize: 10, fill: "var(--muted)" }} axisLine={false} tickLine={false} />
+                    <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : v} tick={{ fontSize: 10, fill: "var(--muted)" }} axisLine={false} tickLine={false} width={48} />
+                    <Tooltip content={<ChartTip />} />
+                    <Area type="monotone" dataKey="location" name="Location + invest." stroke="#ec4899" strokeWidth={2} fill="url(#gL)" dot={false} />
+                    <Area type="monotone" dataKey="achat" name="Achat" stroke="#2563eb" strokeWidth={2} fill="url(#gA)" dot={false} />
+                    <ReferenceLine x={2026} stroke="#94a3b8" strokeDasharray="4 3" label={{ value: "Aujourd'hui", fontSize: 9, fill: "#94a3b8" }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
 
-        {res && (
-          <div className="sim-results-panel">
-            <div className={`sim-stat-hero sim-hero-${heroColor}`}>
-              <span className="sim-stat-label">
-                {isBuyingBetter ? "L'achat était gagnant" : "La location était gagnante"}
-              </span>
-              <span className="sim-stat-value">
-                {fmtCur(Math.abs(res.advantage))}
-              </span>
-              <p className="sim-stat-hero-summary">
-                {isBuyingBetter
-                  ? `Acheter en ${yearBought} vous aurait rapporté ${fmtCur(res.advantage)} de plus que rester locataire et placer la différence.`
-                  : `Rester locataire et investir vous aurait rapporté ${fmtCur(-res.advantage)} de plus qu'acheter en ${yearBought}.`
-                }
-              </p>
-            </div>
-
-            <div className="sim-stats-grid">
-              <div className="sim-stat-card sim-stat-card-blue">
-                <span className="sim-stat-card-label">Prix d'achat {yearBought}</span>
-                <span className="sim-stat-card-value">{fmtCur(res.prixAchat)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Valeur actuelle</span>
-                <span className="sim-stat-card-value">{fmtCur(res.currentPricePerM2 * surface)}</span>
-              </div>
-              <div className={`sim-stat-card ${isBuyingBetter ? "sim-stat-card-green" : "sim-stat-card-red"}`}>
-                <span className="sim-stat-card-label">Patrimoine achat net</span>
-                <span className="sim-stat-card-value">{fmtCur(res.ownerWorth)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Portefeuille locataire</span>
-                <span className="sim-stat-card-value">{fmtCur(res.renterPortfolio)}</span>
+              <div className="sim-info-box">
+                <p className="sim-info-title">⚠️ Hypothèses simplifiées</p>
+                <p className="sim-info-body">Simulation reconstituée sur la base des indices de prix nationaux (Notaires de France / Banque de France). Ne tient pas compte des fiscalités locales, des travaux, ni des variations micro-locales.</p>
               </div>
             </div>
-
-            <div className="sim-chart-wrap">
-              <p className="sim-chart-title">Évolution des deux patrimoines depuis {yearBought}</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <AreaChart data={res.timelineData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-                  <defs>
-                    <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} /><stop offset="95%" stopColor="#2563eb" stopOpacity={0.02} />
-                    </linearGradient>
-                    <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="#ec4899" stopOpacity={0.15} /><stop offset="95%" stopColor="#ec4899" stopOpacity={0.02} />
-                    </linearGradient>
-                  </defs>
-                  <XAxis dataKey="year" tick={{ fontSize: 10, fill: "var(--muted)" }} axisLine={false} tickLine={false} />
-                  <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : v} tick={{ fontSize: 10, fill: "var(--muted)" }} axisLine={false} tickLine={false} width={48} />
-                  <Tooltip content={<ChartTip />} />
-                  <Area type="monotone" dataKey="location" name="Location + invest." stroke="#ec4899" strokeWidth={2} fill="url(#gL)" dot={false} />
-                  <Area type="monotone" dataKey="achat" name="Achat" stroke="#2563eb" strokeWidth={2} fill="url(#gA)" dot={false} />
-                  <ReferenceLine x={2026} stroke="#94a3b8" strokeDasharray="4 3" label={{ value: "Aujourd'hui", fontSize: 9, fill: "#94a3b8" }} />
-                </AreaChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="sim-info-box">
-              <p className="sim-info-title">⚠️ Hypothèses simplifiées</p>
-              <p className="sim-info-body">Simulation reconstituée sur la base des indices de prix nationaux (Notaires de France / Banque de France). Ne tient pas compte des fiscalités locales, des travaux, ni des variations micro-locales.</p>
-            </div>
-          </div>
-        )}
-      </div>
+          )
+        }
+      />
     </SimLayout>
   );
 }

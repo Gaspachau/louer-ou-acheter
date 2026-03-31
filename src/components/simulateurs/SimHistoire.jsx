@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const fmtCur = (v) =>
@@ -161,107 +162,118 @@ export default function SimHistoire() {
       description="Visualisez votre vie de propriétaire ou de locataire, année par année, comme un récit avec ses rebondissements."
       suggestions={["/simulateurs/machine-temps", "/simulateurs/comparateur-villes", "/simulateurs/rentabilite-locative"]}
     >
-      <div className="sim-layout">
-        {/* Inputs */}
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre projet</p>
-          <div className="step-fields">
-            <Field label="Prix du bien" value={v.purchasePrice} onChange={set("purchasePrice")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-            <Field label="Apport" value={v.downPayment} onChange={set("downPayment")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-            <Field label="Taux du crédit" value={v.mortgageRate} onChange={set("mortgageRate")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée du prêt" value={v.mortgageYears} onChange={set("mortgageYears")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-            <Field label="Loyer actuel" value={v.monthlyRent} onChange={set("monthlyRent")} suffix="€/mois" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
-          </div>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre profil",
+            icon: "👤",
+            content: (
+              <>
+                <Field label="Prix du bien" value={v.purchasePrice} onChange={set("purchasePrice")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+                <Field label="Apport" value={v.downPayment} onChange={set("downPayment")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+                <Field label="Loyer actuel" value={v.monthlyRent} onChange={set("monthlyRent")} suffix="€/mois" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
+              </>
+            ),
+          },
+          {
+            title: "Paramètres",
+            icon: "⚙️",
+            content: (
+              <>
+                <Field label="Taux du crédit" value={v.mortgageRate} onChange={set("mortgageRate")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                <Field label="Durée du prêt" value={v.mortgageYears} onChange={set("mortgageYears")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
 
-          <div style={{ marginTop: 16 }}>
-            <div className="horizon-box">
-              <div className="horizon-row">
-                <div>
-                  <label className="horizon-label">Horizon de l'histoire</label>
-                  <p className="horizon-explain">Sur combien d'années raconter l'histoire ?</p>
+                <div style={{ marginTop: 16 }}>
+                  <div className="horizon-box">
+                    <div className="horizon-row">
+                      <div>
+                        <label className="horizon-label">Horizon de l'histoire</label>
+                        <p className="horizon-explain">Sur combien d'années raconter l'histoire ?</p>
+                      </div>
+                      <strong className="horizon-value">{v.comparisonYears} ans</strong>
+                    </div>
+                    <input type="range" min="5" max="30" step="1"
+                      value={v.comparisonYears}
+                      onChange={(e) => setV((x) => ({ ...x, comparisonYears: Number(e.target.value) }))}
+                      style={{ "--range-pct": `${((v.comparisonYears - 5) / 25) * 100}%` }}
+                      aria-label={`Horizon : ${v.comparisonYears} ans`} />
+                    <div className="horizon-ticks"><span>5 ans</span><span>15 ans</span><span>30 ans</span></div>
+                  </div>
                 </div>
-                <strong className="horizon-value">{v.comparisonYears} ans</strong>
+
+                <p className="sim-card-legend" style={{ marginTop: 16 }}>Scénario économique</p>
+                <div className="histoire-scenario-btns">
+                  {SCENARIOS.map((s) => (
+                    <button
+                      key={s.id}
+                      type="button"
+                      className={`histoire-scenario-btn${scenario === s.id ? " histoire-scenario-active" : ""}`}
+                      onClick={() => setScenario(s.id)}
+                    >
+                      <span>{s.emoji}</span>
+                      <span className="histoire-scenario-name">{s.label}</span>
+                      <span className="histoire-scenario-desc">{s.desc}</span>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="sim-info-box" style={{ marginTop: 16 }}>
+                  <p className="sim-info-title">📌 Hypothèses scénario {sc.label.toLowerCase()}</p>
+                  <p className="sim-info-body">
+                    Appréciation du bien : <strong>+{sc.apprec}%/an</strong> —
+                    Rendement placement locataire : <strong>{sc.rendement}%/an</strong> —
+                    Hausse loyers : <strong>+{sc.rentIncrease}%/an</strong>
+                  </p>
+                </div>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {finalD && (
+              <div className={`sim-verdict ${finalD.ownerNetWorth >= finalD.renterPortfolio ? "sim-verdict-green" : "sim-verdict-amber"}`}>
+                <strong>
+                  {finalD.ownerNetWorth >= finalD.renterPortfolio
+                    ? `L'achat gagne sur ${v.comparisonYears} ans (scénario ${sc.label.toLowerCase()})`
+                    : `La location gagne sur ${v.comparisonYears} ans (scénario ${sc.label.toLowerCase()})`}
+                </strong>
+                <p>
+                  Différence de {fmtCur(Math.abs(finalD.ownerNetWorth - finalD.renterPortfolio))} en faveur de l'
+                  {finalD.ownerNetWorth >= finalD.renterPortfolio ? "achat" : "location"}.
+                  Mensualité crédit : {fmtCur(monthly)}/mois.
+                </p>
               </div>
-              <input type="range" min="5" max="30" step="1"
-                value={v.comparisonYears}
-                onChange={(e) => setV((x) => ({ ...x, comparisonYears: Number(e.target.value) }))}
-                style={{ "--range-pct": `${((v.comparisonYears - 5) / 25) * 100}%` }}
-                aria-label={`Horizon : ${v.comparisonYears} ans`} />
-              <div className="horizon-ticks"><span>5 ans</span><span>15 ans</span><span>30 ans</span></div>
+            )}
+
+            {/* Timeline events */}
+            <div className="histoire-timeline">
+              {events.map((ev, i) => {
+                const color = TYPE_COLORS[ev.type] || "#2563eb";
+                return (
+                  <div key={i} className="histoire-event">
+                    <div className="histoire-event-left">
+                      <div className="histoire-event-dot" style={{ borderColor: color, background: color + "22" }}>
+                        <span>{ev.icon}</span>
+                      </div>
+                      {i < events.length - 1 && (
+                        <div className="histoire-event-line" style={{ background: color + "44" }} />
+                      )}
+                    </div>
+                    <div className="histoire-event-body">
+                      <div className="histoire-event-year" style={{ color }}>
+                        {ev.year === 0 ? "Aujourd'hui" : `An ${ev.year} — ${new Date().getFullYear() + ev.year}`}
+                      </div>
+                      <p className="histoire-event-title">{ev.title}</p>
+                      <p className="histoire-event-desc">{ev.desc}</p>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-
-          <p className="sim-card-legend" style={{ marginTop: 16 }}>Scénario économique</p>
-          <div className="histoire-scenario-btns">
-            {SCENARIOS.map((s) => (
-              <button
-                key={s.id}
-                type="button"
-                className={`histoire-scenario-btn${scenario === s.id ? " histoire-scenario-active" : ""}`}
-                onClick={() => setScenario(s.id)}
-              >
-                <span>{s.emoji}</span>
-                <span className="histoire-scenario-name">{s.label}</span>
-                <span className="histoire-scenario-desc">{s.desc}</span>
-              </button>
-            ))}
-          </div>
-
-          {/* Quick legend */}
-          <div className="sim-info-box" style={{ marginTop: 16 }}>
-            <p className="sim-info-title">📌 Hypothèses scénario {sc.label.toLowerCase()}</p>
-            <p className="sim-info-body">
-              Appréciation du bien : <strong>+{sc.apprec}%/an</strong> —
-              Rendement placement locataire : <strong>{sc.rendement}%/an</strong> —
-              Hausse loyers : <strong>+{sc.rentIncrease}%/an</strong>
-            </p>
-          </div>
-        </div>
-
-        {/* Timeline */}
-        <div className="sim-results-panel">
-          {finalD && (
-            <div className={`sim-verdict ${finalD.ownerNetWorth >= finalD.renterPortfolio ? "sim-verdict-green" : "sim-verdict-amber"}`}>
-              <strong>
-                {finalD.ownerNetWorth >= finalD.renterPortfolio
-                  ? `L'achat gagne sur ${v.comparisonYears} ans (scénario ${sc.label.toLowerCase()})`
-                  : `La location gagne sur ${v.comparisonYears} ans (scénario ${sc.label.toLowerCase()})`}
-              </strong>
-              <p>
-                Différence de {fmtCur(Math.abs(finalD.ownerNetWorth - finalD.renterPortfolio))} en faveur de l'
-                {finalD.ownerNetWorth >= finalD.renterPortfolio ? "achat" : "location"}.
-                Mensualité crédit : {fmtCur(monthly)}/mois.
-              </p>
-            </div>
-          )}
-
-          {/* Timeline events */}
-          <div className="histoire-timeline">
-            {events.map((ev, i) => {
-              const color = TYPE_COLORS[ev.type] || "#2563eb";
-              return (
-                <div key={i} className="histoire-event">
-                  <div className="histoire-event-left">
-                    <div className="histoire-event-dot" style={{ borderColor: color, background: color + "22" }}>
-                      <span>{ev.icon}</span>
-                    </div>
-                    {i < events.length - 1 && (
-                      <div className="histoire-event-line" style={{ background: color + "44" }} />
-                    )}
-                  </div>
-                  <div className="histoire-event-body">
-                    <div className="histoire-event-year" style={{ color }}>
-                      {ev.year === 0 ? "Aujourd'hui" : `An ${ev.year} — ${new Date().getFullYear() + ev.year}`}
-                    </div>
-                    <p className="histoire-event-title">{ev.title}</p>
-                    <p className="histoire-event-desc">{ev.desc}</p>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

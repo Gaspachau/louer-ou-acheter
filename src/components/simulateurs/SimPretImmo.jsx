@@ -3,6 +3,7 @@ import { trackResultComputed, trackFieldChanged } from "../../utils/analytics";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import Field from "../Field";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import DonutChart from "../DonutChart";
 import { formatCurrency } from "../../utils/finance";
 
@@ -118,154 +119,162 @@ export default function SimPretImmo() {
       description="Calculez votre mensualité, le coût total et consultez le tableau d'amortissement."
       suggestions={["/simulateurs/endettement", "/simulateurs/frais-notaire", "/simulateurs/assurance-pret"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre crédit</p>
-          <div className="step-fields">
-            <div className="field-full">
-              <Field label="Montant emprunté" value={v.principal} onChange={set("principal")} suffix="€" hint="Capital à financer hors apport" />
-            </div>
-            <Field label="Taux annuel" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="Mars 2026 : ~3,5–4,0 %" />
-            <Field label="Durée" value={v.years} onChange={set("years")} suffix="ans" hint="15, 20 ou 25 ans" />
-          </div>
-          {v.years > 25 && (
-            <div className="sim-info-box" style={{ marginTop: 12, background: "#fef3c7", borderColor: "#fcd34d" }}>
-              <p className="sim-info-title">⚠️ Limite légale HCSF</p>
-              <p className="sim-info-body">La loi HCSF plafonne les prêts immobiliers à <strong>25 ans</strong> (27 ans pour le neuf ou avec travaux). Au-delà, les banques ne peuvent généralement pas accorder le prêt.</p>
-            </div>
-          )}
-        </div>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre crédit",
+            icon: "🏦",
+            content: (
+              <>
+                <div className="step-fields">
+                  <div className="field-full">
+                    <Field label="Montant emprunté" value={v.principal} onChange={set("principal")} suffix="€" hint="Capital à financer hors apport" />
+                  </div>
+                  <Field label="Taux annuel" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="Mars 2026 : ~3,5–4,0 %" />
+                  <Field label="Durée" value={v.years} onChange={set("years")} suffix="ans" hint="15, 20 ou 25 ans" />
+                </div>
+                {v.years > 25 && (
+                  <div className="sim-info-box" style={{ marginTop: 12, background: "#fef3c7", borderColor: "#fcd34d" }}>
+                    <p className="sim-info-title">⚠️ Limite légale HCSF</p>
+                    <p className="sim-info-body">La loi HCSF plafonne les prêts immobiliers à <strong>25 ans</strong> (27 ans pour le neuf ou avec travaux). Au-delà, les banques ne peuvent généralement pas accorder le prêt.</p>
+                  </div>
+                )}
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res ? (
+              <p className="sim-empty">Renseignez les paramètres pour voir les résultats.</p>
+            ) : (
+              <>
+                <div className="sim-stat-hero">
+                  <span className="sim-stat-label">Mensualité</span>
+                  <span className="sim-stat-value">
+                    {formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span>
+                  </span>
+                  <p className="sim-stat-hero-summary">
+                    Pour {fmtCur(v.principal)} emprunté sur {v.years} ans à {v.annualRate} %, vous rembourserez{" "}
+                    {fmtCur(res.totalCost)} au total, dont {fmtCur(res.totalInterest)} d'intérêts
+                    ({((res.totalInterest / v.principal) * 100).toFixed(0)} % du capital).
+                  </p>
+                </div>
 
-        <div className="sim-results-panel">
-          {!res ? (
-            <p className="sim-empty">Renseignez les paramètres pour voir les résultats.</p>
-          ) : (
-            <>
-              <div className="sim-stat-hero">
-                <span className="sim-stat-label">Mensualité</span>
-                <span className="sim-stat-value">
-                  {formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span>
-                </span>
-                <p className="sim-stat-hero-summary">
-                  Pour {fmtCur(v.principal)} emprunté sur {v.years} ans à {v.annualRate} %, vous rembourserez{" "}
-                  {fmtCur(res.totalCost)} au total, dont {fmtCur(res.totalInterest)} d'intérêts
-                  ({((res.totalInterest / v.principal) * 100).toFixed(0)} % du capital).
-                </p>
-              </div>
+                <div style={{ marginBottom: 16 }}>
+                  <p className="sim-bar-label" style={{ marginBottom: 10 }}>Comparaison 15 / 20 / 25 ans à {v.annualRate} %</p>
+                  <div className="pret-compare-grid">
+                    {[15, 20, 25].map((yr) => {
+                      const r2 = v.annualRate / 100 / 12;
+                      const n2 = yr * 12;
+                      const m2 = r2 === 0 ? v.principal / n2 : v.principal * r2 / (1 - Math.pow(1 + r2, -n2));
+                      const totalInt2 = m2 * n2 - v.principal;
+                      const isActive = v.years === yr;
+                      return (
+                        <div key={yr} className={`pret-compare-card${isActive ? " pret-compare-active" : ""}`}>
+                          <span className="pret-compare-label">{yr} ans</span>
+                          <span className="pret-compare-mens">{fmtCur(m2)}<span style={{ fontSize: 11 }}>/mois</span></span>
+                          <span className="pret-compare-int" style={{ color: "var(--muted)", fontSize: 11 }}>{fmtCur(totalInt2)} intérêts</span>
+                          {isActive && <span className="pret-compare-badge">Votre choix</span>}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              <div style={{ marginBottom: 16 }}>
-                <p className="sim-bar-label" style={{ marginBottom: 10 }}>Comparaison 15 / 20 / 25 ans à {v.annualRate} %</p>
-                <div className="pret-compare-grid">
-                  {[15, 20, 25].map((yr) => {
-                    const r2 = v.annualRate / 100 / 12;
-                    const n2 = yr * 12;
-                    const m2 = r2 === 0 ? v.principal / n2 : v.principal * r2 / (1 - Math.pow(1 + r2, -n2));
-                    const totalInt2 = m2 * n2 - v.principal;
-                    const isActive = v.years === yr;
-                    return (
-                      <div key={yr} className={`pret-compare-card${isActive ? " pret-compare-active" : ""}`}>
-                        <span className="pret-compare-label">{yr} ans</span>
-                        <span className="pret-compare-mens">{fmtCur(m2)}<span style={{ fontSize: 11 }}>/mois</span></span>
-                        <span className="pret-compare-int" style={{ color: "var(--muted)", fontSize: 11 }}>{fmtCur(totalInt2)} intérêts</span>
-                        {isActive && <span className="pret-compare-badge">Votre choix</span>}
+                <div className="sim-stats-grid">
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Capital emprunté</span>
+                    <span className="sim-stat-card-value">{formatCurrency(v.principal)}</span>
+                  </div>
+                  <div className="sim-stat-card sim-stat-card-red">
+                    <span className="sim-stat-card-label">Coût total des intérêts</span>
+                    <span className="sim-stat-card-value">{formatCurrency(res.totalInterest)}</span>
+                  </div>
+                  <div className="sim-stat-card sim-stat-card-blue">
+                    <span className="sim-stat-card-label">Total remboursé</span>
+                    <span className="sim-stat-card-value">{formatCurrency(res.totalCost)}</span>
+                  </div>
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Durée</span>
+                    <span className="sim-stat-card-value">{v.years} ans</span>
+                  </div>
+                </div>
+
+                {chartData.length > 1 && (
+                  <div className="sim-chart-wrap">
+                    <p className="sim-chart-title">Évolution du capital sur {v.years} ans</p>
+                    <ResponsiveContainer width="100%" height={160}>
+                      <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
+                        <defs>
+                          <linearGradient id="gradImmoRemaining" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/>
+                            <stop offset="95%" stopColor="#ec4899" stopOpacity={0.02}/>
+                          </linearGradient>
+                          <linearGradient id="gradImmoPaid" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
+                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
+                        <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
+                        <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
+                        <Tooltip content={<ChartTooltip />}/>
+                        <Area type="monotone" dataKey="Capital remboursé" stroke="#2563eb" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
+                        <Area type="monotone" dataKey="Capital restant" stroke="#ec4899" strokeWidth={2} fill="url(#gradImmoRemaining)" dot={false} activeDot={{ r: 4 }}/>
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+                )}
+
+                <div className="sim-donut-section">
+                  <DonutChart
+                    segments={donutSegments}
+                    size={130}
+                    thickness={22}
+                    label={formatCurrency(res.totalCost)}
+                    subLabel="total remboursé"
+                  />
+                  <div className="sim-donut-legend">
+                    <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition du coût total</p>
+                    {donutSegments.map((seg) => (
+                      <div key={seg.label} className="sim-donut-legend-item">
+                        <span className="sim-donut-dot" style={{ background: seg.color }} />
+                        <span className="sim-donut-legend-label">{seg.label}</span>
+                        <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
                       </div>
-                    );
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              <div className="sim-stats-grid">
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Capital emprunté</span>
-                  <span className="sim-stat-card-value">{formatCurrency(v.principal)}</span>
-                </div>
-                <div className="sim-stat-card sim-stat-card-red">
-                  <span className="sim-stat-card-label">Coût total des intérêts</span>
-                  <span className="sim-stat-card-value">{formatCurrency(res.totalInterest)}</span>
-                </div>
-                <div className="sim-stat-card sim-stat-card-blue">
-                  <span className="sim-stat-card-label">Total remboursé</span>
-                  <span className="sim-stat-card-value">{formatCurrency(res.totalCost)}</span>
-                </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Durée</span>
-                  <span className="sim-stat-card-value">{v.years} ans</span>
-                </div>
-              </div>
+                <button
+                  className="details-toggle"
+                  onClick={() => setShowTable(!showTable)}
+                  aria-expanded={showTable}
+                  type="button"
+                >
+                  {showTable ? "▲ Masquer" : "▼ Voir"} le tableau d'amortissement annuel
+                </button>
 
-              {chartData.length > 1 && (
-                <div className="sim-chart-wrap">
-                  <p className="sim-chart-title">Évolution du capital sur {v.years} ans</p>
-                  <ResponsiveContainer width="100%" height={160}>
-                    <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
-                      <defs>
-                        <linearGradient id="gradImmoRemaining" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/>
-                          <stop offset="95%" stopColor="#ec4899" stopOpacity={0.02}/>
-                        </linearGradient>
-                        <linearGradient id="gradImmoPaid" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
-                          <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
-                      <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
-                      <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
-                      <Tooltip content={<ChartTooltip />}/>
-                      <Area type="monotone" dataKey="Capital remboursé" stroke="#2563eb" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
-                      <Area type="monotone" dataKey="Capital restant" stroke="#ec4899" strokeWidth={2} fill="url(#gradImmoRemaining)" dot={false} activeDot={{ r: 4 }}/>
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
-              )}
-
-              <div className="sim-donut-section">
-                <DonutChart
-                  segments={donutSegments}
-                  size={130}
-                  thickness={22}
-                  label={formatCurrency(res.totalCost)}
-                  subLabel="total remboursé"
-                />
-                <div className="sim-donut-legend">
-                  <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition du coût total</p>
-                  {donutSegments.map((seg) => (
-                    <div key={seg.label} className="sim-donut-legend-item">
-                      <span className="sim-donut-dot" style={{ background: seg.color }} />
-                      <span className="sim-donut-legend-label">{seg.label}</span>
-                      <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <button
-                className="details-toggle"
-                onClick={() => setShowTable(!showTable)}
-                aria-expanded={showTable}
-                type="button"
-              >
-                {showTable ? "▲ Masquer" : "▼ Voir"} le tableau d'amortissement annuel
-              </button>
-
-              {showTable && amortTable.length > 0 && (
-                <div className="amort-table-wrap">
-                  <table className="amort-table">
-                    <thead>
-                      <tr><th>Année</th><th>Mensualité</th><th>Capital</th><th>Intérêts</th><th>Restant</th></tr>
-                    </thead>
-                    <tbody>
-                      {amortTable.map((row) => (
-                        <AmortRow key={row.month} {...row} />
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
+                {showTable && amortTable.length > 0 && (
+                  <div className="amort-table-wrap">
+                    <table className="amort-table">
+                      <thead>
+                        <tr><th>Année</th><th>Mensualité</th><th>Capital</th><th>Intérêts</th><th>Restant</th></tr>
+                      </thead>
+                      <tbody>
+                        {amortTable.map((row) => (
+                          <AmortRow key={row.month} {...row} />
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        }
+      />
     </SimLayout>
   );
 }

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const fmtCur = (v) =>
@@ -134,161 +135,168 @@ export default function SimStressTest() {
       description="Votre projet immobilier résiste-t-il à l'adversité ? Simulez 3 scénarios de crise et mesurez votre résilience."
       suggestions={["/simulateurs/endettement", "/simulateurs/pret-immobilier", "/simulateurs/niveau-de-vie"]}
     >
-      <div className="sim-layout">
-        {/* Form */}
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre projet de base</p>
-          <div className="step-fields">
-            <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-            <Field label="Apport personnel" value={v.apport} onChange={set("apport")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-            <Field label="Taux actuel" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-            <Field label="Revenus mensuels nets" value={v.revenus} onChange={set("revenus")} suffix="€" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
-            <Field label="Réserve d'épargne" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€"
-              hint="Capital disponible après achat" tooltip="Capital liquide disponible après achat (livret, épargne de précaution). À ne pas confondre avec l'apport investi dans le bien." />
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre prêt",
+            icon: "🏦",
+            content: (
+              <div className="step-fields">
+                <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+                <Field label="Apport personnel" value={v.apport} onChange={set("apport")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+                <Field label="Taux actuel" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+                <Field label="Revenus mensuels nets" value={v.revenus} onChange={set("revenus")} suffix="€" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
+                <Field label="Réserve d'épargne" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€"
+                  hint="Capital disponible après achat" tooltip="Capital liquide disponible après achat (livret, épargne de précaution). À ne pas confondre avec l'apport investi dans le bien." />
+              </div>
+            ),
+          },
+          {
+            title: "Les scénarios",
+            icon: "🛡️",
+            content: (
+              <div className="stress-slider-section">
+                <div className="horizon-box" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
+                  <div className="horizon-row">
+                    <div>
+                      <p className="horizon-label">📈 Hausse des taux</p>
+                      <p className="horizon-explain">Le taux de votre crédit monte de {hausseT.toFixed(1)} point{hausseT >= 2 ? "s" : ""}</p>
+                    </div>
+                    <strong className="horizon-value" style={{ color: "#d97706" }}>+{hausseT.toFixed(1)} %</strong>
+                  </div>
+                  <input type="range" min="0.5" max="4" step="0.5" value={hausseT}
+                    onChange={(e) => setHausseT(Number(e.target.value))}
+                    style={{ "--range-pct": `${((hausseT - 0.5) / 3.5) * 100}%` }}
+                    aria-label={`Hausse taux : +${hausseT}%`} />
+                  <div className="horizon-ticks"><span>+0,5 %</span><span>+2 %</span><span>+4 %</span></div>
+                </div>
+
+                <div className="horizon-box" style={{ background: "#fef2f2", borderColor: "#fecaca", marginTop: 10 }}>
+                  <div className="horizon-row">
+                    <div>
+                      <p className="horizon-label">📉 Chute du marché immo</p>
+                      <p className="horizon-explain">La valeur du bien baisse de {baisseMarche} %</p>
+                    </div>
+                    <strong className="horizon-value" style={{ color: "#dc2626" }}>-{baisseMarche} %</strong>
+                  </div>
+                  <input type="range" min="5" max="40" step="5" value={baisseMarche}
+                    onChange={(e) => setBaisseMarche(Number(e.target.value))}
+                    style={{ "--range-pct": `${((baisseMarche - 5) / 35) * 100}%` }}
+                    aria-label={`Chute marché : -${baisseMarche}%`} />
+                  <div className="horizon-ticks"><span>-5 %</span><span>-20 %</span><span>-40 %</span></div>
+                </div>
+
+                <div className="horizon-box" style={{ background: "#f5f3ff", borderColor: "#ddd6fe", marginTop: 10 }}>
+                  <div className="horizon-row">
+                    <div>
+                      <p className="horizon-label">💼 Perte de revenus</p>
+                      <p className="horizon-explain">Vos revenus baissent de {baisseRevenu} % (chômage partiel, accident...)</p>
+                    </div>
+                    <strong className="horizon-value" style={{ color: "#7c3aed" }}>-{baisseRevenu} %</strong>
+                  </div>
+                  <input type="range" min="10" max="60" step="5" value={baisseRevenu}
+                    onChange={(e) => setBaisseRevenu(Number(e.target.value))}
+                    style={{ "--range-pct": `${((baisseRevenu - 10) / 50) * 100}%` }}
+                    aria-label={`Perte revenus : -${baisseRevenu}%`} />
+                  <div className="horizon-ticks"><span>-10 %</span><span>-35 %</span><span>-60 %</span></div>
+                </div>
+              </div>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {!res ? null : (
+              <>
+                <ScoreMeter score={res.score} />
+
+                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
+                  {/* Hausse taux */}
+                  <ScenarioCard
+                    emoji="📈"
+                    title={`Hausse de taux +${hausseT.toFixed(1)}%`}
+                    subtitle={`Taux de ${v.taux}% → ${(v.taux + hausseT).toFixed(1)}%`}
+                    baseMens={res.mensBase}
+                    newMens={res.mensHausse}
+                    impact={res.impactTaux}
+                    severity={res.sevA}
+                    detail={`Taux d'endettement après hausse : ${res.endetmentApresHausse.toFixed(1)}%. ${res.endetmentApresHausse > 35 ? "Dépasse le seuil HCSF de 35% — refinancement difficile." : "Reste sous le seuil HCSF."}`}
+                  >
+                    <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
+                      Hausse de {hausseT.toFixed(1)} point{hausseT >= 2 ? "s" : ""} de taux
+                    </p>
+                  </ScenarioCard>
+
+                  {/* Baisse marché */}
+                  <ScenarioCard
+                    emoji="📉"
+                    title={`Chute du marché -${baisseMarche}%`}
+                    subtitle={`Bien à ${fmtCur(v.prixBien)} → ${fmtCur(res.valeurApres)}`}
+                    baseMens={res.mensBase}
+                    newMens={res.mensBase}
+                    impact={0}
+                    severity={res.sevB}
+                    detail={res.equiteNegative
+                      ? `Équité négative : le bien vaut moins que ce que vous devez (${fmtCur(res.equite)}). Revendre signifierait une perte nette.`
+                      : `Équité résiduelle : ${fmtCur(res.equite)} — vous restez en territoire positif malgré la baisse.`}
+                  >
+                    <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
+                      Impact sur la valeur patrimoniale — la mensualité ne change pas
+                    </p>
+                  </ScenarioCard>
+
+                  {/* Perte revenus */}
+                  <ScenarioCard
+                    emoji="💼"
+                    title={`Perte de revenus -${baisseRevenu}%`}
+                    subtitle={`${fmtCur(v.revenus)} → ${fmtCur(res.nouveauxRevenus)}/mois`}
+                    baseMens={res.mensBase}
+                    newMens={res.mensBase}
+                    impact={0}
+                    severity={res.sevC}
+                    detail={`Taux d'endettement sur nouveaux revenus : ${res.endetCrise.toFixed(1)}%. Votre réserve couvre ${res.moisCouvert.toFixed(1)} mois de crédit. ${res.moisCouvert < 3 ? "Constituez au moins 3 mois de réserve avant d'acheter." : res.moisCouvert < 6 ? "Réserve acceptable — visez 6 mois idéalement." : "Excellente réserve d'urgence."}`}
+                  >
+                    <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
+                      Impact sur le taux d'endettement et la durée de réserve
+                    </p>
+                  </ScenarioCard>
+                </div>
+
+                {/* Combined scenario */}
+                <div className="stress-combined-box">
+                  <p className="stress-combined-title">☠️ Scénario combiné — tout se passe mal en même temps</p>
+                  <div className="stress-combined-grid">
+                    <div className="stress-combined-item">
+                      <span>Mensualité après hausse taux</span>
+                      <strong style={{ color: "#dc2626" }}>{fmtCur(res.mensHausse)}/mois</strong>
+                    </div>
+                    <div className="stress-combined-item">
+                      <span>Revenus réduits ({baisseRevenu} %)</span>
+                      <strong style={{ color: "#7c3aed" }}>{fmtCur(res.nouveauxRevenus)}/mois</strong>
+                    </div>
+                    <div className="stress-combined-item">
+                      <span>Taux d'endettement</span>
+                      <strong style={{ color: res.nouveauxRevenus > 0 ? (res.mensHausse / res.nouveauxRevenus > 0.5 ? "#dc2626" : "#d97706") : "#dc2626" }}>
+                        {res.nouveauxRevenus > 0 ? ((res.mensHausse / res.nouveauxRevenus) * 100).toFixed(1) : "∞"} %
+                      </strong>
+                    </div>
+                    <div className="stress-combined-item">
+                      <span>Mois de réserve restants</span>
+                      <strong style={{ color: res.moisCouvert < 3 ? "#dc2626" : "#059669" }}>
+                        {res.moisCouvert.toFixed(1)} mois
+                      </strong>
+                    </div>
+                  </div>
+                  {res.nouveauxRevenus > 0 && res.mensHausse / res.nouveauxRevenus > 0.5 && (
+                    <p className="stress-combined-warn">⚠️ En combinant hausse des taux et perte de revenus, votre taux d'endettement dépasserait 50 % — situation critique. Une réserve d'urgence solide et une assurance perte d'emploi sont indispensables.</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
-
-          <p className="sim-card-legend" style={{ marginTop: 20 }}>Scénarios de stress — ajustez l'intensité</p>
-
-          <div className="stress-slider-section">
-            <div className="horizon-box" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
-              <div className="horizon-row">
-                <div>
-                  <p className="horizon-label">📈 Hausse des taux</p>
-                  <p className="horizon-explain">Le taux de votre crédit monte de {hausseT.toFixed(1)} point{hausseT >= 2 ? "s" : ""}</p>
-                </div>
-                <strong className="horizon-value" style={{ color: "#d97706" }}>+{hausseT.toFixed(1)} %</strong>
-              </div>
-              <input type="range" min="0.5" max="4" step="0.5" value={hausseT}
-                onChange={(e) => setHausseT(Number(e.target.value))}
-                style={{ "--range-pct": `${((hausseT - 0.5) / 3.5) * 100}%` }}
-                aria-label={`Hausse taux : +${hausseT}%`} />
-              <div className="horizon-ticks"><span>+0,5 %</span><span>+2 %</span><span>+4 %</span></div>
-            </div>
-
-            <div className="horizon-box" style={{ background: "#fef2f2", borderColor: "#fecaca", marginTop: 10 }}>
-              <div className="horizon-row">
-                <div>
-                  <p className="horizon-label">📉 Chute du marché immo</p>
-                  <p className="horizon-explain">La valeur du bien baisse de {baisseMarche} %</p>
-                </div>
-                <strong className="horizon-value" style={{ color: "#dc2626" }}>-{baisseMarche} %</strong>
-              </div>
-              <input type="range" min="5" max="40" step="5" value={baisseMarche}
-                onChange={(e) => setBaisseMarche(Number(e.target.value))}
-                style={{ "--range-pct": `${((baisseMarche - 5) / 35) * 100}%` }}
-                aria-label={`Chute marché : -${baisseMarche}%`} />
-              <div className="horizon-ticks"><span>-5 %</span><span>-20 %</span><span>-40 %</span></div>
-            </div>
-
-            <div className="horizon-box" style={{ background: "#f5f3ff", borderColor: "#ddd6fe", marginTop: 10 }}>
-              <div className="horizon-row">
-                <div>
-                  <p className="horizon-label">💼 Perte de revenus</p>
-                  <p className="horizon-explain">Vos revenus baissent de {baisseRevenu} % (chômage partiel, accident...)</p>
-                </div>
-                <strong className="horizon-value" style={{ color: "#7c3aed" }}>-{baisseRevenu} %</strong>
-              </div>
-              <input type="range" min="10" max="60" step="5" value={baisseRevenu}
-                onChange={(e) => setBaisseRevenu(Number(e.target.value))}
-                style={{ "--range-pct": `${((baisseRevenu - 10) / 50) * 100}%` }}
-                aria-label={`Perte revenus : -${baisseRevenu}%`} />
-              <div className="horizon-ticks"><span>-10 %</span><span>-35 %</span><span>-60 %</span></div>
-            </div>
-          </div>
-        </div>
-
-        {/* Results */}
-        <div className="sim-results-panel">
-          {!res ? null : (
-            <>
-              <ScoreMeter score={res.score} />
-
-              <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
-                {/* Hausse taux */}
-                <ScenarioCard
-                  emoji="📈"
-                  title={`Hausse de taux +${hausseT.toFixed(1)}%`}
-                  subtitle={`Taux de ${v.taux}% → ${(v.taux + hausseT).toFixed(1)}%`}
-                  baseMens={res.mensBase}
-                  newMens={res.mensHausse}
-                  impact={res.impactTaux}
-                  severity={res.sevA}
-                  detail={`Taux d'endettement après hausse : ${res.endetmentApresHausse.toFixed(1)}%. ${res.endetmentApresHausse > 35 ? "Dépasse le seuil HCSF de 35% — refinancement difficile." : "Reste sous le seuil HCSF."}`}
-                >
-                  <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
-                    Hausse de {hausseT.toFixed(1)} point{hausseT >= 2 ? "s" : ""} de taux
-                  </p>
-                </ScenarioCard>
-
-                {/* Baisse marché */}
-                <ScenarioCard
-                  emoji="📉"
-                  title={`Chute du marché -${baisseMarche}%`}
-                  subtitle={`Bien à ${fmtCur(v.prixBien)} → ${fmtCur(res.valeurApres)}`}
-                  baseMens={res.mensBase}
-                  newMens={res.mensBase}
-                  impact={0}
-                  severity={res.sevB}
-                  detail={res.equiteNegative
-                    ? `Équité négative : le bien vaut moins que ce que vous devez (${fmtCur(res.equite)}). Revendre signifierait une perte nette.`
-                    : `Équité résiduelle : ${fmtCur(res.equite)} — vous restez en territoire positif malgré la baisse.`}
-                >
-                  <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
-                    Impact sur la valeur patrimoniale — la mensualité ne change pas
-                  </p>
-                </ScenarioCard>
-
-                {/* Perte revenus */}
-                <ScenarioCard
-                  emoji="💼"
-                  title={`Perte de revenus -${baisseRevenu}%`}
-                  subtitle={`${fmtCur(v.revenus)} → ${fmtCur(res.nouveauxRevenus)}/mois`}
-                  baseMens={res.mensBase}
-                  newMens={res.mensBase}
-                  impact={0}
-                  severity={res.sevC}
-                  detail={`Taux d'endettement sur nouveaux revenus : ${res.endetCrise.toFixed(1)}%. Votre réserve couvre ${res.moisCouvert.toFixed(1)} mois de crédit. ${res.moisCouvert < 3 ? "Constituez au moins 3 mois de réserve avant d'acheter." : res.moisCouvert < 6 ? "Réserve acceptable — visez 6 mois idéalement." : "Excellente réserve d'urgence."}`}
-                >
-                  <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
-                    Impact sur le taux d'endettement et la durée de réserve
-                  </p>
-                </ScenarioCard>
-              </div>
-
-              {/* Combined scenario */}
-              <div className="stress-combined-box">
-                <p className="stress-combined-title">☠️ Scénario combiné — tout se passe mal en même temps</p>
-                <div className="stress-combined-grid">
-                  <div className="stress-combined-item">
-                    <span>Mensualité après hausse taux</span>
-                    <strong style={{ color: "#dc2626" }}>{fmtCur(res.mensHausse)}/mois</strong>
-                  </div>
-                  <div className="stress-combined-item">
-                    <span>Revenus réduits ({baisseRevenu} %)</span>
-                    <strong style={{ color: "#7c3aed" }}>{fmtCur(res.nouveauxRevenus)}/mois</strong>
-                  </div>
-                  <div className="stress-combined-item">
-                    <span>Taux d'endettement</span>
-                    <strong style={{ color: res.nouveauxRevenus > 0 ? (res.mensHausse / res.nouveauxRevenus > 0.5 ? "#dc2626" : "#d97706") : "#dc2626" }}>
-                      {res.nouveauxRevenus > 0 ? ((res.mensHausse / res.nouveauxRevenus) * 100).toFixed(1) : "∞"} %
-                    </strong>
-                  </div>
-                  <div className="stress-combined-item">
-                    <span>Mois de réserve restants</span>
-                    <strong style={{ color: res.moisCouvert < 3 ? "#dc2626" : "#059669" }}>
-                      {res.moisCouvert.toFixed(1)} mois
-                    </strong>
-                  </div>
-                </div>
-                {res.nouveauxRevenus > 0 && res.mensHausse / res.nouveauxRevenus > 0.5 && (
-                  <p className="stress-combined-warn">⚠️ En combinant hausse des taux et perte de revenus, votre taux d'endettement dépasserait 50 % — situation critique. Une réserve d'urgence solide et une assurance perte d'emploi sont indispensables.</p>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

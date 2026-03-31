@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import { formatCurrency } from "../../utils/finance";
 
 /** Prix moyen m² à l'achat et loyer m² moyen par ville et type de bien (données 2024) */
@@ -110,129 +111,144 @@ export default function SimComparateurVilles() {
       description="Comparez le coût mensuel d'un achat versus une location dans les 12 principales villes françaises."
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
-      <div className="sim-layout sim-layout-full">
-        {/* Controls */}
-        <div className="sim-card comparateur-controls">
-          <p className="sim-card-legend">Paramètres de comparaison</p>
-
-          <div style={{ marginBottom: 16 }}>
-            <label className="field-label">Type de bien</label>
-            <div className="loan-type-grid loan-type-grid-3" style={{ marginTop: 8 }}>
-              {["T1", "T2", "T3"].map((t) => (
-                <button key={t} type="button" className={`loan-type-btn${typeBien === t ? " loan-type-active" : ""}`} onClick={() => setTypeBien(t)}>
-                  <span>{t === "T1" ? "🛏️" : t === "T2" ? "🛋️" : "🏠"}</span>
-                  <span>{t === "T1" ? "Studio / T1" : t === "T2" ? "2 pièces" : "3 pièces"}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="step-fields">
-            <div className="field-row">
-              <label className="field-label">Apport personnel</label>
-              <div className="input-wrap"><input type="number" className="input-num" value={apport} onChange={(e) => setApport(Number(e.target.value))} /><span className="input-suffix">€</span></div>
-              <p className="field-hint">Somme disponible pour l'achat — réduit le capital à emprunter</p>
-            </div>
-            <div className="field-row">
-              <label className="field-label">Taux du prêt</label>
-              <div className="input-wrap"><input type="number" className="input-num" value={taux} onChange={(e) => setTaux(Number(e.target.value))} step="0.1" /><span className="input-suffix">%</span></div>
-              <p className="field-hint">Mars 2026 : entre 3,3 % et 4,0 %</p>
-            </div>
-            <div className="field-row">
-              <label className="field-label">Durée du prêt</label>
-              <div className="input-wrap"><input type="number" className="input-num" value={duree} onChange={(e) => setDuree(Number(e.target.value))} /><span className="input-suffix">ans</span></div>
-              <p className="field-hint">15, 20 ou 25 ans — plus court = moins d'intérêts</p>
-            </div>
-          </div>
-
-          <div className="sim-info-box" style={{ marginTop: 16 }}>
-            <p className="sim-info-title">📌 Comment lire ce comparateur</p>
-            <p className="sim-info-body">La mensualité inclut 8 % de frais de notaire. Elle ne tient pas compte de la taxe foncière, des charges de copropriété, ni de la constitution de patrimoine à long terme. La barre bleue est la mensualité de crédit, la barre teal est le loyer équivalent.</p>
-          </div>
-        </div>
-
-        {/* Chart */}
-        <div className="sim-results-panel comparateur-results">
-          {(() => {
-            const buyWins = data.filter(d => d.delta <= 0).length;
-            const rentWins = data.length - buyWins;
-            const cheapestBuy = data.slice().sort((a,b) => a.mensualite - b.mensualite)[0];
-            return (
-              <div className="sim-stats-grid" style={{ marginBottom: 16 }}>
-                <div className="sim-stat-card sim-stat-card-blue">
-                  <span className="sim-stat-card-label">Villes où acheter coûte moins</span>
-                  <span className="sim-stat-card-value">{buyWins} / {data.length}</span>
-                </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Ville la moins chère à l'achat</span>
-                  <span className="sim-stat-card-value">{cheapestBuy?.flag} {cheapestBuy?.nomCourt}</span>
-                </div>
-              </div>
-            );
-          })()}
-          <p className="sim-stat-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, textTransform: "uppercase", letterSpacing: ".06em" }}>
-            Loyer vs mensualité — {typeBien} (prix marché 2026)
-          </p>
-
-          <ResponsiveContainer width="100%" height={380}>
-            <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
-              <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
-              <YAxis type="category" dataKey="nom" tick={{ fontSize: 11, fill: "#0c1a35" }} axisLine={false} tickLine={false} width={120}/>
-              <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
-              <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }}/>
-              <Bar dataKey="mensualite" name="Mensualité crédit" fill="#2563eb" radius={[0, 6, 6, 0]} barSize={9}/>
-              <Bar dataKey="loyer" name="Loyer estimé" fill="#06b6d4" radius={[0, 6, 6, 0]} barSize={9}/>
-            </BarChart>
-          </ResponsiveContainer>
-
-          {/* City cards */}
-          <div className="comparateur-cards">
-            {data.map((d) => {
-              const cheaper = d.loyer < d.mensualite ? "loyer" : "achat";
-              return (
-                <div key={d.nomCourt} className={`comparateur-city-card ${cheaper === "loyer" ? "city-card-rent" : "city-card-buy"}`}>
-                  <div className="city-card-header">
-                    <strong className="city-card-nom">{d.nomCourt}</strong>
-                    <span className={`city-card-badge ${cheaper === "loyer" ? "badge-rent" : "badge-buy"}`}>
-                      {cheaper === "loyer" ? "Location + avantageuse" : "Achat + avantageux"}
-                    </span>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre budget",
+            icon: "💰",
+            content: (
+              <>
+                <div className="step-fields">
+                  <div className="field-row">
+                    <label className="field-label">Apport personnel</label>
+                    <div className="input-wrap"><input type="number" className="input-num" value={apport} onChange={(e) => setApport(Number(e.target.value))} /><span className="input-suffix">€</span></div>
+                    <p className="field-hint">Somme disponible pour l'achat — réduit le capital à emprunter</p>
                   </div>
-                  <div className="city-card-rows">
-                    <div className="city-card-row">
-                      <span>Mensualité crédit</span>
-                      <strong style={{ color: "#2563eb" }}>{fmtCur(d.mensualite)}/mois</strong>
-                    </div>
-                    <div className="city-card-row">
-                      <span>Loyer estimé</span>
-                      <strong style={{ color: "#06b6d4" }}>{fmtCur(d.loyer)}/mois</strong>
-                    </div>
-                    <div className="city-card-row city-card-delta">
-                      <span>Différence</span>
-                      <strong style={{ color: d.delta > 0 ? "#dc2626" : "#059669" }}>
-                        {d.delta > 0 ? "+" : ""}{fmtCur(d.delta)}/mois
-                      </strong>
-                    </div>
-                    <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
-                      <span>Prix m² achat</span>
-                      <span style={{ color: "var(--muted)" }}>{fmtCur(d.m2Achat)}/m²</span>
-                    </div>
-                    <div className="city-card-row">
-                      <span>Surface typique {typeBien}</span>
-                      <span style={{ color: "var(--muted)" }}>{d.surface} m²</span>
-                    </div>
-                    <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
-                      <span>Point de rentabilité</span>
-                      <span style={{ color: d.breakEvenYears !== null && d.breakEvenYears <= 15 ? "#059669" : d.breakEvenYears !== null && d.breakEvenYears <= 22 ? "#d97706" : "#dc2626", fontWeight: 700 }}>
-                        {d.breakEvenYears !== null ? `${d.breakEvenYears} ans` : "> 30 ans"}
-                      </span>
-                    </div>
+                  <div className="field-row">
+                    <label className="field-label">Taux du prêt</label>
+                    <div className="input-wrap"><input type="number" className="input-num" value={taux} onChange={(e) => setTaux(Number(e.target.value))} step="0.1" /><span className="input-suffix">%</span></div>
+                    <p className="field-hint">Mars 2026 : entre 3,3 % et 4,0 %</p>
+                  </div>
+                </div>
+              </>
+            ),
+          },
+          {
+            title: "Paramètres",
+            icon: "⚙️",
+            content: (
+              <>
+                <div className="step-fields">
+                  <div className="field-row">
+                    <label className="field-label">Durée du prêt</label>
+                    <div className="input-wrap"><input type="number" className="input-num" value={duree} onChange={(e) => setDuree(Number(e.target.value))} /><span className="input-suffix">ans</span></div>
+                    <p className="field-hint">15, 20 ou 25 ans — plus court = moins d'intérêts</p>
+                  </div>
+                </div>
+
+                <div style={{ marginTop: 16 }}>
+                  <label className="field-label">Type de bien</label>
+                  <div className="loan-type-grid loan-type-grid-3" style={{ marginTop: 8 }}>
+                    {["T1", "T2", "T3"].map((t) => (
+                      <button key={t} type="button" className={`loan-type-btn${typeBien === t ? " loan-type-active" : ""}`} onClick={() => setTypeBien(t)}>
+                        <span>{t === "T1" ? "🛏️" : t === "T2" ? "🛋️" : "🏠"}</span>
+                        <span>{t === "T1" ? "Studio / T1" : t === "T2" ? "2 pièces" : "3 pièces"}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="sim-info-box" style={{ marginTop: 16 }}>
+                  <p className="sim-info-title">📌 Comment lire ce comparateur</p>
+                  <p className="sim-info-body">La mensualité inclut 8 % de frais de notaire. Elle ne tient pas compte de la taxe foncière, des charges de copropriété, ni de la constitution de patrimoine à long terme. La barre bleue est la mensualité de crédit, la barre teal est le loyer équivalent.</p>
+                </div>
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel comparateur-results">
+            {(() => {
+              const buyWins = data.filter(d => d.delta <= 0).length;
+              const rentWins = data.length - buyWins;
+              const cheapestBuy = data.slice().sort((a,b) => a.mensualite - b.mensualite)[0];
+              return (
+                <div className="sim-stats-grid" style={{ marginBottom: 16 }}>
+                  <div className="sim-stat-card sim-stat-card-blue">
+                    <span className="sim-stat-card-label">Villes où acheter coûte moins</span>
+                    <span className="sim-stat-card-value">{buyWins} / {data.length}</span>
+                  </div>
+                  <div className="sim-stat-card">
+                    <span className="sim-stat-card-label">Ville la moins chère à l'achat</span>
+                    <span className="sim-stat-card-value">{cheapestBuy?.flag} {cheapestBuy?.nomCourt}</span>
                   </div>
                 </div>
               );
-            })}
+            })()}
+            <p className="sim-stat-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, textTransform: "uppercase", letterSpacing: ".06em" }}>
+              Loyer vs mensualité — {typeBien} (prix marché 2026)
+            </p>
+
+            <ResponsiveContainer width="100%" height={380}>
+              <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
+                <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
+                <YAxis type="category" dataKey="nom" tick={{ fontSize: 11, fill: "#0c1a35" }} axisLine={false} tickLine={false} width={120}/>
+                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
+                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }}/>
+                <Bar dataKey="mensualite" name="Mensualité crédit" fill="#2563eb" radius={[0, 6, 6, 0]} barSize={9}/>
+                <Bar dataKey="loyer" name="Loyer estimé" fill="#06b6d4" radius={[0, 6, 6, 0]} barSize={9}/>
+              </BarChart>
+            </ResponsiveContainer>
+
+            {/* City cards */}
+            <div className="comparateur-cards">
+              {data.map((d) => {
+                const cheaper = d.loyer < d.mensualite ? "loyer" : "achat";
+                return (
+                  <div key={d.nomCourt} className={`comparateur-city-card ${cheaper === "loyer" ? "city-card-rent" : "city-card-buy"}`}>
+                    <div className="city-card-header">
+                      <strong className="city-card-nom">{d.nomCourt}</strong>
+                      <span className={`city-card-badge ${cheaper === "loyer" ? "badge-rent" : "badge-buy"}`}>
+                        {cheaper === "loyer" ? "Location + avantageuse" : "Achat + avantageux"}
+                      </span>
+                    </div>
+                    <div className="city-card-rows">
+                      <div className="city-card-row">
+                        <span>Mensualité crédit</span>
+                        <strong style={{ color: "#2563eb" }}>{fmtCur(d.mensualite)}/mois</strong>
+                      </div>
+                      <div className="city-card-row">
+                        <span>Loyer estimé</span>
+                        <strong style={{ color: "#06b6d4" }}>{fmtCur(d.loyer)}/mois</strong>
+                      </div>
+                      <div className="city-card-row city-card-delta">
+                        <span>Différence</span>
+                        <strong style={{ color: d.delta > 0 ? "#dc2626" : "#059669" }}>
+                          {d.delta > 0 ? "+" : ""}{fmtCur(d.delta)}/mois
+                        </strong>
+                      </div>
+                      <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
+                        <span>Prix m² achat</span>
+                        <span style={{ color: "var(--muted)" }}>{fmtCur(d.m2Achat)}/m²</span>
+                      </div>
+                      <div className="city-card-row">
+                        <span>Surface typique {typeBien}</span>
+                        <span style={{ color: "var(--muted)" }}>{d.surface} m²</span>
+                      </div>
+                      <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
+                        <span>Point de rentabilité</span>
+                        <span style={{ color: d.breakEvenYears !== null && d.breakEvenYears <= 15 ? "#059669" : d.breakEvenYears !== null && d.breakEvenYears <= 22 ? "#d97706" : "#dc2626", fontWeight: 700 }}>
+                          {d.breakEvenYears !== null ? `${d.breakEvenYears} ans` : "> 30 ans"}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

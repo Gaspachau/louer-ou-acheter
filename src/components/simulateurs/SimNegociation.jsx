@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer, CartesianGrid } from "recharts";
 
@@ -142,67 +143,81 @@ export default function SimNegociation() {
       conseils={CONSEILS}
       suggestions={["/simulateurs/frais-notaire", "/simulateurs/pret-immobilier", "/simulateurs/budget-maximum"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre projet</p>
-          <div className="step-fields">
-            <Field label="Prix affiché" value={prixAffiche} onChange={setPrixAffiche} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-            <Field label="Loyer mensuel équivalent" value={loyer} onChange={setLoyer} suffix="€" hint="Loyer d'un bien similaire dans le même secteur" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
-            <Field label="Apport personnel" value={apport} onChange={setApport} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-            <Field label="Taux du crédit" value={taux} onChange={setTaux} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-            <Field label="Horizon de détention" value={horizon} onChange={setHorizon} suffix="ans" step={1} min={3} max={20} />
-            <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 1,5 %, PEA = 5–7 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
-          </div>
-        </div>
-
-        <div className="sim-results-panel">
-          <div className="nego-verdict" style={{ background: c.bg, borderColor: c.border }}>
-            <div className="nego-verdict-header">
-              <span className="nego-verdict-tag" style={{ color: c.accent, borderColor: c.accent }}>{c.label}</span>
+      <SimFunnel
+        steps={[
+          {
+            title: "Le bien à négocier",
+            icon: "🏠",
+            content: (
+              <>
+                <Field label="Prix affiché" value={prixAffiche} onChange={setPrixAffiche} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+                <Field label="Loyer mensuel équivalent" value={loyer} onChange={setLoyer} suffix="€" hint="Loyer d'un bien similaire dans le même secteur" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
+                <Field label="Apport personnel" value={apport} onChange={setApport} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
+              </>
+            ),
+          },
+          {
+            title: "Votre stratégie",
+            icon: "🤝",
+            content: (
+              <>
+                <Field label="Taux du crédit" value={taux} onChange={setTaux} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+                <Field label="Horizon de détention" value={horizon} onChange={setHorizon} suffix="ans" step={1} min={3} max={20} />
+                <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 1,5 %, PEA = 5–7 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            <div className="nego-verdict" style={{ background: c.bg, borderColor: c.border }}>
+              <div className="nego-verdict-header">
+                <span className="nego-verdict-tag" style={{ color: c.accent, borderColor: c.accent }}>{c.label}</span>
+              </div>
+              <p className="nego-prix-max-label">Prix maximum recommandé</p>
+              <p className="nego-prix-max" style={{ color: c.accent }}>{fmtCur(res.prixEquilibre)}</p>
+              <p className="nego-prix-delta">
+                Soit <strong style={{ color: c.accent }}>−{res.pctNego.toFixed(1)} %</strong> par rapport au prix affiché ({fmtCur(res.margeNego)} à négocier)
+              </p>
             </div>
-            <p className="nego-prix-max-label">Prix maximum recommandé</p>
-            <p className="nego-prix-max" style={{ color: c.accent }}>{fmtCur(res.prixEquilibre)}</p>
-            <p className="nego-prix-delta">
-              Soit <strong style={{ color: c.accent }}>−{res.pctNego.toFixed(1)} %</strong> par rapport au prix affiché ({fmtCur(res.margeNego)} à négocier)
+
+            <div className="nego-compare">
+              <div className="nego-compare-item">
+                <span className="nego-compare-label">Mensualité au prix affiché</span>
+                <strong style={{ color: "var(--muted)" }}>{fmtCur(res.mensualiteAffiche)}/mois</strong>
+              </div>
+              <div className="nego-compare-item">
+                <span className="nego-compare-label">Mensualité au prix négocié</span>
+                <strong style={{ color: "#059669" }}>{fmtCur(res.mensualiteNego)}/mois</strong>
+              </div>
+              <div className="nego-compare-item" style={{ borderTop: "1px solid var(--line)", paddingTop: 10, marginTop: 4 }}>
+                <span className="nego-compare-label">Économie mensuelle</span>
+                <strong style={{ color: c.accent }}>−{fmtCur(res.mensualiteAffiche - res.mensualiteNego)}/mois</strong>
+              </div>
+            </div>
+
+            <div style={{ marginTop: 16 }}>
+              <p className="sim-card-legend">Patrimoine selon la remise négociée ({horizon} ans)</p>
+              <ResponsiveContainer width="100%" height={200}>
+                <LineChart data={res.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
+                  <XAxis dataKey="pct" tick={{ fontSize: 11 }} />
+                  <YAxis unit="k€" tick={{ fontSize: 11 }} />
+                  <Tooltip content={<CustomTooltip />} />
+                  <Line type="monotone" dataKey="patAchat" stroke="#2563eb" strokeWidth={2} dot={false} name="Achat" />
+                  <Line type="monotone" dataKey="patLoc" stroke="#059669" strokeWidth={2} dot={false} strokeDasharray="5 3" name="Location" />
+                  <ReferenceLine x={`-${Math.round(res.pctNego)}%`} stroke={c.accent} strokeDasharray="4 2" label={{ value: "Équilibre", fontSize: 10, fill: c.accent }} />
+                </LineChart>
+              </ResponsiveContainer>
+            </div>
+
+            <p className="sim-detail-note" style={{ marginTop: 8 }}>
+              Simulation sur {horizon} ans avec appréciation +2 %/an, hausse loyers +2 %/an, frais de notaire 8 %. Les conditions de marché peuvent varier.
             </p>
           </div>
-
-          <div className="nego-compare">
-            <div className="nego-compare-item">
-              <span className="nego-compare-label">Mensualité au prix affiché</span>
-              <strong style={{ color: "var(--muted)" }}>{fmtCur(res.mensualiteAffiche)}/mois</strong>
-            </div>
-            <div className="nego-compare-item">
-              <span className="nego-compare-label">Mensualité au prix négocié</span>
-              <strong style={{ color: "#059669" }}>{fmtCur(res.mensualiteNego)}/mois</strong>
-            </div>
-            <div className="nego-compare-item" style={{ borderTop: "1px solid var(--line)", paddingTop: 10, marginTop: 4 }}>
-              <span className="nego-compare-label">Économie mensuelle</span>
-              <strong style={{ color: c.accent }}>−{fmtCur(res.mensualiteAffiche - res.mensualiteNego)}/mois</strong>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 16 }}>
-            <p className="sim-card-legend">Patrimoine selon la remise négociée ({horizon} ans)</p>
-            <ResponsiveContainer width="100%" height={200}>
-              <LineChart data={res.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
-                <XAxis dataKey="pct" tick={{ fontSize: 11 }} />
-                <YAxis unit="k€" tick={{ fontSize: 11 }} />
-                <Tooltip content={<CustomTooltip />} />
-                <Line type="monotone" dataKey="patAchat" stroke="#2563eb" strokeWidth={2} dot={false} name="Achat" />
-                <Line type="monotone" dataKey="patLoc" stroke="#059669" strokeWidth={2} dot={false} strokeDasharray="5 3" name="Location" />
-                <ReferenceLine x={`-${Math.round(res.pctNego)}%`} stroke={c.accent} strokeDasharray="4 2" label={{ value: "Équilibre", fontSize: 10, fill: c.accent }} />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
-
-          <p className="sim-detail-note" style={{ marginTop: 8 }}>
-            Simulation sur {horizon} ans avec appréciation +2 %/an, hausse loyers +2 %/an, frais de notaire 8 %. Les conditions de marché peuvent varier.
-          </p>
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }

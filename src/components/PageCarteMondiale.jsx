@@ -275,7 +275,7 @@ export default function PageCarteMondiale() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="cm-page">
+      <main id="main-content" className="cm-page cm-page-v2">
 
         {/* ── HERO ─────────────────────────────────────────── */}
         <div className="cm-hero-v2">
@@ -346,7 +346,7 @@ export default function PageCarteMondiale() {
         </div>
 
         {/* ── MAP ──────────────────────────────────────────── */}
-        <div className="cm-map-section">
+        <div className="cm-map-section cm-map-section-big">
           {/* Legend */}
           <div className="cm-legend">
             <span className="cm-legend-label">Taux de propriétaires :</span>
