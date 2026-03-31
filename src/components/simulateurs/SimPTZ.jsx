@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import SimLayout from "./SimLayout";
+import SimFunnel from "./SimFunnel";
 import Field from "../Field";
 
 const fmtCur = (v) =>
@@ -94,130 +95,144 @@ export default function SimPTZ() {
       conseils={CONSEILS_PTZ}
       suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
-      <div className="sim-layout">
-        <div className="sim-card">
-          <p className="sim-card-legend">Votre situation</p>
-          <div className="step-fields">
-            <div className="field-wrap">
-              <label className="field-label">Zone géographique</label>
-              <select className="field-select" value={zone} onChange={(e) => setZone(e.target.value)}>
-                {Object.entries(ZONES).map(([k, z]) => (
-                  <option key={k} value={k}>{z.label}</option>
-                ))}
-              </select>
-            </div>
-            <div className="field-wrap">
-              <label className="field-label">Type de bien</label>
-              <div className="ptz-type-btns">
-                <button type="button" className={`ptz-type-btn${typeBien === "neuf" ? " active" : ""}`} onClick={() => setTypeBien("neuf")}>
-                  🏗️ Neuf
-                </button>
-                <button type="button" className={`ptz-type-btn${typeBien === "ancien" ? " active" : ""}`} onClick={() => setTypeBien("ancien")}>
-                  🏠 Ancien rénové (zone B2/C)
-                </button>
+      <SimFunnel
+        steps={[
+          {
+            title: "Votre situation",
+            icon: "👤",
+            content: (
+              <>
+                <div className="field-wrap">
+                  <label className="field-label">Zone géographique</label>
+                  <select className="field-select" value={zone} onChange={(e) => setZone(e.target.value)}>
+                    {Object.entries(ZONES).map(([k, z]) => (
+                      <option key={k} value={k}>{z.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <Field label="Revenus annuels nets du foyer" value={revenus} onChange={setRevenus} suffix="€" hint="Revenus fiscaux N-2 de tous les co-emprunteurs" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
+                <Field label="Personnes dans le foyer" value={nbPersonnes} onChange={setNbPersonnes} suffix="pers." step={1} min={1} max={6} hint="Emprunteur(s) + personnes à charge" tooltip="Nombre de personnes composant le foyer (emprunteurs + personnes à charge). Détermine le plafond de revenus PTZ applicable." />
+              </>
+            ),
+          },
+          {
+            title: "Le bien",
+            icon: "🏗️",
+            content: (
+              <>
+                <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
+                <div className="field-wrap">
+                  <label className="field-label">Type de bien</label>
+                  <div className="ptz-type-btns">
+                    <button type="button" className={`ptz-type-btn${typeBien === "neuf" ? " active" : ""}`} onClick={() => setTypeBien("neuf")}>
+                      🏗️ Neuf
+                    </button>
+                    <button type="button" className={`ptz-type-btn${typeBien === "ancien" ? " active" : ""}`} onClick={() => setTypeBien("ancien")}>
+                      🏠 Ancien rénové (zone B2/C)
+                    </button>
+                  </div>
+                </div>
+                <Field label="Taux du crédit classique" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
+                <Field label="Durée du crédit classique" value={dureeCredit} onChange={setDureeCredit} suffix="ans" step={1} min={10} max={25} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+              </>
+            ),
+          },
+        ]}
+        result={
+          <div className="sim-results-panel">
+            {res.eligible === false ? (
+              <div className="ptz-ineligible">
+                <div className="ptz-ineligible-icon">❌</div>
+                <h2 className="ptz-ineligible-title">Non éligible au PTZ</h2>
+                <p className="ptz-ineligible-reason">
+                  {revenus > res.plafond
+                    ? `Vos revenus (${fmtCur(revenus)}/an) dépassent le plafond de la zone ${zone} pour ${nbPersonnes} personne(s) : ${fmtCur(res.plafond)}/an.`
+                    : "Le PTZ ancien n'est disponible qu'en zone B2/C pour des logements anciens rénovés. En zone A ou B1, le PTZ est réservé au neuf."}
+                </p>
+                <div className="ptz-tip-box">
+                  <strong>💡 Alternative :</strong> Renseignez-vous sur le prêt Action Logement (1 % patronal) ou le prêt d'accession sociale (PAS) selon votre situation.
+                </div>
               </div>
-            </div>
-            <Field label="Personnes dans le foyer" value={nbPersonnes} onChange={setNbPersonnes} suffix="pers." step={1} min={1} max={6} hint="Emprunteur(s) + personnes à charge" tooltip="Nombre de personnes composant le foyer (emprunteurs + personnes à charge). Détermine le plafond de revenus PTZ applicable." />
-            <Field label="Revenus annuels nets du foyer" value={revenus} onChange={setRevenus} suffix="€" hint="Revenus fiscaux N-2 de tous les co-emprunteurs" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
-            <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-            <Field label="Taux du crédit classique" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-            <Field label="Durée du crédit classique" value={dureeCredit} onChange={setDureeCredit} suffix="ans" step={1} min={10} max={25} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
+            ) : (
+              <>
+                <div className="ptz-eligible-header">
+                  <span className="ptz-check">✓</span>
+                  <div>
+                    <p className="ptz-eligible-title">Éligible au PTZ 2026</p>
+                    <p className="ptz-eligible-sub">Vos revenus ({fmtCur(revenus)}/an) sont sous le plafond de {fmtCur(res.plafond)}/an</p>
+                  </div>
+                </div>
+
+                <div className="ptz-key-metrics">
+                  <div className="ptz-metric">
+                    <span className="ptz-metric-val" style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ)}</span>
+                    <span className="ptz-metric-label">Montant PTZ estimé</span>
+                    <span className="ptz-metric-sub">{res.ratioPTZ.toFixed(0)} % du prix d'achat</span>
+                  </div>
+                  <div className="ptz-metric">
+                    <span className="ptz-metric-val" style={{ color: "#059669" }}>{fmtCur(res.economiesMensuelles)}/mois</span>
+                    <span className="ptz-metric-label">Économie sur mensualité</span>
+                    <span className="ptz-metric-sub">vs crédit sans PTZ</span>
+                  </div>
+                  <div className="ptz-metric">
+                    <span className="ptz-metric-val" style={{ color: "#7c3aed" }}>{fmtCur(res.economiesInterets)}</span>
+                    <span className="ptz-metric-label">Économie totale</span>
+                    <span className="ptz-metric-sub">sur {dureeCredit} ans</span>
+                  </div>
+                </div>
+
+                <div className="ptz-compare-row">
+                  <div className="ptz-compare-item">
+                    <span className="ptz-compare-label">Sans PTZ</span>
+                    <span className="ptz-compare-mens" style={{ color: "var(--muted)" }}>{fmtCur(res.mensSansPTZ)}/mois</span>
+                  </div>
+                  <div className="ptz-compare-arrow">→</div>
+                  <div className="ptz-compare-item">
+                    <span className="ptz-compare-label">Avec PTZ</span>
+                    <span className="ptz-compare-mens" style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ)}/mois</span>
+                  </div>
+                </div>
+
+                <div className="ptz-conditions">
+                  <p className="ptz-conditions-title">Conditions du PTZ</p>
+                  <div className="ptz-cond-row"><span>Durée</span><strong>{res.dureePTZ} ans</strong></div>
+                  <div className="ptz-cond-row"><span>Différé de remboursement</span><strong>{res.differePTZ} ans</strong></div>
+                  <div className="ptz-cond-row"><span>Taux</span><strong>0 % (sans intérêts)</strong></div>
+                  <div className="ptz-cond-row"><span>Résidence</span><strong>Principale uniquement</strong></div>
+                </div>
+
+                <div className="ptz-schedule-box">
+                  <p className="ptz-conditions-title">Remboursement estimé du PTZ</p>
+                  <div className="ptz-cond-row">
+                    <span>Capital PTZ</span>
+                    <strong>{fmtCur(res.montantPTZ)}</strong>
+                  </div>
+                  <div className="ptz-cond-row">
+                    <span>Différé (pas de remboursement)</span>
+                    <strong>{res.differePTZ} ans</strong>
+                  </div>
+                  <div className="ptz-cond-row">
+                    <span>Durée de remboursement effective</span>
+                    <strong>{res.dureePTZ - res.differePTZ} ans</strong>
+                  </div>
+                  <div className="ptz-cond-row">
+                    <span>Mensualité PTZ après différé</span>
+                    <strong style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
+                  </div>
+                  <div className="ptz-cond-row" style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 4 }}>
+                    <span>Mensualité totale (crédit + PTZ)</span>
+                    <strong style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ + res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
+                  </div>
+                </div>
+
+                <p className="sim-detail-note">
+                  Simulation indicative — les montants définitifs dépendent de l'établissement prêteur et de votre avis d'imposition. Consultez un courtier pour une offre ferme.
+                </p>
+              </>
+            )}
           </div>
-        </div>
-
-        <div className="sim-results-panel">
-          {res.eligible === false ? (
-            <div className="ptz-ineligible">
-              <div className="ptz-ineligible-icon">❌</div>
-              <h2 className="ptz-ineligible-title">Non éligible au PTZ</h2>
-              <p className="ptz-ineligible-reason">
-                {revenus > res.plafond
-                  ? `Vos revenus (${fmtCur(revenus)}/an) dépassent le plafond de la zone ${zone} pour ${nbPersonnes} personne(s) : ${fmtCur(res.plafond)}/an.`
-                  : "Le PTZ ancien n'est disponible qu'en zone B2/C pour des logements anciens rénovés. En zone A ou B1, le PTZ est réservé au neuf."}
-              </p>
-              <div className="ptz-tip-box">
-                <strong>💡 Alternative :</strong> Renseignez-vous sur le prêt Action Logement (1 % patronal) ou le prêt d'accession sociale (PAS) selon votre situation.
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="ptz-eligible-header">
-                <span className="ptz-check">✓</span>
-                <div>
-                  <p className="ptz-eligible-title">Éligible au PTZ 2026</p>
-                  <p className="ptz-eligible-sub">Vos revenus ({fmtCur(revenus)}/an) sont sous le plafond de {fmtCur(res.plafond)}/an</p>
-                </div>
-              </div>
-
-              <div className="ptz-key-metrics">
-                <div className="ptz-metric">
-                  <span className="ptz-metric-val" style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ)}</span>
-                  <span className="ptz-metric-label">Montant PTZ estimé</span>
-                  <span className="ptz-metric-sub">{res.ratioPTZ.toFixed(0)} % du prix d'achat</span>
-                </div>
-                <div className="ptz-metric">
-                  <span className="ptz-metric-val" style={{ color: "#059669" }}>{fmtCur(res.economiesMensuelles)}/mois</span>
-                  <span className="ptz-metric-label">Économie sur mensualité</span>
-                  <span className="ptz-metric-sub">vs crédit sans PTZ</span>
-                </div>
-                <div className="ptz-metric">
-                  <span className="ptz-metric-val" style={{ color: "#7c3aed" }}>{fmtCur(res.economiesInterets)}</span>
-                  <span className="ptz-metric-label">Économie totale</span>
-                  <span className="ptz-metric-sub">sur {dureeCredit} ans</span>
-                </div>
-              </div>
-
-              <div className="ptz-compare-row">
-                <div className="ptz-compare-item">
-                  <span className="ptz-compare-label">Sans PTZ</span>
-                  <span className="ptz-compare-mens" style={{ color: "var(--muted)" }}>{fmtCur(res.mensSansPTZ)}/mois</span>
-                </div>
-                <div className="ptz-compare-arrow">→</div>
-                <div className="ptz-compare-item">
-                  <span className="ptz-compare-label">Avec PTZ</span>
-                  <span className="ptz-compare-mens" style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ)}/mois</span>
-                </div>
-              </div>
-
-              <div className="ptz-conditions">
-                <p className="ptz-conditions-title">Conditions du PTZ</p>
-                <div className="ptz-cond-row"><span>Durée</span><strong>{res.dureePTZ} ans</strong></div>
-                <div className="ptz-cond-row"><span>Différé de remboursement</span><strong>{res.differePTZ} ans</strong></div>
-                <div className="ptz-cond-row"><span>Taux</span><strong>0 % (sans intérêts)</strong></div>
-                <div className="ptz-cond-row"><span>Résidence</span><strong>Principale uniquement</strong></div>
-              </div>
-
-              <div className="ptz-schedule-box">
-                <p className="ptz-conditions-title">Remboursement estimé du PTZ</p>
-                <div className="ptz-cond-row">
-                  <span>Capital PTZ</span>
-                  <strong>{fmtCur(res.montantPTZ)}</strong>
-                </div>
-                <div className="ptz-cond-row">
-                  <span>Différé (pas de remboursement)</span>
-                  <strong>{res.differePTZ} ans</strong>
-                </div>
-                <div className="ptz-cond-row">
-                  <span>Durée de remboursement effective</span>
-                  <strong>{res.dureePTZ - res.differePTZ} ans</strong>
-                </div>
-                <div className="ptz-cond-row">
-                  <span>Mensualité PTZ après différé</span>
-                  <strong style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
-                </div>
-                <div className="ptz-cond-row" style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 4 }}>
-                  <span>Mensualité totale (crédit + PTZ)</span>
-                  <strong style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ + res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
-                </div>
-              </div>
-
-              <p className="sim-detail-note">
-                Simulation indicative — les montants définitifs dépendent de l'établissement prêteur et de votre avis d'imposition. Consultez un courtier pour une offre ferme.
-              </p>
-            </>
-          )}
-        </div>
-      </div>
+        }
+      />
     </SimLayout>
   );
 }
