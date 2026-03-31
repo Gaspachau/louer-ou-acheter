@@ -381,6 +381,21 @@ export default function SimulateurHub() {
           </div>
         </div>
 
+        {/* ── Hero stats row ── */}
+        <div className="shub-hero-stats">
+          {[
+            { num: SIMS.length, lbl: "simulateurs gratuits" },
+            { num: "0", lbl: "inscription requise" },
+            { num: "35 %", lbl: "taux HCSF 2026" },
+            { num: "2026", lbl: "données actualisées" },
+          ].map(({ num, lbl }) => (
+            <div key={lbl} className="shub-hero-stat">
+              <span className="shub-hero-stat-num">{num}</span>
+              <span className="shub-hero-stat-lbl">{lbl}</span>
+            </div>
+          ))}
+        </div>
+
         {/* ── Featured: main simulator ── */}
         <Link to={featuredSim.href} className="shub-featured">
           <div className="shub-featured-left">
@@ -406,22 +421,32 @@ export default function SimulateurHub() {
           <span className="shub-guide-emoji">🎯</span>
           <div className="shub-guide-text">
             <strong>Pas sûr par où commencer ?</strong>
-            <span>Répondez à 3 questions — on sélectionne les simulateurs les plus adaptés à votre situation.</span>
+            <span>Répondez à 5 questions — on identifie votre profil et on sélectionne vos simulateurs prioritaires.</span>
           </div>
           <span className="shub-guide-cta">Mon parcours →</span>
         </Link>
 
-        {/* ── Guide CTA ─────────────────────────────────────────── */}
-        <div className="shub-guide-cta">
-          <div className="shub-guide-cta-inner">
-            <div>
-              <p className="shub-guide-cta-kicker">Pas sûr par où commencer ?</p>
-              <h2 className="shub-guide-cta-title">Répondez à 5 questions → votre parcours personnalisé</h2>
-              <p className="shub-guide-cta-desc">En 2 minutes, on identifie votre profil (primo, investisseur, en réflexion) et on vous recommande les 3–5 simulateurs les plus utiles pour votre situation.</p>
-            </div>
-            <Link to="/guide-personnalise" className="shub-guide-cta-btn">
-              Démarrer mon guide →
-            </Link>
+        {/* ── Incontournables ── */}
+        <div className="shub-incontournables">
+          <p className="shub-section-kicker">Recommandés</p>
+          <h2 className="shub-section-title">Les 4 simulateurs incontournables</h2>
+          <div className="shub-incontos-grid">
+            {[
+              { href: "/simulateurs/endettement",       icon: "📊", color: "#0d9488", label: "Capacité d'emprunt",   desc: "Taux d'endettement HCSF et budget max selon vos revenus.", time: "1 min" },
+              { href: "/simulateurs/pret-immobilier",   icon: "🏦", color: "#7c3aed", label: "Simulateur de prêt",   desc: "Mensualité, coût total et tableau d'amortissement complet.", time: "2 min" },
+              { href: "/simulateurs/rentabilite-locative", icon: "🏘️", color: "#059669", label: "Rentabilité locative", desc: "Rendement brut, net et cashflow mensuel de votre investissement.", time: "3 min" },
+              { href: "/simulateurs/niveau-de-vie",     icon: "📊", color: "#d97706", label: "Niveau de vie",         desc: "Revenu disponible après charges et comparaison à la médiane nationale.", time: "2 min" },
+            ].map(({ href, icon, color, label, desc, time }) => (
+              <Link key={href} to={href} className="shub-inconto-card" style={{ "--inconto-color": color }}>
+                <div className="shub-inconto-top">
+                  <div className="shub-inconto-icon" style={{ background: color + "18", color }}>{icon}</div>
+                  <span className="shub-inconto-time">⏱ {time}</span>
+                </div>
+                <h3 className="shub-inconto-title">{label}</h3>
+                <p className="shub-inconto-desc">{desc}</p>
+                <span className="shub-inconto-cta">Ouvrir →</span>
+              </Link>
+            ))}
           </div>
         </div>
 
@@ -498,6 +523,20 @@ export default function SimulateurHub() {
             </button>
           </div>
         )}
+
+        {/* ── Bottom CTA ── */}
+        <div className="shub-bottom-cta">
+          <div className="shub-bottom-cta-inner">
+            <div className="shub-bottom-cta-text">
+              <p className="shub-bottom-cta-title">Besoin d'un point de départ ?</p>
+              <p className="shub-bottom-cta-sub">Notre guide personnalisé identifie votre profil et sélectionne les 3 à 5 simulateurs les plus pertinents pour vous.</p>
+            </div>
+            <div className="shub-bottom-cta-actions">
+              <Link to="/guide-personnalise" className="btn-primary">Mon guide personnalisé →</Link>
+              <Link to="/guide-achat" className="shub-bottom-cta-sec">Guide d'achat étape par étape</Link>
+            </div>
+          </div>
+        </div>
 
       </main>
       <Footer />

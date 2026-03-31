@@ -13,6 +13,14 @@ const GRADIENTS = {
   "tag-teal":   "linear-gradient(135deg,#0d9488,#14b8a6)",
 };
 
+const TAG_ICON = {
+  "tag-blue":   "📊",
+  "tag-green":  "📈",
+  "tag-purple": "💰",
+  "tag-amber":  "🏠",
+  "tag-teal":   "🗺️",
+};
+
 function ArticleCover({ tagClass }) {
   if (tagClass === "tag-blue") return (
     <svg viewBox="0 0 200 80" preserveAspectRatio="none" style={{display:"block",width:"100%",height:"100%"}} aria-hidden="true">
@@ -61,7 +69,6 @@ function ArticleCover({ tagClass }) {
       <line x1="8" y1="8"  x2="8"   y2="78" stroke="rgba(255,255,255,.14)" strokeWidth="1"/>
     </svg>
   );
-  // tag-teal default
   return (
     <svg viewBox="0 0 200 80" preserveAspectRatio="none" style={{display:"block",width:"100%",height:"100%"}} aria-hidden="true">
       <path d="M8 68 L48 44 L88 52 L128 20 L168 24 L192 10" stroke="rgba(255,255,255,.62)" strokeWidth="2.5" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
@@ -74,6 +81,10 @@ function ArticleCover({ tagClass }) {
 
 const ALL_TAGS = [...new Set(ARTICLES.map((a) => a.tag))];
 const TOTAL_MIN = ARTICLES.reduce((acc, a) => acc + parseInt(a.readTime), 0);
+const TAG_GROUPS = ALL_TAGS.map((tag) => {
+  const arts = ARTICLES.filter((a) => a.tag === tag);
+  return { tag, count: arts.length, tagClass: arts[0]?.tagClass ?? "tag-blue" };
+});
 
 export default function BlogList() {
   useSEO({ title: "Blog Immobilier 2026 — Conseils, Guides & Analyses", description: "Nos articles pour tout comprendre avant d'acheter : taux, PTZ, villes rentables, apport, négociation et stratégies locatives.", path: "/blog" });
@@ -85,9 +96,7 @@ export default function BlogList() {
     let list = activeTag ? rest.filter((a) => a.tag === activeTag) : rest;
     if (search.trim()) {
       const q = search.toLowerCase();
-      list = list.filter(
-        (a) => a.title.toLowerCase().includes(q) || a.intro.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q)
-      );
+      list = list.filter((a) => a.title.toLowerCase().includes(q) || a.intro.toLowerCase().includes(q) || a.tag.toLowerCase().includes(q));
     }
     return list;
   }, [activeTag, search]);
@@ -96,57 +105,101 @@ export default function BlogList() {
     <div className="page">
       <TopBar />
       <main id="main-content" className="blog-page">
-        {/* Hero */}
-        <div className="blog-hero">
-          <div className="blog-hero-text">
-            <span className="blog-kicker">Conseils &amp; analyses</span>
-            <h1 className="blog-title">Le blog immobilier</h1>
-            <p className="blog-subtitle">
-              Décryptages du marché, calculs concrets et conseils pratiques pour
-              prendre la meilleure décision entre louer et acheter.
+
+        {/* ── Hero ──────────────────────────────────────────── */}
+        <div className="blog-hero-v2">
+          <div className="blog-hero-v2-inner">
+            <span className="blog-hero-v2-badge">📰 Blog immobilier</span>
+            <h1 className="blog-hero-v2-title">Comprendre avant de décider</h1>
+            <p className="blog-hero-v2-sub">
+              Analyses de marché, décryptages réglementaires et calculs concrets —
+              pour prendre les meilleures décisions immobilières.
             </p>
-          </div>
-          <div className="blog-stats">
-            <div className="blog-stat">
-              <span className="blog-stat-num">{ARTICLES.length}</span>
-              <span className="blog-stat-label">articles</span>
-            </div>
-            <div className="blog-stat-divider" />
-            <div className="blog-stat">
-              <span className="blog-stat-num">{TOTAL_MIN} min</span>
-              <span className="blog-stat-label">de lecture</span>
-            </div>
-            <div className="blog-stat-divider" />
-            <div className="blog-stat">
-              <span className="blog-stat-num">2026</span>
-              <span className="blog-stat-label">à jour</span>
+            <div className="blog-hero-v2-stats">
+              <div className="blog-hero-v2-stat">
+                <span className="blog-hero-v2-stat-num">{ARTICLES.length}</span>
+                <span className="blog-hero-v2-stat-lbl">articles</span>
+              </div>
+              <div className="blog-hero-v2-sep" />
+              <div className="blog-hero-v2-stat">
+                <span className="blog-hero-v2-stat-num">{TOTAL_MIN} min</span>
+                <span className="blog-hero-v2-stat-lbl">de lecture</span>
+              </div>
+              <div className="blog-hero-v2-sep" />
+              <div className="blog-hero-v2-stat">
+                <span className="blog-hero-v2-stat-num">{ALL_TAGS.length}</span>
+                <span className="blog-hero-v2-stat-lbl">thématiques</span>
+              </div>
+              <div className="blog-hero-v2-sep" />
+              <div className="blog-hero-v2-stat">
+                <span className="blog-hero-v2-stat-num">2026</span>
+                <span className="blog-hero-v2-stat-lbl">mis à jour</span>
+              </div>
             </div>
           </div>
         </div>
 
-        {/* Featured */}
-        <Link to={`/blog/${featured.slug}`} className="featured-card" aria-label={featured.title}>
-          <div className="featured-card-body">
-            <div className="featured-card-top">
-              <span className={`article-tag ${featured.tagClass}`}>{featured.tag}</span>
-              <span className="article-read-time">{featured.readTime} de lecture</span>
+        {/* ── À la une ──────────────────────────────────────── */}
+        <section className="blog-featured-section">
+          <p className="blog-section-kicker">À la une</p>
+          <Link to={`/blog/${featured.slug}`} className="blog-featured-v2" aria-label={featured.title}>
+            <div
+              className="blog-featured-v2-visual"
+              style={{ background: GRADIENTS[featured.tagClass] || GRADIENTS["tag-blue"] }}
+              aria-hidden="true"
+            >
+              <ArticleCover tagClass={featured.tagClass} />
+              <span className={`article-tag ${featured.tagClass} blog-featured-v2-tag`}>
+                {featured.tag}
+              </span>
             </div>
-            <h2 className="featured-card-title">{featured.title}</h2>
-            <p className="featured-card-intro">{featured.intro}</p>
-            <div className="featured-card-footer">
-              <span className="article-date">{featured.date}</span>
-              <span className="article-cta-link">Lire l'article →</span>
+            <div className="blog-featured-v2-body">
+              <div className="blog-featured-v2-meta">
+                <span className="article-read-time">⏱ {featured.readTime} de lecture</span>
+                <span className="article-date">{featured.date}</span>
+              </div>
+              <h2 className="blog-featured-v2-title">{featured.title}</h2>
+              <p className="blog-featured-v2-intro">{featured.intro}</p>
+              <span className="blog-featured-v2-cta">Lire l'article complet →</span>
             </div>
-          </div>
-          <div className="featured-card-accent" aria-hidden="true">
-            <span className="featured-card-icon">🏠</span>
-          </div>
-        </Link>
+          </Link>
+        </section>
 
-        {/* Articles grid with illustrated covers */}
-        <div className="articles-section">
+        {/* ── Par thème ─────────────────────────────────────── */}
+        <section className="blog-topics-section">
+          <p className="blog-section-kicker">Naviguer par thème</p>
+          <div className="blog-topics-grid">
+            <button
+              type="button"
+              className={`blog-topic-card blog-topic-all${!activeTag ? " blog-topic-active" : ""}`}
+              onClick={() => setActiveTag(null)}
+            >
+              <span className="blog-topic-icon">📚</span>
+              <span className="blog-topic-name">Tout</span>
+              <span className="blog-topic-count">{rest.length}</span>
+            </button>
+            {TAG_GROUPS.map(({ tag, count, tagClass }) => (
+              <button
+                key={tag}
+                type="button"
+                className={`blog-topic-card${activeTag === tag ? " blog-topic-active" : ""}`}
+                onClick={() => setActiveTag(activeTag === tag ? null : tag)}
+              >
+                <span className="blog-topic-icon">{TAG_ICON[tagClass] || "📄"}</span>
+                <span className="blog-topic-name">{tag}</span>
+                <span className="blog-topic-count">{count}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* ── Articles ──────────────────────────────────────── */}
+        <section className="articles-section">
           <div className="articles-section-header">
-            <h2 className="articles-section-title">Tous les articles</h2>
+            <h2 className="articles-section-title">
+              {activeTag || "Tous les articles"}
+              {" "}<span className="articles-section-count">{filteredRest.length}</span>
+            </h2>
             <div className="blog-search-wrap">
               <input
                 type="search"
@@ -157,61 +210,64 @@ export default function BlogList() {
                 aria-label="Rechercher dans le blog"
               />
             </div>
-            <div className="hub-filters" role="group" aria-label="Filtrer par thème">
+            {activeTag && (
+              <button type="button" className="blog-filter-clear" onClick={() => setActiveTag(null)}>
+                ✕ Tout voir
+              </button>
+            )}
+          </div>
+          {filteredRest.length === 0 ? (
+            <div className="blog-empty-state">
+              <p className="blog-empty-text">Aucun article ne correspond à votre recherche.</p>
               <button
                 type="button"
-                className={`hub-filter-btn${!activeTag ? " hub-filter-active" : ""}`}
-                onClick={() => setActiveTag(null)}
-              >Tous <span className="hub-filter-count">{rest.length}</span></button>
-              {ALL_TAGS.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  className={`hub-filter-btn${activeTag === tag ? " hub-filter-active" : ""}`}
-                  onClick={() => setActiveTag(activeTag === tag ? null : tag)}
-                >
-                  {tag}
-                  <span className="hub-filter-count">{rest.filter((a) => a.tag === tag).length}</span>
-                </button>
+                className="blog-empty-btn"
+                onClick={() => { setSearch(""); setActiveTag(null); }}
+              >
+                Voir tous les articles
+              </button>
+            </div>
+          ) : (
+            <div className="articles-grid">
+              {filteredRest.map((article) => (
+                <Link key={article.slug} to={`/blog/${article.slug}`} className="article-card" aria-label={article.title}>
+                  <div
+                    className="article-cover"
+                    style={{ background: GRADIENTS[article.tagClass] || GRADIENTS["tag-blue"] }}
+                    aria-hidden="true"
+                  >
+                    <ArticleCover tagClass={article.tagClass} />
+                  </div>
+                  <div className="article-card-top">
+                    <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
+                    <span className="article-read-time">{article.readTime}</span>
+                  </div>
+                  <h3 className="article-card-title">{article.title}</h3>
+                  <p className="article-card-intro">{article.intro}</p>
+                  <div className="article-card-footer">
+                    <span className="article-date">{article.date}</span>
+                    <span className="article-read-more">Lire →</span>
+                  </div>
+                </Link>
               ))}
             </div>
-          </div>
-          {filteredRest.length === 0 && (
-            <p className="blog-search-empty">Aucun article ne correspond à votre recherche.</p>
           )}
-          <div className="articles-grid">
-            {filteredRest.map((article) => (
-              <Link key={article.slug} to={`/blog/${article.slug}`} className="article-card" aria-label={article.title}>
-                <div
-                  className="article-cover"
-                  style={{ background: GRADIENTS[article.tagClass] || GRADIENTS["tag-blue"] }}
-                  aria-hidden="true"
-                >
-                  <ArticleCover tagClass={article.tagClass} />
-                </div>
-                <div className="article-card-top">
-                  <span className={`article-tag ${article.tagClass}`}>{article.tag}</span>
-                  <span className="article-read-time">{article.readTime}</span>
-                </div>
-                <h3 className="article-card-title">{article.title}</h3>
-                <p className="article-card-intro">{article.intro}</p>
-                <div className="article-card-footer">
-                  <span className="article-date">{article.date}</span>
-                  <span className="article-read-more">Lire →</span>
-                </div>
-              </Link>
-            ))}
+        </section>
+
+        {/* ── CTA ───────────────────────────────────────────── */}
+        <div className="blog-cta-v2">
+          <div className="blog-cta-v2-inner">
+            <div className="blog-cta-v2-text">
+              <p className="blog-cta-v2-title">Passez de la théorie à la pratique</p>
+              <p className="blog-cta-v2-sub">Chiffrez votre situation personnelle avec nos 27 simulateurs gratuits — sans inscription.</p>
+            </div>
+            <div className="blog-cta-v2-actions">
+              <Link to="/" className="btn-primary">Simulateur louer/acheter →</Link>
+              <Link to="/simulateurs" className="blog-cta-v2-sec">Tous les simulateurs</Link>
+            </div>
           </div>
         </div>
 
-        {/* CTA */}
-        <div className="blog-cta-banner">
-          <div className="blog-cta-inner">
-            <p className="blog-cta-title">Passez à la pratique</p>
-            <p className="blog-cta-sub">Comparez louer et acheter dans votre situation personnelle en 2 minutes.</p>
-          </div>
-          <Link to="/" className="btn-primary blog-cta-btn">Lancer le simulateur →</Link>
-        </div>
       </main>
       <Footer />
     </div>

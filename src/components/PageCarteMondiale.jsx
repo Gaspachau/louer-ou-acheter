@@ -278,31 +278,70 @@ export default function PageCarteMondiale() {
       <main id="main-content" className="cm-page">
 
         {/* ── HERO ─────────────────────────────────────────── */}
-        <div className="cm-hero">
-          <div className="cm-hero-text">
-            <span className="blog-kicker">Comparaison mondiale</span>
-            <h1 className="cm-hero-title">
+        <div className="cm-hero-v2">
+          <div className="cm-hero-v2-inner">
+            <span className="cm-hero-v2-badge">🌍 Comparaison mondiale</span>
+            <h1 className="cm-hero-v2-title">
               Propriétaires vs locataires<br/>
-              <span className="cm-hero-title-sub">dans le monde</span>
+              <span className="cm-hero-v2-accent">dans le monde</span>
             </h1>
-            <p className="cm-hero-desc">
-              De la Roumanie (95 % de propriétaires) à la Suisse (36 %), les écarts sont
-              immenses. Survolez ou cliquez sur un pays pour voir ses données.
+            <p className="cm-hero-v2-desc">
+              De la Roumanie à 95 % jusqu'à la Suisse à 36 % — les écarts sont immenses
+              et révèlent l'histoire, la fiscalité et la culture de chaque pays.
+              Survolez ou cliquez sur un pays pour voir ses données détaillées.
+            </p>
+            <div className="cm-hero-v2-stats">
+              <div className="cm-hero-v2-stat">
+                <span className="cm-hero-v2-stat-val">95 %</span>
+                <span className="cm-hero-v2-stat-lbl">Roumanie — record mondial</span>
+              </div>
+              <div className="cm-hero-v2-stat-sep" />
+              <div className="cm-hero-v2-stat">
+                <span className="cm-hero-v2-stat-val">65 %</span>
+                <span className="cm-hero-v2-stat-lbl">France — dans la moyenne UE</span>
+              </div>
+              <div className="cm-hero-v2-stat-sep" />
+              <div className="cm-hero-v2-stat">
+                <span className="cm-hero-v2-stat-val">36 %</span>
+                <span className="cm-hero-v2-stat-lbl">Suisse — le taux le plus bas</span>
+              </div>
+              <div className="cm-hero-v2-stat-sep" />
+              <div className="cm-hero-v2-stat">
+                <span className="cm-hero-v2-stat-val">{Object.keys(HOMEOWNERSHIP).length}+</span>
+                <span className="cm-hero-v2-stat-lbl">pays cartographiés</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── KEY INSIGHTS ─────────────────────────────────── */}
+        <div className="cm-insights">
+          <div className="cm-insight-card cm-insight-east">
+            <span className="cm-insight-icon">🏛️</span>
+            <h3 className="cm-insight-title">Héritage post-soviétique</h3>
+            <p className="cm-insight-text">
+              Les pays d'Europe de l'Est affichent les taux les plus élevés : Roumanie
+              95 %, Lituanie 93 %, Hongrie 91 %. La privatisation des logements soviétiques
+              dans les années 90 a créé des sociétés de propriétaires en quelques années.
             </p>
           </div>
-          <div className="cm-hero-stats">
-            <div className="cm-hero-stat">
-              <span className="cm-hero-stat-val">95 %</span>
-              <span className="cm-hero-stat-label">Roumanie<br/>record mondial</span>
-            </div>
-            <div className="cm-hero-stat cm-hero-stat-mid">
-              <span className="cm-hero-stat-val">65 %</span>
-              <span className="cm-hero-stat-label">France<br/>moyenne UE</span>
-            </div>
-            <div className="cm-hero-stat cm-hero-stat-low">
-              <span className="cm-hero-stat-val">36 %</span>
-              <span className="cm-hero-stat-label">Suisse<br/>taux le plus bas</span>
-            </div>
+          <div className="cm-insight-card cm-insight-west">
+            <span className="cm-insight-icon">🏦</span>
+            <h3 className="cm-insight-title">Location valorisée à l'Ouest</h3>
+            <p className="cm-insight-text">
+              Suisse (36 %), Allemagne (45 %), Autriche (55 %) : la location y est
+              culturellement et fiscalement valorisée. Des loyers encadrés et des baux
+              protégés rendent l'accession moins urgente.
+            </p>
+          </div>
+          <div className="cm-insight-card cm-insight-crisis">
+            <span className="cm-insight-icon">📉</span>
+            <h3 className="cm-insight-title">Crises et effet boomerang</h3>
+            <p className="cm-insight-text">
+              La crise de 2008 a fait chuter les propriétaires aux États-Unis de 69 %
+              à 63 %. En Espagne, une génération entière a perdu confiance après
+              la bulle. La crise peut inverser durablement la tendance.
+            </p>
           </div>
         </div>
 
@@ -480,6 +519,72 @@ export default function PageCarteMondiale() {
             </p>
           </div>
         </section>
+
+        {/* ── LA FRANCE DANS TOUT ÇA ───────────────────────── */}
+        <section className="cm-france-section">
+          <div className="cm-why-header">
+            <span className="blog-kicker">Zoom France</span>
+            <h2 className="cm-why-title">Et la France dans tout ça ?</h2>
+            <p className="cm-why-intro">
+              Avec 65 % de propriétaires, la France se situe dans la moyenne européenne —
+              mais cache de fortes disparités internes.
+            </p>
+          </div>
+          <div className="cm-france-grid">
+            <div className="cm-france-card">
+              <span className="cm-france-icon">🗼</span>
+              <h3 className="cm-france-title">Paris, exception mondiale</h3>
+              <p className="cm-france-text">
+                À Paris, 64 % des ménages sont <strong>locataires</strong> — un taux proche
+                de Berlin. La capitale concentre des prix au m² parmi les plus élevés d'Europe
+                (9 000–10 000 €/m²), rendant l'accession hors de portée pour la plupart des ménages
+                aux revenus médians.
+              </p>
+            </div>
+            <div className="cm-france-card">
+              <span className="cm-france-icon">🏘️</span>
+              <h3 className="cm-france-title">La province s'en sort mieux</h3>
+              <p className="cm-france-text">
+                En dehors des grandes métropoles, le taux de propriétaires monte à <strong>72–75 %</strong>.
+                Dans les zones rurales et les villes moyennes, l'effort d'achat reste inférieur
+                à 20 % des revenus — rendant la propriété plus accessible qu'à Paris ou Lyon.
+              </p>
+            </div>
+            <div className="cm-france-card">
+              <span className="cm-france-icon">📊</span>
+              <h3 className="cm-france-title">La règle HCSF protège les ménages</h3>
+              <p className="cm-france-text">
+                La limite à <strong>35 % d'endettement</strong> imposée par le HCSF depuis 2022
+                a refroidi le marché mais protège les Français des excès de la bulle espagnole
+                de 2008. Les prêts à taux variable restent marginaux, contrairement au Royaume-Uni.
+              </p>
+            </div>
+            <div className="cm-france-card">
+              <span className="cm-france-icon">🔮</span>
+              <h3 className="cm-france-title">Vers quel modèle demain ?</h3>
+              <p className="cm-france-text">
+                La génération des 25–35 ans achète de plus en plus tard : l'âge médian
+                du premier achat est passé de <strong>33 à 37 ans</strong> entre 2010 et 2024.
+                La France se rapproche doucement du modèle allemand, où louer longtemps
+                n'est plus une anomalie sociale.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ── CTA ──────────────────────────────────────────── */}
+        <div className="cm-cta">
+          <div className="cm-cta-inner">
+            <div className="cm-cta-text">
+              <p className="cm-cta-title">Louer ou acheter en France — calculez votre cas</p>
+              <p className="cm-cta-sub">Utilisez notre simulateur pour comparer les deux scénarios sur votre durée de détention, dans votre ville.</p>
+            </div>
+            <div className="cm-cta-actions">
+              <Link to="/" className="btn-primary">Simulateur louer/acheter →</Link>
+              <Link to="/simulateurs/comparateur-villes" className="cm-cta-sec">Comparer 12 villes françaises</Link>
+            </div>
+          </div>
+        </div>
 
       </main>
       <Footer />
