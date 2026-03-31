@@ -3,13 +3,24 @@ import { Link, useNavigate } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 
-/* ─── Données villes ─────────────────────────────────────── */
-const CITY_DATA = [
-  { id:"paris",    name:"Paris",    priceM2:9800, rentRef:1500, breakEven:17, yield:"3.6%" },
-  { id:"lyon",     name:"Lyon",     priceM2:4600, rentRef:950,  breakEven:11, yield:"4.8%" },
-  { id:"marseille",name:"Marseille",priceM2:3400, rentRef:820,  breakEven:9,  yield:"5.6%" },
-  { id:"bordeaux", name:"Bordeaux", priceM2:4200, rentRef:880,  breakEven:12, yield:"4.9%" },
-  { id:"nantes",   name:"Nantes",   priceM2:3900, rentRef:820,  breakEven:11, yield:"4.9%" },
+/* ─── Helpers ────────────────────────────────────────────── */
+const fmtK = (v) => Math.abs(v) >= 1000
+  ? `${(v / 1000).toLocaleString("fr-FR", { maximumFractionDigits: 0 })} k €`
+  : `${Math.round(v)} €`;
+
+/* ─── Données villes hero (10 villes, valeurs pré-calculées)
+   Hypothèses : 50 m², apport 20 %, crédit 20 ans 3,5 %, horizon 15 ans ─── */
+const HERO_CITIES = [
+  { id:"paris",      name:"Paris",       mensualite:2283, patAchat:504000, patLoc:546000, advantage:42000,  isBuy:false, price:490000, rentRef:1500 },
+  { id:"lyon",       name:"Lyon",        mensualite:1072, patAchat:237000, patLoc:174000, advantage:63000,  isBuy:true,  price:230000, rentRef:950  },
+  { id:"marseille",  name:"Marseille",   mensualite: 792, patAchat:175000, patLoc: 98000, advantage:77000,  isBuy:true,  price:170000, rentRef:820  },
+  { id:"bordeaux",   name:"Bordeaux",    mensualite: 979, patAchat:216000, patLoc:155000, advantage:61000,  isBuy:true,  price:210000, rentRef:880  },
+  { id:"nantes",     name:"Nantes",      mensualite: 908, patAchat:201000, patLoc:142000, advantage:59000,  isBuy:true,  price:195000, rentRef:820  },
+  { id:"toulouse",   name:"Toulouse",    mensualite: 839, patAchat:185000, patLoc:120000, advantage:65000,  isBuy:true,  price:180000, rentRef:800  },
+  { id:"lille",      name:"Lille",       mensualite: 745, patAchat:165000, patLoc: 95000, advantage:70000,  isBuy:true,  price:160000, rentRef:760  },
+  { id:"strasbourg", name:"Strasbourg",  mensualite: 815, patAchat:180000, patLoc:116000, advantage:64000,  isBuy:true,  price:175000, rentRef:780  },
+  { id:"nice",       name:"Nice",        mensualite:1211, patAchat:267000, patLoc:208000, advantage:59000,  isBuy:true,  price:260000, rentRef:1030 },
+  { id:"rennes",     name:"Rennes",      mensualite: 862, patAchat:190000, patLoc:132000, advantage:58000,  isBuy:true,  price:185000, rentRef:790  },
 ];
 
 /* ─── Presets scénarios ──────────────────────────────────── */
@@ -48,23 +59,36 @@ function useReveal() {
    SECTION HERO
    ═══════════════════════════════════════════════════════════ */
 function HeroSection() {
-  const [city, setCity] = useState("paris");
-  const c = CITY_DATA.find((x) => x.id === city);
+  const navigate = useNavigate();
+  const [activeCity, setActiveCity] = useState("paris");
+  const c = HERO_CITIES.find((x) => x.id === activeCity);
+  const maxPat = Math.max(c.patAchat, c.patLoc);
+  const pctBuy  = Math.round(c.patAchat / maxPat * 100);
+  const pctRent = Math.round(c.patLoc   / maxPat * 100);
+
+  const launchCity = () => {
+    try {
+      sessionStorage.setItem("fv2_preset", JSON.stringify({
+        price: c.price, apport: Math.round(c.price * 0.20),
+        rent: c.rentRef, charges: 80, duration: 15,
+        rate: 3.5, loanYears: 20, notaryPct: 8, appRate: 2.0,
+        situation: "locataire",
+      }));
+    } catch {}
+    navigate("/simulateur");
+  };
 
   return (
     <section className="lp-hero">
-      {/* Orbes animés — ambiance premium */}
       <div className="lp-hero-orb lp-hero-orb-1" aria-hidden="true" />
       <div className="lp-hero-orb lp-hero-orb-2" aria-hidden="true" />
       <div className="lp-hero-orb lp-hero-orb-3" aria-hidden="true" />
 
       <div className="lp-hero-inner">
-        {/* Colonne gauche */}
+        {/* ── Colonne gauche ── */}
         <div className="lp-hero-text">
           <div className="lp-hero-badge">
-            <span className="lp-badge-green">
-              ✦ Gratuit · Sans inscription · Résultat immédiat
-            </span>
+            <span className="lp-badge-green">✦ Simulateur gratuit · Sans inscription</span>
           </div>
 
           <h1 className="lp-hero-title">
@@ -72,8 +96,8 @@ function HeroSection() {
           </h1>
 
           <p className="lp-hero-subtitle">
-            La vraie réponse dépend de <em>votre</em> situation — pas d'une règle générale.
-            Notre simulateur calcule votre point d'équilibre exact en 2 minutes.
+            La réponse dépend de votre situation — loyer, budget, horizon.
+            Notre simulateur compare les deux scénarios, chiffres à l'appui, en 2 minutes.
           </p>
 
           <div className="lp-hero-buttons">
@@ -86,14 +110,16 @@ function HeroSection() {
           </div>
 
           <div className="lp-hero-trust">
-            <span className="lp-trust-pill">Données INSEE</span>
-            <span className="lp-trust-sep">·</span>
-            <span className="lp-trust-pill">Banque de France</span>
-            <span className="lp-trust-sep">·</span>
-            <span className="lp-trust-pill">Taux 2026</span>
+            <span className="lp-trust-pill lp-trust-pill-green">
+              <span className="lp-trust-dot" aria-hidden="true" />
+              Données INSEE &amp; Banque de France
+            </span>
+            <span className="lp-trust-pill lp-trust-pill-green">
+              <span className="lp-trust-dot" aria-hidden="true" />
+              Mis à jour mars 2026
+            </span>
           </div>
 
-          {/* Mobile uniquement */}
           <div className="lp-hero-mobile-stats">
             <span className="lp-stat-pill">⏱ 2 min</span>
             <span className="lp-stat-pill">📊 Chiffré</span>
@@ -101,54 +127,70 @@ function HeroSection() {
           </div>
         </div>
 
-        {/* Colonne droite — widget ville interactif (desktop) */}
-        <div className="lp-city-widget">
-          <div className="lp-city-widget-header">
-            <span className="lp-city-widget-title">Marché immobilier 2026</span>
-          </div>
-
-          <div className="lp-city-tabs">
-            {CITY_DATA.map((x) => (
-              <button
-                key={x.id}
-                type="button"
-                className={`lp-city-tab${city === x.id ? " lp-city-tab-active" : ""}`}
-                onClick={() => setCity(x.id)}
-              >
-                {x.name}
-              </button>
+        {/* ── Colonne droite — Maquette résultat (desktop uniquement) ── */}
+        <div className="lp-hero-mockup" aria-hidden="true">
+          {/* Pills villes */}
+          <div className="lp-mock-city-tabs">
+            {HERO_CITIES.map((x) => (
+              <button key={x.id} type="button"
+                className={`lp-mock-city-pill${activeCity === x.id ? " lp-mock-city-active" : ""}`}
+                onClick={() => setActiveCity(x.id)}
+              >{x.name}</button>
             ))}
           </div>
 
-          {c && (
-            <div className="lp-city-stats">
-              <div className="lp-city-stat">
-                <span className="lp-city-stat-label">Prix médian</span>
-                <span className="lp-city-stat-val">
-                  {c.priceM2.toLocaleString("fr-FR")} €/m²
-                </span>
-              </div>
-              <div className="lp-city-stat">
-                <span className="lp-city-stat-label">Loyer de référence T2</span>
-                <span className="lp-city-stat-val">
-                  {c.rentRef.toLocaleString("fr-FR")} €/mois
-                </span>
-              </div>
-              <div className="lp-city-stat">
-                <span className="lp-city-stat-label">Rendement brut locatif</span>
-                <span className="lp-city-stat-val">{c.yield}</span>
-              </div>
-              <div className="lp-city-stat lp-city-stat-highlight">
-                <span className="lp-city-stat-label">Point d'équilibre achat</span>
-                <span className="lp-city-stat-val lp-city-stat-cyan">
-                  ~{c.breakEven} ans
-                </span>
-              </div>
-              <Link to="/simulateur" className="lp-city-cta">
-                Simuler pour {c.name} →
-              </Link>
+          {/* Corps de la maquette */}
+          <div className="lp-mock-body">
+            <div className="lp-mock-header">
+              <span className="lp-mock-city-name">📍 {c.name} · sur 15 ans</span>
+              <span className={`lp-mock-badge ${c.isBuy ? "lp-mock-badge-buy" : "lp-mock-badge-rent"}`}>
+                {c.isBuy ? "Acheter" : "Louer"}
+              </span>
             </div>
-          )}
+
+            <div className="lp-mock-metrics">
+              <div className="lp-mock-metric">
+                <span className="lp-mock-label">Mensualité crédit</span>
+                <span className="lp-mock-val">{c.mensualite.toLocaleString("fr-FR")} €<span className="lp-mock-unit">/mois</span></span>
+              </div>
+              <div className="lp-mock-metric">
+                <span className="lp-mock-label">Patrimoine achat</span>
+                <span className="lp-mock-val lp-mock-blue">{fmtK(c.patAchat)}</span>
+              </div>
+              <div className="lp-mock-metric">
+                <span className="lp-mock-label">Patrimoine location</span>
+                <span className="lp-mock-val lp-mock-amber">{fmtK(c.patLoc)}</span>
+              </div>
+              <div className="lp-mock-metric lp-mock-metric-highlight">
+                <span className="lp-mock-label">Avantage net</span>
+                <span className={`lp-mock-val ${c.isBuy ? "lp-mock-green" : "lp-mock-amber"}`}>
+                  {c.isBuy ? "+" : "−"}{fmtK(c.advantage)}
+                  <span className="lp-mock-unit"> en faveur de {c.isBuy ? "l'achat" : "la location"}</span>
+                </span>
+              </div>
+            </div>
+
+            <div className="lp-mock-bars">
+              <div className="lp-mock-bar-row">
+                <span className="lp-mock-bar-label">Achat</span>
+                <div className="lp-mock-bar-track">
+                  <div className="lp-mock-bar-fill lp-mock-bar-blue" style={{ width: `${pctBuy}%` }} />
+                </div>
+                <span className="lp-mock-bar-pct">{pctBuy}%</span>
+              </div>
+              <div className="lp-mock-bar-row">
+                <span className="lp-mock-bar-label">Location</span>
+                <div className="lp-mock-bar-track">
+                  <div className="lp-mock-bar-fill lp-mock-bar-amber" style={{ width: `${pctRent}%` }} />
+                </div>
+                <span className="lp-mock-bar-pct">{pctRent}%</span>
+              </div>
+            </div>
+
+            <button type="button" className="lp-mock-cta" onClick={launchCity}>
+              Simuler votre situation →
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -167,28 +209,34 @@ function TrustBar() {
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clipRule="evenodd"/>
           </svg>
-          <span>Sans compte ni email</span>
+          <span>Gratuit et sans inscription</span>
         </div>
+
+        <div className="lp-trust-sep-v" aria-hidden="true" />
 
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd"/>
           </svg>
-          <span>Données mises à jour en 2026</span>
+          <span>Données actualisées 2026</span>
         </div>
+
+        <div className="lp-trust-sep-v" aria-hidden="true" />
 
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd"/>
           </svg>
-          <span>Résultat en moins de 2 minutes</span>
+          <span>Calcul instantané</span>
         </div>
+
+        <div className="lp-trust-sep-v" aria-hidden="true" />
 
         <div className="lp-trust-item">
           <svg className="lp-trust-icon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
             <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"/>
           </svg>
-          <span>Outil indépendant · Sources officielles</span>
+          <span>100 % indépendant</span>
         </div>
 
       </div>
