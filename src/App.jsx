@@ -44,6 +44,7 @@ const SimImpactDPE = lazy(() => import("./components/simulateurs/SimImpactDPE"))
 const SimRemboursementAnticipe = lazy(() => import("./components/simulateurs/SimRemboursementAnticipe"));
 const SimAssurancePret = lazy(() => import("./components/simulateurs/SimAssurancePret"));
 const PageJeu = lazy(() => import("./components/PageJeu"));
+const PageAdmin = lazy(() => import("./components/PageAdmin"));
 
 function PageLoader() {
   return (
@@ -122,6 +123,7 @@ export default function App() {
         <Route path="/simulateurs/remboursement-anticipe" element={<SimRemboursementAnticipe />} />
         <Route path="/simulateurs/assurance-pret" element={<SimAssurancePret />} />
         <Route path="/villes/:cityId" element={<PageVille />} />
+        <Route path="/admin" element={<PageAdmin />} />
       </Routes>
     </Suspense>
     </>

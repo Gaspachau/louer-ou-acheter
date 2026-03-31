@@ -104,7 +104,7 @@ export default function BlogList() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="blog-page">
+      <main id="main-content" className="page-main">
 
         {/* ── Hero ──────────────────────────────────────────── */}
         <div className="blog-hero-v2">
@@ -139,6 +139,8 @@ export default function BlogList() {
           </div>
         </div>
 
+        {/* ── Contenu ───────────────────────────────────────── */}
+        <div className="blog-page">
         {/* ── À la une ──────────────────────────────────────── */}
         <section className="blog-featured-section">
           <p className="blog-section-kicker">À la une</p>
@@ -267,6 +269,7 @@ export default function BlogList() {
             </div>
           </div>
         </div>
+        </div>{/* end .blog-page */}
 
       </main>
       <Footer />

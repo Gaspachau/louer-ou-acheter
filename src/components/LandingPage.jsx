@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import { saveNewsletter } from "../lib/supabase";
 
 /* ─── Helpers ────────────────────────────────────────────── */
 const fmtK = (v) =>
@@ -649,7 +650,12 @@ function NewsletterSection() {
   const [email, setEmail] = useState("");
   const [done, setDone] = useState(false);
   const ref = useReveal();
-  const submit = (e) => { e.preventDefault(); if (email.includes("@")) setDone(true); };
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!email.includes("@")) return;
+    setDone(true);
+    await saveNewsletter(email);
+  };
   return (
     <section className="lph-section lph-newsletter lph-s" ref={ref}>
       <div className="lph-container lph-nl-inner">

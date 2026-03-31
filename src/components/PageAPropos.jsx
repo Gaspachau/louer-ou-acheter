@@ -92,7 +92,7 @@ export default function PageAPropos() {
   return (
     <div className="page">
       <TopBar />
-      <main id="main-content" className="blog-page">
+      <main id="main-content" className="page-main">
 
         {/* ── HERO ─────────────────────────────────────────────── */}
         <div className="blog-hero-v2">
@@ -106,6 +106,7 @@ export default function PageAPropos() {
           </div>
         </div>
 
+        <div className="blog-page">
         <div className="abt-content">
 
           {/* ── HISTOIRE ─────────────────────────────────────────── */}
@@ -226,6 +227,7 @@ export default function PageAPropos() {
           </div>
 
         </div>
+        </div>{/* end .blog-page */}
       </main>
       <Footer />
     </div>

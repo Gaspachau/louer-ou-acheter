@@ -4,6 +4,7 @@ import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   ReferenceLine, CartesianGrid,
 } from "recharts";
+import { saveSimulation } from "../lib/supabase";
 
 /* ─── French cities for autocomplete ─────────────────────── */
 const CITIES = [
@@ -851,7 +852,30 @@ function Step5({ v, set, onNext }) {
    ════════════════════════════════════════════════════════════ */
 function Step6({ v, result, onEdit, onEmail }) {
   const [chartReady, setChartReady] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setChartReady(true), 200); return () => clearTimeout(t); }, []);
+  const savedRef = useRef(false);
+  useEffect(() => {
+    const t = setTimeout(() => setChartReady(true), 200);
+    if (!savedRef.current) {
+      savedRef.current = true;
+      saveSimulation({
+        ville: v.city?.name ?? null,
+        profil: v.situation ?? null,
+        revenus: v.revenus,
+        apport: v.apport,
+        prix_bien: v.price,
+        duree_pret: v.loanYears,
+        taux: v.rate,
+        loyer: v.rent + (v.charges ?? 0),
+        resultat_verdict: result.isBuyBetter ? 'acheter' : 'louer',
+        resultat_patrimoine_achat: Math.round(result.ownerNWEnd),
+        resultat_patrimoine_location: Math.round(result.renterPortfolio),
+        resultat_difference: Math.round(Math.abs(result.advantage)),
+        point_equilibre: result.breakEven ?? null,
+      });
+    }
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const { isBuyBetter, advantage, breakEven, yearlyData, monthlyPayment,
           ownerNWEnd, renterPortfolio } = result;

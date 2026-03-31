@@ -12349,3 +12349,123 @@ svg { display: inline-block; }  /* keep inline for icons */
   .shub-hero { padding: 40px 16px 36px; }
   .im-intro { padding: 48px 16px 44px; }
 }
+
+/* ══════════════════════════════════════════════════════════════
+   §36 — PAGE ADMIN
+   ══════════════════════════════════════════════════════════════ */
+
+.adm-loading-page {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; font-size: 14px; color: var(--muted);
+}
+
+/* ── Login ── */
+.adm-login-wrap {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  background: #f8fafc; padding: 24px;
+}
+.adm-login-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 16px;
+  padding: 40px; width: 100%; max-width: 400px;
+  box-shadow: 0 4px 24px rgba(0,0,0,.07);
+}
+.adm-login-header { text-align: center; margin-bottom: 28px; }
+.adm-login-icon { font-size: 40px; display: block; margin-bottom: 12px; }
+.adm-login-title { font-size: 22px; font-weight: 700; color: #0f172a; margin: 0 0 4px; }
+.adm-login-sub { font-size: 13px; color: var(--muted); margin: 0; }
+.adm-login-form { display: flex; flex-direction: column; gap: 16px; }
+.adm-field { display: flex; flex-direction: column; gap: 6px; }
+.adm-label { font-size: 13px; font-weight: 600; color: #374151; }
+.adm-input {
+  padding: 10px 14px; border: 1.5px solid #e2e8f0; border-radius: 8px;
+  font-size: 14px; color: #0f172a; outline: none; transition: border-color .15s;
+}
+.adm-input:focus { border-color: #2563eb; }
+.adm-error { font-size: 13px; color: #dc2626; padding: 8px 12px; background: #fef2f2; border-radius: 6px; margin: 0; }
+.adm-login-btn {
+  padding: 11px 0; background: #2563eb; color: #fff; font-size: 14px; font-weight: 600;
+  border: none; border-radius: 8px; cursor: pointer; transition: background .15s;
+  margin-top: 4px;
+}
+.adm-login-btn:hover { background: #1d4ed8; }
+.adm-login-btn:disabled { opacity: .6; cursor: not-allowed; }
+
+/* ── Dashboard layout ── */
+.adm-root { min-height: 100vh; background: #f8fafc; }
+
+.adm-header { background: #0f172a; color: #fff; padding: 16px 24px; position: sticky; top: 0; z-index: 100; }
+.adm-header-inner { max-width: 1400px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.adm-header-left { display: flex; align-items: center; gap: 12px; }
+.adm-header-logo { font-size: 24px; }
+.adm-header-title { font-size: 17px; font-weight: 700; margin: 0 0 2px; }
+.adm-header-sub { font-size: 12px; color: rgba(255,255,255,.5); margin: 0; }
+.adm-header-right { display: flex; gap: 8px; align-items: center; }
+.adm-refresh-btn, .adm-logout-btn {
+  padding: 7px 14px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: background .15s;
+}
+.adm-refresh-btn { background: rgba(255,255,255,.1); color: #fff; }
+.adm-refresh-btn:hover { background: rgba(255,255,255,.18); }
+.adm-logout-btn { background: #dc2626; color: #fff; }
+.adm-logout-btn:hover { background: #b91c1c; }
+
+.adm-content { max-width: 1400px; margin: 0 auto; padding: 32px 24px 80px; }
+.adm-loading { text-align: center; padding: 60px; font-size: 14px; color: var(--muted); }
+
+/* ── Stats ── */
+.adm-stats-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 32px;
+}
+.adm-stat-card {
+  background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px;
+  display: flex; align-items: center; gap: 14px;
+  border-left: 4px solid var(--adm-color, #2563eb);
+}
+.adm-stat-icon { font-size: 24px; flex-shrink: 0; }
+.adm-stat-body { display: flex; flex-direction: column; gap: 2px; }
+.adm-stat-value { font-size: 22px; font-weight: 800; color: #0f172a; }
+.adm-stat-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.adm-stat-sub { font-size: 11px; color: #94a3b8; }
+
+/* ── Tabs ── */
+.adm-tabs { display: flex; gap: 4px; margin-bottom: 20px; border-bottom: 2px solid #e2e8f0; }
+.adm-tab {
+  padding: 10px 20px; font-size: 13px; font-weight: 600; border: none; background: none;
+  cursor: pointer; color: var(--muted); border-bottom: 2px solid transparent; margin-bottom: -2px;
+  transition: color .15s, border-color .15s;
+}
+.adm-tab:hover { color: #2563eb; }
+.adm-tab-active { color: #2563eb; border-bottom-color: #2563eb; }
+
+/* ── Table ── */
+.adm-table-wrap { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden; }
+.adm-table-actions { padding: 14px 20px; border-bottom: 1px solid #f1f5f9; display: flex; justify-content: flex-end; }
+.adm-export-btn {
+  padding: 7px 14px; background: #f1f5f9; border: 1px solid #e2e8f0; border-radius: 7px;
+  font-size: 13px; font-weight: 600; cursor: pointer; color: #374151; transition: background .15s;
+}
+.adm-export-btn:hover { background: #e2e8f0; }
+.adm-table-scroll { overflow-x: auto; }
+.adm-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.adm-table th {
+  background: #f8fafc; padding: 10px 14px; text-align: left; font-size: 11px; font-weight: 700;
+  color: #64748b; text-transform: uppercase; letter-spacing: .04em; white-space: nowrap;
+  border-bottom: 1px solid #e2e8f0;
+}
+.adm-table td { padding: 10px 14px; border-bottom: 1px solid #f1f5f9; color: #374151; white-space: nowrap; }
+.adm-table tr:last-child td { border-bottom: none; }
+.adm-table tr:hover td { background: #f8fafc; }
+.adm-uuid { font-family: monospace; font-size: 11px; color: #94a3b8; max-width: 120px; overflow: hidden; text-overflow: ellipsis; }
+
+.adm-verdict { padding: 3px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.adm-verdict-acheter { background: #eff6ff; color: #2563eb; }
+.adm-verdict-louer { background: #fef3c7; color: #b45309; }
+
+.adm-badge { padding: 3px 8px; border-radius: 99px; font-size: 12px; font-weight: 600; }
+.adm-badge-green { background: #dcfce7; color: #15803d; }
+.adm-badge-gray { background: #f1f5f9; color: #64748b; }
+
+@media (max-width: 640px) {
+  .adm-stats-grid { grid-template-columns: 1fr 1fr; }
+  .adm-content { padding: 20px 14px 60px; }
+  .adm-tab { padding: 10px 12px; font-size: 12px; }
+}

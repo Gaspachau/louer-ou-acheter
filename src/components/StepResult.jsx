@@ -6,6 +6,7 @@ import {
 import { formatCurrency } from "../utils/finance";
 import { trackResultComputed } from "../utils/analytics";
 import Summary from "./Summary";
+import { saveNewsletter } from "../lib/supabase";
 
 /* ─── Custom chart tooltip ───────────────────────────────── */
 function ChartTooltip({ active, payload, label }) {
@@ -509,16 +510,12 @@ function NewsletterBox() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState("idle");
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const valid = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim());
     if (!valid) { setStatus("error"); return; }
-    try {
-      const existing = JSON.parse(localStorage.getItem("nl_emails") || "[]");
-      if (!existing.includes(email.trim())) existing.push(email.trim());
-      localStorage.setItem("nl_emails", JSON.stringify(existing));
-    } catch {}
     setStatus("success");
+    await saveNewsletter(email.trim());
   };
 
   return (
