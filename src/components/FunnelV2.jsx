@@ -73,7 +73,7 @@ function computeResult(v) {
   const loan = Math.max(0, v.price - v.apport);
   const notary = v.price * (v.notaryPct / 100);
   const monthlyPayment = mortgage(loan, v.rate, v.loanYears);
-  const annualTax = v.taxFonciere;
+  const annualTax = v.taxFonciere ?? 1100;
   const annualMaint = v.price * 0.01; // 1% entretien
   const annualInsurance = 300;
   const ownerMonthly = monthlyPayment + (annualTax + annualMaint + annualInsurance) / 12;
@@ -137,6 +137,10 @@ const REVENU_STEPS = [
 /* ─── Apport presets ─────────────────────────────────────── */
 const APPORT_PRESETS = [0, 5000, 10000, 20000, 30000, 50000];
 
+/* ─── City selector data ─────────────────────────────────── */
+const NATIONAL_AVERAGE = { id:"national", name:"Moyenne nationale", priceM2:3200, rentRef:800, taxRef:1100, appRate:2.0 };
+const TOP_10_CITIES = CITIES.slice(0, 10);
+
 /* ─── Sub-components ─────────────────────────────────────── */
 function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
   const pct = ((value - min) / (max - min)) * 100;
@@ -183,52 +187,164 @@ function ChoiceBtn({ active, onClick, icon, label, sub }) {
   );
 }
 
-function CityAutocomplete({ value, onChange }) {
-  const [query, setQuery] = useState(value?.name || "");
-  const [open, setOpen] = useState(false);
-  const ref = useRef(null);
+function CitySelector({ v, applyCity }) {
+  const initMode = !v.city ? "national" : v.city.id === "manuel" ? "manual" : "list";
+  const [mode, setMode] = useState(initMode);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [manualPriceM2, setManualPriceM2] = useState(v.city?.priceM2 || 3200);
+  const [manualRent, setManualRent] = useState(v.city?.rentRef || 800);
 
-  const filtered = query.length >= 2
-    ? CITIES.filter((c) => c.name.toLowerCase().startsWith(query.toLowerCase())).slice(0, 6)
-    : [];
-
-  useEffect(() => {
-    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
-  }, []);
-
-  const select = (city) => {
-    setQuery(city.name);
-    setOpen(false);
-    onChange(city);
+  const handleModeClick = (m) => {
+    setMode(m);
+    if (m === "national") applyCity(NATIONAL_AVERAGE);
+    else if (m === "list") setDrawerOpen(true);
   };
 
+  const selectCity = (city) => { applyCity(city); setDrawerOpen(false); };
+
+  const applyManual = () => applyCity({
+    id:"manuel", name:"Ma zone",
+    priceM2:manualPriceM2, rentRef:manualRent,
+    taxRef:Math.round(manualPriceM2 * 50 * 0.0045), appRate:2.0,
+  });
+
+  const cityLabel = mode === "list" && v.city ? v.city.name : "10 grandes villes";
+
   return (
-    <div className={`fv2-city-wrap${value ? " fv2-city-has-value" : ""}`} ref={ref}>
-      <div className="fv2-city-input-row">
-        <span className="fv2-city-icon">📍</span>
-        <input
-          type="text"
-          className="fv2-city-input"
-          placeholder="Votre ville (ex : Lyon, Bordeaux…)"
-          value={query}
-          onChange={(e) => { setQuery(e.target.value); setOpen(true); if (!e.target.value) onChange(null); }}
-          onFocus={() => setOpen(true)}
-          autoComplete="off"
-        />
-        {value && <span className="fv2-city-check">✓</span>}
+    <div className="fv2-city-selector">
+      <p className="fv2-field-label" style={{ marginBottom:10 }}>Votre marché immobilier</p>
+      <div className="fv2-city-modes">
+        {[
+          { id:"national", icon:"🇫🇷", label:"Moyenne nationale",   sub:"3 200 €/m² · loyer moy. 800 €/mois" },
+          { id:"list",     icon:"🏙️", label:"Choisir ma ville",     sub: cityLabel },
+          { id:"manual",   icon:"✏️", label:"Saisir mes données",    sub:"Prix/m² et loyer personnalisés" },
+        ].map((m) => (
+          <button key={m.id} type="button"
+            className={`fv2-city-mode${mode === m.id ? " fv2-city-mode-active" : ""}`}
+            onClick={() => handleModeClick(m.id)}
+          >
+            <span className="fv2-city-mode-icon">{m.icon}</span>
+            <span className="fv2-city-mode-body">
+              <span className="fv2-city-mode-label">{m.label}</span>
+              <span className="fv2-city-mode-sub">{m.sub}</span>
+            </span>
+            {mode === m.id && <span className="fv2-city-mode-check">✓</span>}
+          </button>
+        ))}
       </div>
-      {open && filtered.length > 0 && (
-        <ul className="fv2-city-dropdown" role="listbox">
-          {filtered.map((c) => (
-            <li key={c.id} className="fv2-city-option" role="option" onMouseDown={() => select(c)}>
-              <span className="fv2-city-option-name">{c.name}</span>
-              <span className="fv2-city-option-price">{fmtK(c.priceM2)}/m²</span>
-            </li>
-          ))}
-        </ul>
+
+      {mode === "manual" && (
+        <div className="fv2-city-manual">
+          <div className="fv2-field-wrap">
+            <label className="fv2-field-label">Prix au m² dans votre zone</label>
+            <div className="fv2-field-row">
+              <input type="number" className="fv2-field-input" value={manualPriceM2}
+                onChange={(e) => setManualPriceM2(Number(e.target.value) || 0)} />
+              <span className="fv2-field-suffix">€/m²</span>
+            </div>
+          </div>
+          <div className="fv2-field-wrap">
+            <label className="fv2-field-label">Loyer pour un bien équivalent</label>
+            <div className="fv2-field-row">
+              <input type="number" className="fv2-field-input" value={manualRent}
+                onChange={(e) => setManualRent(Number(e.target.value) || 0)} />
+              <span className="fv2-field-suffix">€/mois</span>
+            </div>
+          </div>
+          <button type="button" className="fv2-apply-btn" onClick={applyManual}>
+            Appliquer ces données →
+          </button>
+        </div>
       )}
+
+      {drawerOpen && (
+        <div className="fv2-city-drawer-overlay" onClick={() => setDrawerOpen(false)}>
+          <div className="fv2-city-drawer" onClick={(e) => e.stopPropagation()}>
+            <div className="fv2-city-drawer-header">
+              <span>Choisir une ville</span>
+              <button type="button" className="fv2-city-drawer-close"
+                onClick={() => setDrawerOpen(false)}>✕</button>
+            </div>
+            <div className="fv2-city-list">
+              {TOP_10_CITIES.map((city) => (
+                <button key={city.id} type="button" className="fv2-city-list-item"
+                  onClick={() => selectCity(city)}>
+                  <span className="fv2-city-list-name">{city.name}</span>
+                  <div className="fv2-city-list-meta">
+                    <span>{city.priceM2.toLocaleString("fr-FR")} €/m²</span>
+                    <span>{city.rentRef} €/mois</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ApportSelector({ v, set }) {
+  const [mode, setMode] = useState("amount"); // "amount" | "percent" | "optimal"
+  const apportPct = v.price > 0 ? Math.round((v.apport / v.price) * 100) : 0;
+  const optimalApport = Math.min(
+    Math.round(v.revenus * 0.35 * 12 * 0.5),
+    Math.round(v.price * 0.25)
+  );
+  const isSufficient = apportPct >= 10;
+
+  const handlePctChange = (val) => set("apport")(Math.round(v.price * val / 100));
+  const applyOptimal  = () => { set("apport")(optimalApport); setMode("optimal"); };
+
+  return (
+    <div className="fv2-apport-wrap">
+      <div className="fv2-slider-header">
+        <span className="fv2-slider-label">Apport personnel</span>
+        <span className="fv2-slider-val fv2-apport-bigval">{fmt(v.apport)}</span>
+      </div>
+      <div className="fv2-apport-modes">
+        {[
+          { id:"amount",  icon:"💰", label:"Montant" },
+          { id:"percent", icon:"📊", label:"% du prix" },
+          { id:"optimal", icon:"🎯", label:"Optimal" },
+        ].map((m) => (
+          <button key={m.id} type="button"
+            className={`fv2-apport-mode-btn${mode === m.id ? " fv2-apport-mode-active" : ""}`}
+            onClick={() => m.id === "optimal" ? applyOptimal() : setMode(m.id)}
+          >{m.icon} {m.label}</button>
+        ))}
+      </div>
+
+      {mode === "amount" && (
+        <div className="fv2-field-row" style={{ marginTop:12 }}>
+          <input type="number" min={0} step={1000} className="fv2-field-input"
+            value={v.apport} onChange={(e) => set("apport")(Number(e.target.value) || 0)} />
+          <span className="fv2-field-suffix">€</span>
+        </div>
+      )}
+      {mode === "percent" && (
+        <div style={{ marginTop:12 }}>
+          <Slider label="Part du prix du bien" value={apportPct}
+            onChange={handlePctChange} min={0} max={30} step={1}
+            format={(x) => `${x} %`}
+            hint={`Soit ${fmt(v.apport)} — pour un bien à ${fmt(v.price)}`}
+          />
+        </div>
+      )}
+      {mode === "optimal" && (
+        <div className="fv2-apport-optimal-box">
+          <span className="fv2-apport-optimal-val">{fmt(optimalApport)}</span>
+          <span className="fv2-apport-optimal-sub">
+            Calculé sur la base de vos revenus ({v.revenus.toLocaleString("fr-FR")} €/mois)
+          </span>
+        </div>
+      )}
+
+      <div className={`fv2-apport-hint ${isSufficient ? "fv2-apport-ok" : "fv2-apport-warn"}`}>
+        {v.apport > 0
+          ? <><strong>{apportPct} %</strong> du prix du bien {isSufficient ? "— suffisant pour un bon taux ✓" : "— en dessous de 10 %, taux majoré ⚠️"}</>
+          : "Sans apport : financement plus difficile et taux majoré ⚠️"}
+      </div>
     </div>
   );
 }
@@ -362,6 +478,7 @@ const DEFAULTS = {
   rent: 900,
   charges: 80,
   rentRise: false,
+  taxFonciere: 1100,
 };
 
 export default function FunnelV2() {
@@ -397,7 +514,7 @@ export default function FunnelV2() {
       city,
       price: city.priceM2 * 50,
       rent: city.rentRef,
-      annualPropertyTax: city.taxRef,
+      taxFonciere: city.taxRef,
       appRate: city.appRate,
     }));
   };
@@ -460,17 +577,7 @@ function Step1({ v, set, applyCity, onNext }) {
         />
       </div>
 
-      <div style={{ marginTop: 24 }}>
-        <label className="fv2-field-label" style={{ marginBottom: 8, display: "block" }}>
-          Votre ville ou région <span className="fv2-optional">(optionnel)</span>
-        </label>
-        <CityAutocomplete value={v.city} onChange={applyCity} />
-        {v.city && (
-          <p className="fv2-hint fv2-hint-success">
-            ✓ Prix, loyer et taxe foncière pré-remplis pour {v.city.name}
-          </p>
-        )}
-      </div>
+      <CitySelector v={v} applyCity={applyCity} />
 
       <button
         className="btn-primary fv2-cta"
@@ -490,7 +597,6 @@ function Step1({ v, set, applyCity, onNext }) {
    STEP 2 — FINANCES
    ════════════════════════════════════════════════════════════ */
 function Step2({ v, set, onNext }) {
-  const [customApport, setCustomApport] = useState(false);
   const borrowPower = Math.round(
     v.revenus * 0.35 * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12)
   );
@@ -519,34 +625,7 @@ function Step2({ v, set, onNext }) {
       </div>
 
       {/* ── Apport ── */}
-      <div className="fv2-slider-wrap">
-        <div className="fv2-slider-header">
-          <span className="fv2-slider-label">Apport disponible</span>
-          <span className="fv2-slider-val">{fmt(v.apport)}</span>
-        </div>
-        <div className="fv2-apport-pills">
-          {APPORT_PRESETS.map((p) => (
-            <button key={p} type="button"
-              className={`fv2-apport-pill${v.apport === p && !customApport ? " fv2-apport-active" : ""}`}
-              onClick={() => { set("apport")(p); setCustomApport(false); }}
-            >{p === 0 ? "Aucun" : fmtK(p)}</button>
-          ))}
-          <button type="button"
-            className={`fv2-apport-pill${customApport ? " fv2-apport-active" : ""}`}
-            onClick={() => setCustomApport(true)}
-          >Autre</button>
-        </div>
-        {customApport && (
-          <div className="fv2-field-row" style={{ marginTop: 10 }}>
-            <input type="number" min={0} step={1000} className="fv2-field-input"
-              value={v.apport}
-              onChange={(e) => set("apport")(Number(e.target.value) || 0)}
-            />
-            <span className="fv2-field-suffix">€</span>
-          </div>
-        )}
-        <p className="fv2-hint">Épargne mobilisable hors réserve d'urgence</p>
-      </div>
+      <ApportSelector v={v} set={set} />
 
       {/* ── Situation pro ── */}
       <div style={{ marginTop: 20 }}>
@@ -562,14 +641,6 @@ function Step2({ v, set, onNext }) {
               onClick={() => set("emploi")(e.id)} icon={e.icon} label={e.label} />
           ))}
         </div>
-      </div>
-
-      <div className="fv2-privacy-note">
-        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-          <rect x="2" y="6" width="10" height="7" rx="1.5" stroke="#64748b" strokeWidth="1.3"/>
-          <path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6" stroke="#64748b" strokeWidth="1.3" strokeLinecap="round"/>
-        </svg>
-        Ces informations restent 100 % confidentielles
       </div>
 
       <button className="btn-primary fv2-cta" onClick={onNext}>
@@ -780,54 +851,46 @@ function Step5({ v, set, onNext }) {
    ════════════════════════════════════════════════════════════ */
 function Step6({ v, result, onEdit, onEmail }) {
   const [chartReady, setChartReady] = useState(false);
-  useEffect(() => { const t = setTimeout(() => setChartReady(true), 150); return () => clearTimeout(t); }, []);
+  useEffect(() => { const t = setTimeout(() => setChartReady(true), 200); return () => clearTimeout(t); }, []);
 
-  const { isBuyBetter, advantage, breakEven, yearlyData, monthlyPayment, ownerMonthly,
-          ownerNWEnd, renterPortfolio, notary } = result;
+  const { isBuyBetter, advantage, breakEven, yearlyData, monthlyPayment,
+          ownerNWEnd, renterPortfolio } = result;
 
-  const buyColor  = "#1a56db";
-  const rentColor = "#f59e0b";
-  const verdictBg = isBuyBetter ? "linear-gradient(135deg,#0f4c81,#1a56db)" : "linear-gradient(135deg,#92400e,#d97706)";
-
+  const buyColor  = "#2563eb";
+  const rentColor = "#06b6d4";
   const maxNW = Math.max(...yearlyData.map((d) => Math.max(d.ownerNW, d.renterNW)));
   const minNW = Math.min(...yearlyData.map((d) => Math.min(d.ownerNW, d.renterNW)));
+
+  const breakEvenDisplay = breakEven
+    ? `${breakEven} an${breakEven > 1 ? "s" : ""}`
+    : isBuyBetter ? "Dès le départ" : `> ${v.duration} ans`;
+
+  const insight = isBuyBetter
+    ? `En restant dans ce bien ${v.duration} ans, acheter vous rapporte ${fmt(Math.abs(advantage))} de patrimoine supplémentaire par rapport à rester locataire et placer la différence.`
+    : `Sur ${v.duration} ans, rester locataire et placer vos économies vous laisse ${fmt(Math.abs(advantage))} de plus qu'acheter.${breakEven ? ` L'achat deviendrait rentable à partir de ${breakEven} ans.` : ""}`;
+
+  const timelineZone = v.duration < 5 ? "rent" : v.duration > 15 ? "buy" : "neutral";
+  const markerPct = Math.min(Math.max((v.duration / 25) * 100, 2), 98);
 
   return (
     <div className="fv2-result">
 
-      {/* ── Verdict banner ── */}
-      <div className="fv2-verdict-banner" style={{ background: verdictBg }}>
-        <div className="fv2-verdict-pill">
-          {isBuyBetter ? "🏠 Acheter" : "🔑 Louer"}
+      {/* ── Grand verdict ── */}
+      <div className={`fv2-verdict2 ${isBuyBetter ? "fv2-verdict2-buy" : "fv2-verdict2-rent"}`}>
+        <div className="fv2-verdict2-icon">{isBuyBetter ? "🏠" : "🔑"}</div>
+        <div className="fv2-verdict2-body">
+          <h1 className="fv2-verdict2-title">
+            {isBuyBetter ? "Acheter est plus avantageux" : "Louer est plus avantageux"}
+          </h1>
+          <p className="fv2-verdict2-sub">
+            {breakEven && isBuyBetter
+              ? `Rentable après ${breakEven} an${breakEven > 1 ? "s" : ""} · ${v.duration} ans comparés`
+              : `Sur ${v.duration} ans`}
+          </p>
         </div>
-        <h1 className="fv2-verdict-title">
-          {isBuyBetter
-            ? breakEven
-              ? `Rentable après ${breakEven} an${breakEven > 1 ? "s" : ""}`
-              : "Rentable dès maintenant"
-            : "La location reste avantageuse"}
-        </h1>
-        <p className="fv2-verdict-sub">
-          {isBuyBetter
-            ? `Sur ${v.duration} ans, acheter vous fait gagner `
-            : `Sur ${v.duration} ans, louer préserve `}
-          <strong>{fmt(Math.abs(advantage))}</strong>
-          {isBuyBetter ? " de patrimoine de plus" : " de plus que l'achat"}
-        </p>
-      </div>
-
-      {/* ── Patrimoine comparé ── */}
-      <div className="fv2-patrimoine-row">
-        <div className="fv2-pat-card fv2-pat-buy">
-          <span className="fv2-pat-label">Patrimoine acheteur</span>
-          <span className="fv2-pat-val">{fmt(ownerNWEnd)}</span>
-          <span className="fv2-pat-sub">Valeur bien − capital dû − frais cession</span>
-        </div>
-        <div className="fv2-pat-vs">vs</div>
-        <div className="fv2-pat-card fv2-pat-rent">
-          <span className="fv2-pat-label">Patrimoine locataire</span>
-          <span className="fv2-pat-val">{fmt(renterPortfolio)}</span>
-          <span className="fv2-pat-sub">Apport + surplus placés à 3,5 %/an</span>
+        <div className="fv2-verdict2-adv">
+          <span className="fv2-verdict2-adv-val">{fmt(Math.abs(advantage))}</span>
+          <span className="fv2-verdict2-adv-lbl">d'avantage</span>
         </div>
       </div>
 
@@ -835,75 +898,114 @@ function Step6({ v, result, onEdit, onEmail }) {
       <div className="fv2-chart-wrap">
         <p className="fv2-chart-title">Évolution du patrimoine net — {v.duration} ans</p>
         {chartReady && (
-          <ResponsiveContainer width="100%" height={210}>
-            <LineChart data={yearlyData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.05)" />
+          <ResponsiveContainer width="100%" height={230}>
+            <LineChart data={yearlyData} margin={{ top: 8, right: 16, left: 0, bottom: 0 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(0,0,0,.06)" />
               <XAxis dataKey="year" tickLine={false} axisLine={false}
                 tick={{ fontSize: 11, fill: "#94a3b8" }} tickFormatter={(y) => `${y}a`} />
               <YAxis tickLine={false} axisLine={false}
-                tick={{ fontSize: 11, fill: "#94a3b8" }} width={52}
+                tick={{ fontSize: 11, fill: "#94a3b8" }} width={54}
                 tickFormatter={fmtK}
                 domain={[Math.min(0, Math.floor(minNW * 1.15 / 10000) * 10000), Math.ceil(maxNW * 1.1 / 10000) * 10000]}
               />
               <Tooltip content={<ChartTip />} />
               {breakEven && (
                 <ReferenceLine x={breakEven} stroke="#6366f1" strokeDasharray="4 3"
-                  label={{ value: `Équilibre`, position: "insideTopRight", fontSize: 10, fill: "#6366f1" }} />
+                  label={{ value:`Équilibre (${breakEven}a)`, position:"insideTopRight", fontSize:10, fill:"#6366f1" }} />
               )}
               <Line type="monotone" dataKey="ownerNW" name="Acheter"
-                stroke={buyColor} strokeWidth={2.5} dot={false}
+                stroke={buyColor} strokeWidth={3} dot={false}
                 animationDuration={1200} animationEasing="ease-out" />
               <Line type="monotone" dataKey="renterNW" name="Louer + placer"
-                stroke={rentColor} strokeWidth={2.5} dot={false}
-                animationDuration={1400} animationEasing="ease-out" />
+                stroke={rentColor} strokeWidth={3} dot={false}
+                animationDuration={1500} animationEasing="ease-out" />
             </LineChart>
           </ResponsiveContainer>
         )}
         <div className="fv2-chart-legend">
-          <span><span className="fv2-leg-dot" style={{ background: buyColor }} />Acheter</span>
-          <span><span className="fv2-leg-dot" style={{ background: rentColor }} />Louer + placer</span>
-          {breakEven && <span><span className="fv2-leg-dot" style={{ background: "#6366f1" }} />Équilibre</span>}
+          <span><span className="fv2-leg-dot" style={{ background:buyColor }} />Acheter</span>
+          <span><span className="fv2-leg-dot" style={{ background:rentColor }} />Louer + placer</span>
+          {breakEven && <span><span className="fv2-leg-dot" style={{ background:"#6366f1" }} />Équilibre</span>}
         </div>
       </div>
 
-      {/* ── Détails clés ── */}
-      <div className="fv2-key-figures">
-        <div className="fv2-kf-row">
-          <span>💳 Mensualité crédit</span>
-          <strong>{fmt(monthlyPayment)}/mois</strong>
+      {/* ── 3 cartes chiffres clés ── */}
+      <div className="fv2-kf-cards">
+        <div className="fv2-kf-card">
+          <span className="fv2-kf-card-icon">⚖️</span>
+          <span className="fv2-kf-card-val">{breakEvenDisplay}</span>
+          <span className="fv2-kf-card-label">Point d'équilibre</span>
         </div>
-        <div className="fv2-kf-row">
-          <span>🏠 Coût total propriétaire</span>
-          <strong>{fmt(ownerMonthly)}/mois</strong>
+        <div className="fv2-kf-card fv2-kf-card-main">
+          <span className="fv2-kf-card-icon">{isBuyBetter ? "📈" : "💰"}</span>
+          <span className="fv2-kf-card-val">{fmt(Math.abs(advantage))}</span>
+          <span className="fv2-kf-card-label">Différence de patrimoine</span>
         </div>
-        <div className="fv2-kf-row">
-          <span>📋 Frais de notaire</span>
-          <strong>{fmt(notary)}</strong>
+        <div className="fv2-kf-card">
+          <span className="fv2-kf-card-icon">💳</span>
+          <span className="fv2-kf-card-val">{fmt(monthlyPayment)}</span>
+          <span className="fv2-kf-card-label">Mensualité / mois</span>
         </div>
-        {breakEven && (
-          <div className="fv2-kf-row fv2-kf-highlight">
-            <span>⚖️ Point d'équilibre achat / location</span>
-            <strong>{breakEven} ans</strong>
+      </div>
+
+      {/* ── Insight naturel ── */}
+      <div className="fv2-insight-box">
+        <span className="fv2-insight-icon">💡</span>
+        <p className="fv2-insight-text">{insight}</p>
+      </div>
+
+      {/* ── Timeline pédagogique ── */}
+      <div className="fv2-timeline">
+        <p className="fv2-timeline-title">Horizon de rentabilité</p>
+        <div className="fv2-timeline-outer">
+          <div className="fv2-timeline-track">
+            <div className={`fv2-timeline-zone fv2-tz-rent${timelineZone === "rent" ? " fv2-tz-active" : ""}`}>
+              <span className="fv2-tz-label">🔑 Location</span>
+              <span className="fv2-tz-range">&lt; 5 ans</span>
+            </div>
+            <div className={`fv2-timeline-zone fv2-tz-neutral${timelineZone === "neutral" ? " fv2-tz-active" : ""}`}>
+              <span className="fv2-tz-label">⚖️ Neutre</span>
+              <span className="fv2-tz-range">5–15 ans</span>
+            </div>
+            <div className={`fv2-timeline-zone fv2-tz-buy${timelineZone === "buy" ? " fv2-tz-active" : ""}`}>
+              <span className="fv2-tz-label">🏠 Achat</span>
+              <span className="fv2-tz-range">&gt; 15 ans</span>
+            </div>
           </div>
-        )}
+          <div className="fv2-timeline-marker" style={{ left:`${markerPct}%` }}>
+            <span className="fv2-timeline-you">↑ {v.duration} ans</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Patrimoine comparé (compact) ── */}
+      <div className="fv2-patrimoine-row">
+        <div className="fv2-pat-card fv2-pat-buy">
+          <span className="fv2-pat-label">🏠 Acheteur</span>
+          <span className="fv2-pat-val">{fmt(ownerNWEnd)}</span>
+          <span className="fv2-pat-sub">Valeur bien − capital dû</span>
+        </div>
+        <div className="fv2-pat-vs">vs</div>
+        <div className="fv2-pat-card fv2-pat-rent">
+          <span className="fv2-pat-label">🔑 Locataire</span>
+          <span className="fv2-pat-val">{fmt(renterPortfolio)}</span>
+          <span className="fv2-pat-sub">Apport + surplus placés</span>
+        </div>
       </div>
 
       {/* ── CTAs ── */}
       <div className="fv2-result-ctas">
-        <button type="button" className="btn-primary fv2-cta" onClick={onEmail}>
-          Recevoir mon analyse complète
+        <button type="button" className="btn-primary fv2-cta fv2-cta-email" onClick={onEmail}>
+          📧 Recevoir mon analyse par email
         </button>
         <button type="button" className="fv2-btn-secondary" onClick={onEdit}>
-          Modifier mes paramètres
+          🔄 Relancer une simulation
         </button>
       </div>
 
       <div className="fv2-result-actions-row">
-        <Link to="/simulateurs" className="fv2-edit-btn">
-          Autres simulateurs →
-        </Link>
+        <Link to="/simulateurs" className="fv2-edit-btn">Autres simulateurs →</Link>
       </div>
-
       <p className="fv2-disclaimer">
         Simulation indicative. Les projections dépendent des hypothèses saisies — consultez un conseiller avant toute décision.
       </p>
