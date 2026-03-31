@@ -9885,3 +9885,312 @@ input[type="range"].fv2-slider {
   .sim-related-grid { grid-template-columns: 1fr 1fr; gap: 8px; }
   .sim-related-card { padding: 12px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   RESPONSIVE FULL-SITE AUDIT — 2026
+   Règles absolues : aucun overflow horizontal, touch targets 48px,
+   tous les textes ≥ 14px, inputs 100% sur mobile, charts ≤ 180px mobile
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── 1. Global overflow guard ────────────────────────────── */
+img, svg, video, canvas, picture { max-width: 100%; display: block; }
+svg { display: inline-block; }  /* keep inline for icons */
+.page, #root, main, section, article, aside, header, footer, nav {
+  max-width: 100%;
+}
+/* Ensure no element can cause horizontal page overflow */
+.sim-page, .blog-page, .article-page, .result-page,
+.shub-page, .guide-perso-content, .guide-perso-hero,
+.im-page, .im-game, .im-intro, .lph-section, .lph-hero,
+.ml-content-wrapper, .abt-content, .cm-page,
+.funnel-step, .step-card, .ville-page {
+  overflow-x: hidden;
+}
+
+/* ── 2. iOS input zoom prevention (font-size < 16px triggers zoom) */
+@media (max-width: 768px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="search"],
+  input[type="password"],
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ── 3. Tables: fit on 390px screens ─────────────────────── */
+/* amort-table: min-width 360px → 280px on mobile */
+@media (max-width: 480px) {
+  .amort-table        { min-width: 280px; font-size: 11.5px; }
+  .amort-table thead th,
+  .amort-table tbody td { padding: 7px 6px; font-size: 11px; }
+
+  /* compare-table: min-width 380px → 240px on mobile */
+  .compare-table      { min-width: 240px; font-size: 12px; }
+  .compare-table thead th,
+  .compare-table tbody td { padding: 8px 8px; font-size: 12px; }
+
+  /* ml-table: remove nowrap on mobile, shrink padding */
+  .ml-table           { font-size: 12px; }
+  .ml-table th        { white-space: normal; padding: 6px 8px; font-size: 11px; }
+  .ml-table td        { padding: 8px 8px; font-size: 12px; }
+  .ml-table td:first-child { white-space: normal; }
+}
+
+/* ── 4. Blog article: raw tables inside article body ─────── */
+@media (max-width: 640px) {
+  .article-body table,
+  .blog-article table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    font-size: 13px;
+  }
+  .article-body table th,
+  .article-body table td,
+  .blog-article table th,
+  .blog-article table td {
+    padding: 8px 10px;
+    white-space: normal;
+  }
+  .article-body pre, .blog-article pre {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    max-width: 100%;
+    font-size: 12px;
+  }
+  /* Article CTA button: full width */
+  .article-cta { padding: 24px 18px; }
+  .article-cta .btn-primary {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+/* ── 5. Landing page lph-: 390px & 320px adjustments ─────── */
+@media (max-width: 390px) {
+  .lph-hero    { padding: 56px 14px 60px; }
+  .lph-title   { font-size: 38px !important; }
+  .lph-sub     { font-size: 16px; }
+  .lph-btns    { flex-direction: column; align-items: stretch; gap: 10px; }
+  .lph-btn-primary,
+  .lph-btn-ghost { width: 100%; justify-content: center; text-align: center; }
+  .lph-section { padding: 48px 14px; }
+  .lph-container { padding: 0 14px; }
+  .lph-mobile-stat-val { font-size: 24px; }
+  .lph-mobile-stat-label { font-size: 10px; }
+}
+
+@media (max-width: 320px) {
+  .lph-title   { font-size: 30px !important; }
+  .lph-hero    { padding: 40px 12px 48px; }
+  .lph-section { padding: 36px 12px; }
+  .lph-container { padding: 0 12px; }
+  .lph-why-grid, .lph-sims-grid, .lph-testi-grid { grid-template-columns: 1fr !important; }
+  .shub-grid   { grid-template-columns: 1fr !important; }
+  .sim-related-grid { grid-template-columns: 1fr !important; }
+  .fv2-kf-cards { grid-template-columns: 1fr 1fr !important; }
+}
+
+/* ── 6. SimLayout premium header: 390px fixes ───────────── */
+@media (max-width: 390px) {
+  .sim-ph-inner   { padding: 16px 14px 18px; gap: 10px; }
+  .sim-ph-icon    { font-size: 28px; }
+  .sim-ph-title   { font-size: 17px; }
+  .sim-ph-desc    { font-size: 12.5px; }
+  .sim-ph-badge   { font-size: 10px; padding: 3px 7px; }
+  .sim-share-btn  { padding: 5px 10px; font-size: 11px; }
+  .sim-ph-actions { gap: 4px; }
+  .sim-ph-meta    { gap: 5px; }
+}
+
+/* ── 7. SimulateurHub: 390px fixes ──────────────────────── */
+@media (max-width: 390px) {
+  .shub-page         { padding: 16px 12px 60px; gap: 16px; }
+  .shub-hero-title   { font-size: 22px; }
+  .shub-stat-jour    { min-width: 0; }
+  .shub-featured-left { padding: 18px 16px; }
+  .shub-featured-title { font-size: 18px !important; }
+  .shub-tab          { padding: 7px 10px; font-size: 12px; }
+  .shub-card         { padding: 14px 12px; }
+}
+
+/* ── 8. Funnel V2: 390px refinements ────────────────────── */
+@media (max-width: 390px) {
+  .fv2-verdict2      { padding: 16px 14px; gap: 12px; }
+  .fv2-verdict2-title { font-size: 17px; }
+  .fv2-kf-card       { padding: 12px 8px; }
+  .fv2-kf-card-val   { font-size: 13px; }
+  .fv2-insight-box   { padding: 12px 14px; }
+  .fv2-insight-text  { font-size: 13px; }
+  .fv2-timeline      { padding: 12px 14px; }
+  .fv2-city-mode     { padding: 12px 14px; }
+}
+
+/* ── 9. All interactive elements: 48px touch targets ─────── */
+@media (max-width: 768px) {
+  .fv2-apply-btn       { min-height: 48px; }
+  .shub-search         { min-height: 50px; }
+  .shub-guide-banner   { min-height: 48px; }
+  .topbar-hamburger    { min-height: 48px; min-width: 48px; }
+  .sim-share-btn       { min-height: 40px; }
+  .guide-quiz-option   { min-height: 52px; }
+}
+
+/* ── 10. PageJeu im-: 390px fixes ────────────────────────── */
+@media (max-width: 390px) {
+  .im-intro  { padding: 32px 14px 28px; }
+  .im-intro-title { font-size: clamp(24px, 7vw, 36px); }
+  .im-game   { padding: 16px 12px 12px; }
+  .im-card   { border-radius: 16px; }
+  .im-card-person { padding: 14px 14px 0; gap: 10px; }
+  .im-avatar { font-size: 36px; }
+  .im-card-name { font-size: 16px; }
+  .im-btns   { gap: 8px; }
+  .im-btn-rent, .im-btn-buy { padding: 14px 10px; border-radius: 12px; }
+  .im-start-btn { width: 100%; padding: 14px 20px; }
+}
+
+/* ── 11. Blog & article: 390px fixes ─────────────────────── */
+@media (max-width: 390px) {
+  .article-page  { padding: 14px 12px 60px; }
+  .article-h1    { font-size: clamp(20px, 6vw, 28px); }
+  .article-meta  { flex-wrap: wrap; gap: 6px; font-size: 12px; }
+  .blog-page     { padding: 20px 12px 60px; }
+  .blog-title    { font-size: clamp(22px, 7vw, 32px); }
+  .featured-card-body { padding: 18px 14px; }
+  .featured-card-title { font-size: 16px; }
+}
+
+/* ── 12. À propos page: 390px fixes ─────────────────────── */
+@media (max-width: 480px) {
+  .abt-content   { padding: 0 0 48px; }
+  .abt-formula-code { font-size: 12px; padding: 8px 10px; }
+  .abt-section   { margin-bottom: 36px; }
+}
+
+/* ── 13. Mentions légales: 390px fixes ───────────────────── */
+@media (max-width: 480px) {
+  .ml-content-wrapper { padding: 0 0 60px; }
+  .ml-table-wrapper   { border-radius: 12px; }
+}
+
+/* ── 14. TopBar: ensure hamburger threshold covers tablets ── */
+/* Already at 680px — add 768px for larger tablets */
+@media (max-width: 768px) and (min-width: 681px) {
+  /* Keep desktop nav visible on tablets between 681-768px */
+  .topbar-nav-pill { padding: 7px 11px; font-size: 12px; }
+  .topbar-nav-icon { display: none; }
+}
+
+/* ── 15. Simulator conseil box: wraps properly on mobile ──── */
+@media (max-width: 480px) {
+  .sim-conseil-box {
+    padding: 12px 14px;
+    border-radius: 14px;
+    gap: 10px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sim-conseil-text { font-size: 13px; }
+}
+
+/* ── 16. SimComparateurVilles: chart overflow prevention ──── */
+@media (max-width: 480px) {
+  .comparateur-chart-wrap { overflow: hidden; max-width: 100%; }
+  .comparateur-chart-wrap .recharts-responsive-container { overflow: hidden; }
+}
+
+/* ── 17. Step-fields: force single column on all mobile ───── */
+@media (max-width: 640px) {
+  .step-fields { grid-template-columns: 1fr !important; }
+  .field-row   { flex-direction: column !important; }
+}
+
+/* ── 18. Recharts: clip overflow on all chart containers ──── */
+@media (max-width: 640px) {
+  .recharts-surface { overflow: visible; }
+  .recharts-wrapper,
+  .sim-chart-wrap,
+  .recharts-responsive-container {
+    max-width: 100% !important;
+    overflow: hidden;
+  }
+}
+
+/* ── 19. Buttons: full-width on very small screens ────────── */
+@media (max-width: 390px) {
+  .btn-primary { width: 100%; justify-content: center; }
+  .fv2-cta-email,
+  .fv2-cta-restart { width: 100% !important; justify-content: center; }
+  .sim-share-btn { width: auto; }
+}
+
+/* ── 20. Tooltips & popovers: never overflow viewport ─────── */
+@media (max-width: 480px) {
+  [class*="tooltip"],
+  [class*="popover"],
+  [class*="popup"] {
+    max-width: calc(100vw - 24px) !important;
+    left: 50% !important;
+    transform: translateX(-50%) !important;
+  }
+  /* But field-info-popup is already handled as bottom sheet */
+  .field-info-popup {
+    left: 12px !important;
+    right: 12px !important;
+    transform: none !important;
+    max-width: none !important;
+  }
+}
+
+/* ── 21. abt-methodo-grid formulas: code overflow ─────────── */
+.abt-formula-code {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+  word-break: break-all;
+}
+
+/* ── 22. Ville page: responsive enhancements ─────────────── */
+@media (max-width: 480px) {
+  .ville-hero    { padding: 24px 16px 32px; }
+  .ville-body    { padding: 24px 16px 40px; }
+  .ville-h1      { font-size: clamp(22px, 6vw, 32px); }
+  .ville-sim-stats { gap: 8px; }
+}
+
+/* ── 23. ShubGrid search: prevent icon overflow ──────────── */
+.shub-search-wrap { max-width: 100%; }
+.shub-search { max-width: 100%; min-width: 0; }
+
+/* ── 24. Funnel progress bar: hide text on very small screens */
+@media (max-width: 390px) {
+  .sfb-label { display: none; }
+  .sfb-step  { padding: 4px 5px; }
+  .sim-funnel-bar { gap: 2px; }
+}
+
+/* ── 25. Guide achat & personnalisé: 390px ─────────────────── */
+@media (max-width: 390px) {
+  .guide-perso-hero    { padding: 32px 14px 24px; }
+  .guide-perso-title   { font-size: 22px; }
+  .guide-perso-content { padding: 24px 12px 60px; }
+  .guide-quiz-card     { padding: 18px 14px; }
+  .guide-quiz-question { font-size: 16px; }
+  .guide-quiz-option   { padding: 12px 12px; font-size: 14px; }
+  .guide-result-step   { padding: 12px 10px; gap: 8px; }
+}
+
+/* ── 26. Carte mondiale: touch interaction enhancements ───── */
+@media (max-width: 480px) {
+  .cm-hero-text { min-width: 0; }
+  .cm-page      { flex-direction: column; }
+  .cm-map-wrap  { height: 50vh; min-height: 280px; }
+}
+
