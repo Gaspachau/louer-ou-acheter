@@ -102,6 +102,7 @@ export default function SimBudgetMax() {
       icon="🏆"
       title="Budget maximum d'achat"
       description="Calculez précisément jusqu'où vous pouvez aller — et découvrez dans quelles villes vous pouvez acheter."
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/frais-notaire"]}
     >
       <div className="sim-layout">
         {/* Inputs */}
@@ -143,6 +144,15 @@ export default function SimBudgetMax() {
             <p className="sim-empty">Renseignez vos revenus pour voir votre budget maximum.</p>
           ) : (
             <>
+              {/* Hero */}
+              <div className="sim-stat-hero sim-hero-blue" style={{ marginBottom: 20 }}>
+                <span className="sim-stat-label">Budget maximum d'achat (20 ans)</span>
+                <span className="sim-stat-value">{fmtCur(res.maxPrice20)}</span>
+                <p className="sim-stat-hero-summary">
+                  Mensualité de {fmtCur(res.budgets.find(b => b.duree === 20)?.mensualite ?? 0)}/mois · apport {fmtCur(v.apport)} · {res.nbVilles} ville{res.nbVilles > 1 ? "s" : ""} accessibles sur 25 ans.
+                </p>
+              </div>
+
               {/* Budget par durée */}
               <p className="sim-card-legend" style={{ marginBottom: 10 }}>Budget maximum selon la durée</p>
               <div className="budget-duree-grid">

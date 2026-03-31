@@ -77,6 +77,7 @@ export default function SimTaxeFonciere() {
       icon="🏛️"
       title="Estimateur de taxe foncière"
       description="Estimez votre taxe foncière annuelle selon la ville, le type de bien et la surface — basé sur la valeur locative cadastrale."
+      suggestions={["/simulateurs/charges-copro", "/simulateurs/rentabilite-locative", "/simulateurs/plus-value"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

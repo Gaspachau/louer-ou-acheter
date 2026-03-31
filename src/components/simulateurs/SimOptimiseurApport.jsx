@@ -103,6 +103,7 @@ export default function SimOptimiseurApport() {
       icon="💡"
       title="Optimiseur d'apport"
       description="Vaut-il mieux acheter maintenant ou épargner quelques mois de plus ? Comparez l'impact chiffré."
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/epargne"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

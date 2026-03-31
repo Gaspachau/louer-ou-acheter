@@ -74,6 +74,7 @@ export default function SimPretConso() {
       title="Simulateur de prêt conso"
       description="Calculez la mensualité et le coût total d'un crédit à la consommation."
       simTime="1 min"
+      suggestions={["/simulateurs/endettement", "/simulateurs/niveau-de-vie", "/simulateurs/epargne"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

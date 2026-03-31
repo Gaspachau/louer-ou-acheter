@@ -118,6 +118,7 @@ export default function SimScoreAcheteur() {
       title="Score de préparation à l'achat"
       description="Évaluez votre maturité sur 5 dimensions clés et obtenez un plan d'action personnalisé."
       simTime="3 min"
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout">
         {/* Form */}

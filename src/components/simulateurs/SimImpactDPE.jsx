@@ -91,6 +91,7 @@ export default function SimImpactDPE() {
       title="Impact DPE & rénovation énergétique"
       description="Mesurez la décote d'un bien énergivore, les économies de charges après travaux et le retour sur investissement de la rénovation."
       conseils={CONSEILS}
+      suggestions={["/simulateurs/rentabilite-locative", "/simulateurs/plus-value", "/simulateurs/pret-immobilier"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

@@ -140,6 +140,7 @@ export default function SimNegociation() {
       title="Simulateur de négociation"
       description="À quel prix négocier pour que l'achat soit au moins aussi rentable que la location sur votre horizon ?"
       conseils={CONSEILS}
+      suggestions={["/simulateurs/frais-notaire", "/simulateurs/pret-immobilier", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

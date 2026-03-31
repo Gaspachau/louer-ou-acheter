@@ -64,6 +64,7 @@ export default function SimChargesCopro() {
       title="Calculateur de charges de copropriété"
       description="Estimez votre quote-part de charges mensuelles et annuelles selon vos tantièmes de copropriété."
       simTime="1 min"
+      suggestions={["/simulateurs/taxe-fonciere", "/simulateurs/rentabilite-locative", "/simulateurs/frais-notaire"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

@@ -159,6 +159,7 @@ export default function SimHistoire() {
       icon="📖"
       title="Votre histoire financière"
       description="Visualisez votre vie de propriétaire ou de locataire, année par année, comme un récit avec ses rebondissements."
+      suggestions={["/simulateurs/machine-temps", "/simulateurs/comparateur-villes", "/simulateurs/rentabilite-locative"]}
     >
       <div className="sim-layout">
         {/* Inputs */}

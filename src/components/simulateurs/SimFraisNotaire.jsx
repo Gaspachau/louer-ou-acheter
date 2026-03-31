@@ -118,6 +118,7 @@ export default function SimFraisNotaire() {
       title="Calculateur de frais de notaire"
       description="Calculez les frais de notaire au centime près selon le barème légal 2026, pour un achat dans l'ancien ou le neuf."
       simTime="1 min"
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

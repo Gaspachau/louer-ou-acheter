@@ -114,6 +114,7 @@ export default function SimRemboursementAnticipe() {
       title="Remboursement anticipé"
       description="Vaut-il mieux rembourser votre crédit par anticipation ou placer cet argent ? Calculez l'économie réelle."
       conseils={CONSEILS}
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/epargne", "/simulateurs/endettement"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

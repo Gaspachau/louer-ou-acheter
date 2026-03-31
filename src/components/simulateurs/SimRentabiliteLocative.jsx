@@ -94,6 +94,7 @@ export default function SimRentabiliteLocative() {
       title="Simulateur de rentabilité locative"
       description="Calculez le rendement brut, net et votre cashflow mensuel pour un investissement locatif."
       simTime="3 min"
+      suggestions={["/simulateurs/plus-value", "/simulateurs/frais-notaire", "/simulateurs/impact-dpe"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

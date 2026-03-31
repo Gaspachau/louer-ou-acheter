@@ -124,6 +124,7 @@ export default function SimEndettement() {
       icon="📉"
       title="Calculateur d'endettement"
       description="Évaluez votre taux d'endettement et estimez votre capacité d'emprunt maximale."
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/niveau-de-vie", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout">
         <div className="sim-card">
@@ -153,6 +154,17 @@ export default function SimEndettement() {
                 <div className={`sim-verdict sim-verdict-${verdict.color}`}>
                   <strong>{verdict.label}</strong>
                   <p>{verdict.msg}</p>
+                </div>
+              )}
+              {verdict?.color === "red" && (
+                <div className="sim-info-box" style={{ marginTop: 12, borderLeft: "3px solid #dc2626" }}>
+                  <p className="sim-info-title">🛠️ Plan d'action pour améliorer votre dossier</p>
+                  <p className="sim-info-body">
+                    <strong>1. Soldez un crédit existant :</strong> supprimer {formatCurrency(Math.ceil((v.chargesExistantes - v.revenus * 0.35) / 1) + 50)}/mois de charges vous ramène sous les 35 %.<br/>
+                    <strong>2. Augmentez l'apport :</strong> un apport plus élevé réduit le capital à emprunter et donc la mensualité.<br/>
+                    <strong>3. Allongez la durée :</strong> passer à 25 ans réduit la mensualité d'environ 15–20 % (mais augmente le coût total).<br/>
+                    <strong>4. Rachat de crédits :</strong> regrouper vos crédits peut abaisser significativement votre taux d'endettement global.
+                  </p>
                 </div>
               )}
 

@@ -132,6 +132,7 @@ export default function SimStressTest() {
       icon="🛡️"
       title="Test de résistance financière"
       description="Votre projet immobilier résiste-t-il à l'adversité ? Simulez 3 scénarios de crise et mesurez votre résilience."
+      suggestions={["/simulateurs/endettement", "/simulateurs/pret-immobilier", "/simulateurs/niveau-de-vie"]}
     >
       <div className="sim-layout">
         {/* Form */}

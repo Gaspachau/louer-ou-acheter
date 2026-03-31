@@ -25,6 +25,11 @@ export default function SimNiveauDeVie() {
   });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
+  // Médianes nationales France 2026 (INSEE / Banque de France)
+  const MEDIANE_FR = { salaire: 2260, loyer: 780, alimentation: 350, transport: 180, telecom: 50, assurances: 80, autres: 100 };
+  const MEDIANE_TOTAL_CHARGES = Object.entries(MEDIANE_FR).filter(([k]) => k !== "salaire").reduce((s, [, val]) => s + val, 0);
+  const MEDIANE_DISPONIBLE = MEDIANE_FR.salaire - MEDIANE_TOTAL_CHARGES;
+
   const res = useMemo(() => {
     const totalCharges = CHARGE_FIELDS.reduce((sum, f) => sum + (v[f.key] || 0), 0);
     const disponible = v.salaire - totalCharges;
@@ -45,6 +50,7 @@ export default function SimNiveauDeVie() {
       title="Calculateur de niveau de vie"
       description="Calculez votre revenu disponible après toutes vos charges fixes mensuelles."
       simTime="3 min"
+      suggestions={["/simulateurs/endettement", "/simulateurs/epargne", "/simulateurs/pret-immobilier"]}
     >
       <div className="sim-layout">
         <div className="sim-card">
@@ -136,6 +142,32 @@ export default function SimNiveauDeVie() {
                 <span className="budget-rule-target">{formatCurrency(v.salaire * 0.2)}</span>
               </div>
             </div>
+          </div>
+
+          {/* Comparaison médiane France */}
+          <div className="sim-info-box" style={{ marginTop: 16 }}>
+            <p className="sim-info-title">🇫🇷 Comparaison à la médiane française (2026)</p>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 8 }}>
+              {[
+                { label: "Salaire médian", yours: v.salaire, median: MEDIANE_FR.salaire, suffix: "€/mois" },
+                { label: "Charges médianes", yours: res.totalCharges, median: MEDIANE_TOTAL_CHARGES, suffix: "€/mois", invertColor: true },
+                { label: "Reste à vivre médian", yours: Math.max(0, res.disponible), median: MEDIANE_DISPONIBLE, suffix: "€/mois" },
+              ].map(({ label, yours, median, suffix, invertColor }) => {
+                const better = invertColor ? yours <= median : yours >= median;
+                return (
+                  <div key={label} style={{ background: "var(--bg)", borderRadius: 10, padding: "10px 12px", border: "1px solid var(--line)" }}>
+                    <p style={{ fontSize: 11, color: "var(--muted)", marginBottom: 4 }}>{label}</p>
+                    <p style={{ fontWeight: 800, fontSize: 15, color: better ? "#059669" : "#dc2626", marginBottom: 2 }}>{formatCurrency(yours)}</p>
+                    <p style={{ fontSize: 11, color: "var(--muted)" }}>médiane : {formatCurrency(median)}</p>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="sim-info-body" style={{ marginTop: 8 }}>
+              {res.disponible >= MEDIANE_DISPONIBLE
+                ? `Votre reste à vivre est supérieur à la médiane française (+${formatCurrency(res.disponible - MEDIANE_DISPONIBLE)}/mois). Vous avez une bonne marge pour épargner.`
+                : `Votre reste à vivre est inférieur à la médiane française (−${formatCurrency(MEDIANE_DISPONIBLE - Math.max(0, res.disponible))}/mois). Revoyez vos charges fixes en priorité.`}
+            </p>
           </div>
 
           {(() => {

@@ -72,7 +72,7 @@ function ShareButton() {
   );
 }
 
-export default function SimLayout({ children, title, description, icon, simTime = "2 min", backLabel, conseils, saveValues, onRestore }) {
+export default function SimLayout({ children, title, description, icon, simTime = "2 min", backLabel, conseils, saveValues, onRestore, suggestions }) {
   const conseil = getConseil(conseils);
   const openedAt = useRef(Date.now());
   const location = useLocation();
@@ -86,7 +86,11 @@ export default function SimLayout({ children, title, description, icon, simTime 
     return () => { const secs = Math.round((Date.now() - openedAt.current) / 1000); trackSimulatorClosed(title, secs); };
   }, [title]);
 
-  const relatedSims = ALL_SIMS.filter((s) => s.path !== currentPath).slice(0, 6);
+  // If suggestions prop provided, show curated list; otherwise show generic related sims
+  const relatedSims = suggestions && suggestions.length > 0
+    ? ALL_SIMS.filter((s) => suggestions.includes(s.path))
+    : ALL_SIMS.filter((s) => s.path !== currentPath).slice(0, 6);
+  const relatedTitle = suggestions && suggestions.length > 0 ? "À faire ensuite" : "Simulateurs complémentaires";
 
   return (
     <div className="page">
@@ -135,7 +139,7 @@ export default function SimLayout({ children, title, description, icon, simTime 
 
         {/* ── Related simulators ── */}
         <section className="sim-related-section">
-          <h2 className="sim-related-title">Simulateurs complémentaires</h2>
+          <h2 className="sim-related-title">{relatedTitle}</h2>
           <div className="sim-related-grid">
             {relatedSims.map((s) => (
               <Link key={s.path} to={s.path} className="sim-related-card">

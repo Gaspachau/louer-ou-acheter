@@ -77,6 +77,7 @@ export default function SimEpargne() {
       icon="💰"
       title="Simulateur d'épargne"
       description="Calculez combien épargner chaque mois pour atteindre votre objectif financier."
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/rentabilite-locative", "/simulateurs/niveau-de-vie"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

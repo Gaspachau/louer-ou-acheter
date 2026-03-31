@@ -77,6 +77,7 @@ export default function SimAssurancePret() {
       title="Assurance emprunteur"
       description="Comparez le coût de l'assurance banque vs la délégation d'assurance. Découvrez combien vous pouvez économiser."
       conseils={CONSEILS}
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/frais-notaire"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

@@ -177,6 +177,7 @@ export default function SimCalendrier() {
       icon="📅"
       title="Calendrier personnalisé acheteur"
       description="Votre feuille de route complète vers les clés — étapes, délais et conseils selon votre situation personnelle."
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/frais-notaire", "/simulateurs/endettement"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

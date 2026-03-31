@@ -26,6 +26,7 @@ export default function SimPouvoirAchatM2() {
       title="Pouvoir d'achat immobilier par ville"
       description="Combien de m² pouvez-vous acheter avec votre budget dans 10 grandes villes françaises ?"
       simTime="1 min"
+      suggestions={["/simulateurs/budget-maximum", "/simulateurs/pret-immobilier", "/simulateurs/comparateur-villes"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

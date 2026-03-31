@@ -116,6 +116,7 @@ export default function SimPretImmo() {
       icon="🏦"
       title="Simulateur de prêt immobilier"
       description="Calculez votre mensualité, le coût total et consultez le tableau d'amortissement."
+      suggestions={["/simulateurs/endettement", "/simulateurs/frais-notaire", "/simulateurs/assurance-pret"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

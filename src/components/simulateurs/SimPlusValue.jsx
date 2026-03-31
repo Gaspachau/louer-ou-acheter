@@ -149,6 +149,7 @@ export default function SimPlusValue() {
       title="Simulateur de plus-value immobilière"
       description="Calculez l'impôt sur la plus-value à la revente d'un bien immobilier selon la durée de détention."
       simTime="3 min"
+      suggestions={["/simulateurs/rentabilite-locative", "/simulateurs/frais-notaire", "/simulateurs/taxe-fonciere"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

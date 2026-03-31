@@ -136,6 +136,7 @@ export default function SimMachineTemps() {
       simTime="1 min"
       saveValues={saveValues}
       onRestore={handleRestore}
+      suggestions={["/simulateurs/rentabilite-locative", "/simulateurs/plus-value", "/simulateurs/comparateur-villes"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

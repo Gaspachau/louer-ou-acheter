@@ -55,18 +55,47 @@ export default function SimComparateurVilles() {
     return VILLES.map((v) => {
       const surface = v.surface[typeBien];
       const prixAchat = v.m2Achat[typeBien] * surface;
-      const mensualite = calcMensualite(prixAchat * 1.08, apport, taux, duree); // +8% frais notaire
+      const prixTotal = prixAchat * 1.08; // +8% frais notaire
+      const mensualite = calcMensualite(prixTotal, apport, taux, duree);
       const loyer = v.loyerM2[typeBien] * surface;
       const delta = mensualite - loyer; // positif = achat plus cher
+      // Breakeven: années pour que l'achat soit équivalent à la location
+      // Simplification : capitalisation patrimoine vs loyers cumulés
+      const loyerAnnuel = loyer * 12;
+      const coutCreditTotal = mensualite * duree * 12 - (prixTotal - apport);
+      // Seuil où patrimoine net = somme loyers payés (à ~2% revalorisation annuelle)
+      let breakEvenYears = null;
+      let cumLoyer = 0;
+      let patrimoineNet = -apport - (prixTotal - prixAchat); // apport + frais notaire
+      for (let yr = 1; yr <= 30; yr++) {
+        const loyerYr = loyerAnnuel * Math.pow(1.015, yr - 1);
+        cumLoyer += loyerYr;
+        const propValue = prixAchat * Math.pow(1.02, yr); // +2%/an
+        const r = taux / 100 / 12;
+        const n = duree * 12;
+        const monthsPaid = Math.min(yr * 12, n);
+        let bal = prixTotal - apport;
+        for (let m = 0; m < monthsPaid; m++) {
+          const i = bal * r;
+          bal = Math.max(0, bal - (mensualite - i));
+        }
+        const netWorth = propValue * 0.95 - bal;
+        if (breakEvenYears === null && netWorth >= cumLoyer) {
+          breakEvenYears = yr;
+        }
+      }
       return {
         nom: `${v.flag} ${v.nom}`,
         nomCourt: v.nom,
+        flag: v.flag,
         prixAchat,
         mensualite: Math.round(mensualite),
         loyer: Math.round(loyer),
         delta: Math.round(delta),
         surface,
         m2Achat: v.m2Achat[typeBien],
+        breakEvenYears,
+        coutCreditTotal: Math.round(coutCreditTotal),
       };
     }).sort((a, b) => a.mensualite - b.mensualite);
   }, [typeBien, apport, taux, duree]);
@@ -79,6 +108,7 @@ export default function SimComparateurVilles() {
       icon="🗺️"
       title="Comparateur loyer vs mensualité par ville"
       description="Comparez le coût mensuel d'un achat versus une location dans les 12 principales villes françaises."
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout sim-layout-full">
         {/* Controls */}
@@ -123,8 +153,25 @@ export default function SimComparateurVilles() {
 
         {/* Chart */}
         <div className="sim-results-panel comparateur-results">
+          {(() => {
+            const buyWins = data.filter(d => d.delta <= 0).length;
+            const rentWins = data.length - buyWins;
+            const cheapestBuy = data.slice().sort((a,b) => a.mensualite - b.mensualite)[0];
+            return (
+              <div className="sim-stats-grid" style={{ marginBottom: 16 }}>
+                <div className="sim-stat-card sim-stat-card-blue">
+                  <span className="sim-stat-card-label">Villes où acheter coûte moins</span>
+                  <span className="sim-stat-card-value">{buyWins} / {data.length}</span>
+                </div>
+                <div className="sim-stat-card">
+                  <span className="sim-stat-card-label">Ville la moins chère à l'achat</span>
+                  <span className="sim-stat-card-value">{cheapestBuy?.flag} {cheapestBuy?.nomCourt}</span>
+                </div>
+              </div>
+            );
+          })()}
           <p className="sim-stat-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, textTransform: "uppercase", letterSpacing: ".06em" }}>
-            Loyer vs mensualité — {typeBien} (prix marché 2024)
+            Loyer vs mensualité — {typeBien} (prix marché 2026)
           </p>
 
           <ResponsiveContainer width="100%" height={380}>
@@ -172,6 +219,12 @@ export default function SimComparateurVilles() {
                     <div className="city-card-row">
                       <span>Surface typique {typeBien}</span>
                       <span style={{ color: "var(--muted)" }}>{d.surface} m²</span>
+                    </div>
+                    <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
+                      <span>Point de rentabilité</span>
+                      <span style={{ color: d.breakEvenYears !== null && d.breakEvenYears <= 15 ? "#059669" : d.breakEvenYears !== null && d.breakEvenYears <= 22 ? "#d97706" : "#dc2626", fontWeight: 700 }}>
+                        {d.breakEvenYears !== null ? `${d.breakEvenYears} ans` : "> 30 ans"}
+                      </span>
                     </div>
                   </div>
                 </div>

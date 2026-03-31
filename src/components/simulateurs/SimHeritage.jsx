@@ -84,6 +84,7 @@ export default function SimHeritage() {
       icon="🏛️"
       title="Héritage immobilier : garder ou vendre ?"
       description="Vous héritez d'un bien ou en possédez un en plus de votre résidence. Calculez s'il vaut mieux le garder, le louer ou le vendre."
+      suggestions={["/simulateurs/plus-value", "/simulateurs/taxe-fonciere", "/simulateurs/frais-notaire"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

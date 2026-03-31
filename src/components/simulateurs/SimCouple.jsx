@@ -42,6 +42,7 @@ export default function SimCouple() {
       title="Simulateur d'achat à deux"
       description="Combinez vos revenus pour calculer votre capacité d'emprunt en couple, votre taux d'endettement et votre budget immobilier total."
       simTime="3 min"
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout">
         <div className="sim-card">

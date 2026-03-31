@@ -92,6 +92,7 @@ export default function SimPTZ() {
       title="PTZ 2026 — Êtes-vous éligible ?"
       description="Calculez votre droit au Prêt à Taux Zéro 2026, le montant obtenu et l'économie réalisée sur votre crédit."
       conseils={CONSEILS_PTZ}
+      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
     >
       <div className="sim-layout">
         <div className="sim-card">
