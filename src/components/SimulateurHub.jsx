@@ -361,7 +361,7 @@ export default function SimulateurHub() {
 
         {/* ── Hero ── */}
         <div className="shub-hero">
-          <div className="shub-hero-text">
+          <div className="shub-hero-inner">
             <span className="shub-hero-badge">
               <span className="shub-hero-badge-dot" />
               {SIMS.length} simulateurs gratuits
@@ -370,13 +370,12 @@ export default function SimulateurHub() {
             <p className="shub-hero-sub">
               Des calculateurs précis pour chaque décision immobilière et financière — sans publicité, sans inscription.
             </p>
-            {/* Stats row — inside hero */}
             <div className="shub-hero-stats">
               {[
-                { num: SIMS.length, lbl: "simulateurs gratuits" },
-                { num: "0", lbl: "inscription requise" },
-                { num: "35 %", lbl: "taux HCSF 2026" },
-                { num: "2026", lbl: "données actualisées" },
+                { num: SIMS.length, lbl: "simulateurs" },
+                { num: "0", lbl: "inscription" },
+                { num: "35 %", lbl: "taux HCSF" },
+                { num: "2026", lbl: "mis à jour" },
               ].map(({ num, lbl }) => (
                 <div key={lbl} className="shub-hero-stat">
                   <span className="shub-hero-stat-num">{num}</span>
@@ -384,14 +383,6 @@ export default function SimulateurHub() {
                 </div>
               ))}
             </div>
-          </div>
-
-          {/* Stat du jour */}
-          <div className="shub-stat-jour">
-            <p className="shub-stat-jour-label">💡 Chiffre du jour</p>
-            <p className="shub-stat-jour-val">{stat.stat}</p>
-            <p className="shub-stat-jour-desc">{stat.label}</p>
-            <p className="shub-stat-jour-source">Source : {stat.source}</p>
           </div>
         </div>
 
