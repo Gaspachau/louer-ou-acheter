@@ -370,6 +370,20 @@ export default function SimulateurHub() {
             <p className="shub-hero-sub">
               Des calculateurs précis pour chaque décision immobilière et financière — sans publicité, sans inscription.
             </p>
+            {/* Stats row — inside hero */}
+            <div className="shub-hero-stats">
+              {[
+                { num: SIMS.length, lbl: "simulateurs gratuits" },
+                { num: "0", lbl: "inscription requise" },
+                { num: "35 %", lbl: "taux HCSF 2026" },
+                { num: "2026", lbl: "données actualisées" },
+              ].map(({ num, lbl }) => (
+                <div key={lbl} className="shub-hero-stat">
+                  <span className="shub-hero-stat-num">{num}</span>
+                  <span className="shub-hero-stat-lbl">{lbl}</span>
+                </div>
+              ))}
+            </div>
           </div>
 
           {/* Stat du jour */}
@@ -379,21 +393,6 @@ export default function SimulateurHub() {
             <p className="shub-stat-jour-desc">{stat.label}</p>
             <p className="shub-stat-jour-source">Source : {stat.source}</p>
           </div>
-        </div>
-
-        {/* ── Hero stats row ── */}
-        <div className="shub-hero-stats">
-          {[
-            { num: SIMS.length, lbl: "simulateurs gratuits" },
-            { num: "0", lbl: "inscription requise" },
-            { num: "35 %", lbl: "taux HCSF 2026" },
-            { num: "2026", lbl: "données actualisées" },
-          ].map(({ num, lbl }) => (
-            <div key={lbl} className="shub-hero-stat">
-              <span className="shub-hero-stat-num">{num}</span>
-              <span className="shub-hero-stat-lbl">{lbl}</span>
-            </div>
-          ))}
         </div>
 
         {/* ── Featured: main simulator ── */}

@@ -95,11 +95,11 @@ export default function PageAPropos() {
       <main id="main-content" className="blog-page">
 
         {/* ── HERO ─────────────────────────────────────────────── */}
-        <div className="blog-hero">
-          <div className="blog-hero-text">
-            <span className="blog-kicker">À propos</span>
-            <h1 className="blog-title">La question à 300&nbsp;000&nbsp;€</h1>
-            <p className="blog-subtitle">
+        <div className="blog-hero-v2">
+          <div className="blog-hero-v2-inner">
+            <span className="blog-hero-v2-badge">📐 À propos</span>
+            <h1 className="blog-hero-v2-title">La question à 300&nbsp;000&nbsp;€</h1>
+            <p className="blog-hero-v2-sub">
               Acheter un logement est souvent la plus grande décision financière d'une vie.
               Ce site existe pour que vous puissiez y répondre avec des chiffres — pas des opinions.
             </p>

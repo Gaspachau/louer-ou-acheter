@@ -52,14 +52,13 @@ export default function PageMentionsLegales() {
       <main id="main-content" className="blog-page">
 
         {/* Hero */}
-        <div className="blog-hero">
-          <div className="blog-hero-text">
-            <span className="blog-kicker">Légal &amp; Confidentialité</span>
-            <h1 className="blog-title">Mentions légales</h1>
-            <p className="blog-subtitle">
+        <div className="blog-hero-v2">
+          <div className="blog-hero-v2-inner">
+            <span className="blog-hero-v2-badge">⚖️ Légal &amp; Confidentialité</span>
+            <h1 className="blog-hero-v2-title">Mentions légales</h1>
+            <p className="blog-hero-v2-sub">
               Informations légales, politique de confidentialité et gestion
-              des cookies du site louer-acheter.fr — conformément au RGPD
-              (Règlement UE 2016/679).
+              des cookies du site louer-acheter.fr — conformément au RGPD (Règlement UE 2016/679).
             </p>
           </div>
         </div>

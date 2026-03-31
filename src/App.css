@@ -11613,9 +11613,6 @@ svg { display: inline-block; }  /* keep inline for icons */
   justify-content: center;
   gap: 0;
   flex-wrap: wrap;
-  max-width: 1100px;
-  margin: -8px auto 0;
-  padding: 0 24px 24px;
 }
 .shub-hero-stat {
   display: flex;
@@ -12275,4 +12272,107 @@ svg { display: inline-block; }  /* keep inline for icons */
 /* ── Carte page — .cm-page inside cm-main-v2 on phone ── */
 @media (max-width: 480px) {
   .cm-main-v2 .cm-page { padding: 0 12px 24px; gap: 20px; }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   §35 — Site-wide uniformity: dark v2 hero for remaining pages
+   ══════════════════════════════════════════════════════════ */
+
+/* ── SimulateurHub — dark hero ── */
+.shub-hero {
+  background: linear-gradient(135deg, #0c1a35 0%, #1a3870 60%, #1a56db 100%);
+  border-radius: 20px;
+  padding: 40px 32px 32px;
+  position: relative;
+  overflow: hidden;
+}
+.shub-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 20% 0%, rgba(30,80,200,.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.shub-hero-badge {
+  background: rgba(255,255,255,.1) !important;
+  border: 1px solid rgba(255,255,255,.2) !important;
+  color: rgba(255,255,255,.9) !important;
+}
+.shub-hero-title { color: #fff !important; }
+.shub-hero-sub { color: rgba(255,255,255,.72) !important; }
+
+/* Stats row inside hero */
+.shub-hero .shub-hero-stats {
+  max-width: none;
+  margin: 16px 0 0;
+  padding: 12px 16px;
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 14px;
+  justify-content: flex-start;
+  flex-wrap: wrap;
+}
+.shub-hero .shub-hero-stat {
+  border-right-color: rgba(255,255,255,.15);
+  padding: 6px 20px;
+}
+.shub-hero .shub-hero-stat:last-child { border-right: none; }
+.shub-hero .shub-hero-stat-num { color: #fff; }
+.shub-hero .shub-hero-stat-lbl { color: rgba(255,255,255,.6); }
+
+/* Stat du jour — frosted glass on dark */
+.shub-stat-jour {
+  background: rgba(255,255,255,.1) !important;
+  border: 1.5px solid rgba(255,255,255,.2) !important;
+}
+.shub-stat-jour-label { color: rgba(255,255,255,.7) !important; }
+.shub-stat-jour-val { color: #fff !important; }
+.shub-stat-jour-desc { color: rgba(255,255,255,.8) !important; }
+.shub-stat-jour-source { color: rgba(255,255,255,.5) !important; }
+
+/* ── ImmoMaestro (Jeu) — dark intro hero ── */
+.im-intro {
+  background: linear-gradient(135deg, #0c1a35 0%, #1a3870 60%, #1a56db 100%) !important;
+  max-width: none !important;
+  width: 100%;
+  margin: 0 !important;
+  padding: 64px 20px 56px !important;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+.im-intro::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 70% 60% at 50% 0%, rgba(30,80,200,.18) 0%, transparent 70%);
+  pointer-events: none;
+}
+.im-intro-badge {
+  background: rgba(255,255,255,.1) !important;
+  border: 1px solid rgba(255,255,255,.2);
+  color: rgba(255,255,255,.9) !important;
+}
+.im-intro-title { color: #fff !important; }
+.im-intro-accent { color: #93c5fd !important; }
+.im-intro-sub { color: rgba(255,255,255,.72) !important; }
+.im-intro-levels { position: relative; }
+.im-intro-level {
+  background: rgba(255,255,255,.1) !important;
+  border-color: rgba(255,255,255,.2) !important;
+  color: rgba(255,255,255,.85) !important;
+}
+.im-intro-level-arrow { color: rgba(255,255,255,.4) !important; }
+.im-intro-hint { color: rgba(255,255,255,.45) !important; }
+
+/* ── blog-page padding fix when blog-hero-v2 is first child ── */
+/* Remove top padding so the dark hero can start flush */
+.blog-page:has(.blog-hero-v2:first-child) {
+  padding-top: 0;
+}
+
+@media (max-width: 640px) {
+  .shub-hero { padding: 28px 20px 24px; border-radius: 16px; }
+  .shub-hero .shub-hero-stats { flex-wrap: wrap; overflow: visible; }
+  .im-intro { padding: 48px 16px 40px !important; }
 }
