@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import { saveLead } from "../../lib/supabase";
+import { useState, useMemo, useEffect } from "react";
 
 const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
@@ -22,16 +21,26 @@ export default function SimCrossSell({ show, loan = 0, taux = 3.5, dureeCredit =
     if (!loan || loan <= 0) return 0;
     const hi = Math.min(8, taux + 0.8);
     const lo = Math.max(0.5, taux - 0.8);
-    const months = dureeCredit * 12;
     const mHi = mortgage(loan, hi, dureeCredit);
     const mLo = mortgage(loan, lo, dureeCredit);
-    return Math.round((mHi - mLo) * months);
+    return Math.round((mHi - mLo) * dureeCredit * 12);
   }, [loan, taux, dureeCredit]);
+
+  // Lock body scroll when modal is open
+  useEffect(() => {
+    if (open) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+    }
+    return () => { document.body.style.overflow = ""; };
+  }, [open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.includes("@") || !phone) return;
     setSending(true);
+    const { saveLead } = await import("../../lib/supabase");
     await saveLead(email.trim().toLowerCase(), "cross-sell-sim", null, phone.trim());
     setSending(false);
     setSent(true);
@@ -55,112 +64,114 @@ export default function SimCrossSell({ show, loan = 0, taux = 3.5, dureeCredit =
             </svg>
           </span>
           <span className="cs-trigger-text">
-            <strong className="cs-trigger-main">Obtenir mon taux personnalisé gratuitement</strong>
+            <strong className="cs-trigger-main">Obtenir le meilleur taux pour mon projet</strong>
             <span className="cs-trigger-hint">Votre dossier est éligible — réponse en 24h</span>
           </span>
           <span className="cs-trigger-arrow" aria-hidden="true">→</span>
         </button>
-        <p className="cs-trigger-sub">Réponse en 24h · sans impact sur votre crédit</p>
-        <div className="cs-trust-badges">
-          <span className="cs-trust-badge">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-              <path d="M6.5 1L1 3v4c0 3 2.5 4.8 5.5 5 3-.2 5.5-2 5.5-5V3L6.5 1z" stroke="#1a56db" strokeWidth="1.2" fill="none"/>
-            </svg>
-            +20 banques comparées
-          </span>
-          <span className="cs-trust-badge">
-            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
-              <path d="M2 6.5L5 9.5l6-6" stroke="#059669" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            Gratuit · sans engagement
-          </span>
-        </div>
+        <p className="cs-trigger-sub">Gratuit · Réponse en 24h · Sans impact sur votre crédit</p>
       </div>
 
       {/* ── Modal ── */}
       {open && (
         <div className="cs-backdrop" onPointerDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
-          <div className="cs-modal" role="dialog" aria-modal="true">
+          <div className="cs-modal" role="dialog" aria-modal="true" aria-labelledby="cs-sim-title">
+
+            {/* Close */}
             <button type="button" className="cs-close" onClick={closeModal} aria-label="Fermer">
-              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
-                <path d="M1 1l9 9M10 1L1 10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
               </svg>
             </button>
 
             {!sent ? (
               <>
-                <div className="cs-modal-illo">
-                  <div className="cs-modal-illo-circle">
-                    <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
-                      <path d="M26 6L6 21v27h14V34h12v14h14V21L26 6z" fill="url(#csHouseGradSim)" stroke="none"/>
-                      <circle cx="38" cy="14" r="9" fill="#10b981"/>
-                      <path d="M34 14l2.5 2.5L42 11" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* ── Hero ── */}
+                <div className="cs-hero">
+                  <div className="cs-hero-illo" aria-hidden="true">
+                    <svg width="88" height="88" viewBox="0 0 88 88" fill="none">
+                      <circle cx="44" cy="44" r="44" fill="url(#csSimBg)"/>
+                      <path d="M44 18L18 36v34h18V52h16v18h18V36L44 18z" fill="url(#csSimHouse)"/>
+                      <rect x="38" y="56" width="12" height="14" rx="3" fill="rgba(255,255,255,.35)"/>
+                      <rect x="30" y="42" width="9" height="8" rx="2" fill="rgba(255,255,255,.4)"/>
+                      <rect x="49" y="42" width="9" height="8" rx="2" fill="rgba(255,255,255,.4)"/>
+                      <circle cx="64" cy="26" r="13" fill="#10b981" stroke="white" strokeWidth="2.5"/>
+                      <path d="M58 26l4 4 8-8" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                       <defs>
-                        <linearGradient id="csHouseGradSim" x1="6" y1="6" x2="46" y2="48" gradientUnits="userSpaceOnUse">
+                        <linearGradient id="csSimBg" x1="0" y1="0" x2="88" y2="88" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stopColor="#eff6ff"/>
+                          <stop offset="100%" stopColor="#dbeafe"/>
+                        </linearGradient>
+                        <linearGradient id="csSimHouse" x1="18" y1="18" x2="70" y2="70" gradientUnits="userSpaceOnUse">
                           <stop offset="0%" stopColor="#1a56db"/>
                           <stop offset="100%" stopColor="#06b6d4"/>
                         </linearGradient>
                       </defs>
                     </svg>
                   </div>
-                  <h2 className="cs-modal-title">Économisez des milliers d'euros sur votre crédit</h2>
-                  <p className="cs-modal-sub">Nos partenaires courtiers négocient pour vous le meilleur taux personnalisé.</p>
+                  <h2 id="cs-sim-title" className="cs-hero-title">
+                    Obtenez le meilleur taux pour votre projet
+                  </h2>
+                  {savings > 500 ? (
+                    <p className="cs-hero-sub">
+                      Pour un emprunt de <strong>{fmt(loan)}</strong>, la différence entre le meilleur et le moins bon taux représente <strong className="cs-savings-hl">{fmt(savings)} d'économies</strong> sur la durée du crédit.
+                    </p>
+                  ) : (
+                    <p className="cs-hero-sub">
+                      Nos partenaires courtiers négocient pour vous le meilleur taux personnalisé auprès de plus de 20 banques.
+                    </p>
+                  )}
                 </div>
 
-                {savings > 500 && (
-                  <div className="cs-savings-box">
-                    <span className="cs-savings-icon" aria-hidden="true">💰</span>
-                    <p className="cs-savings-text">
-                      Sur votre emprunt de <strong>{fmt(loan)}</strong>, la différence entre le meilleur et le moins bon taux peut représenter jusqu'à{" "}
-                      <strong className="cs-savings-amount">{fmt(savings)} d'économies</strong> sur la durée de votre crédit.
-                    </p>
-                  </div>
-                )}
+                {/* ── Reassurance ── */}
+                <div className="cs-reassurance">
+                  {[
+                    { title: "Réponse en 24h", sub: "Un courtier dédié vous rappelle" },
+                    { title: "+20 banques comparées", sub: "Pour le meilleur taux du marché" },
+                    { title: "Gratuit, sans impact crédit", sub: "Aucune consultation de score" },
+                  ].map((r) => (
+                    <div key={r.title} className="cs-reassure-item">
+                      <span className="cs-reassure-check" aria-hidden="true">
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                          <path d="M2 7l3.5 3.5L12 3" stroke="#059669" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </span>
+                      <div className="cs-reassure-text">
+                        <strong>{r.title}</strong>
+                        <span>{r.sub}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
 
+                {/* ── Form ── */}
                 <form onSubmit={handleSubmit} className="cs-form">
                   <label className="cs-label">
-                    Votre email pour recevoir votre analyse
-                    <input
-                      type="email" required
-                      placeholder="prenom@email.com"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="cs-input"
-                      autoComplete="email"
-                    />
+                    <span>Votre email</span>
+                    <input type="email" required placeholder="prenom@email.fr" value={email}
+                      onChange={(e) => setEmail(e.target.value)} className="cs-input" autoComplete="email"/>
                   </label>
                   <label className="cs-label">
-                    Votre numéro pour être rappelé rapidement
-                    <input
-                      type="tel" required
-                      placeholder="06 XX XX XX XX"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      className="cs-input"
-                      autoComplete="tel"
-                      inputMode="tel"
-                    />
+                    <span>Votre numéro pour être rappelé rapidement</span>
+                    <input type="tel" required placeholder="06 XX XX XX XX" value={phone}
+                      onChange={(e) => setPhone(e.target.value)} className="cs-input" autoComplete="tel" inputMode="tel"/>
                   </label>
                   <button type="submit" className="cs-submit-btn" disabled={sending}>
                     {sending ? "Envoi en cours…" : "Je veux le meilleur taux pour mon projet →"}
                   </button>
                 </form>
-                <p className="cs-legal">
-                  En soumettant vous acceptez d'être contacté par nos partenaires courtiers de confiance. Vos données ne seront jamais revendues.
-                </p>
+                <p className="cs-legal">En soumettant ce formulaire vous acceptez d'être contacté par nos partenaires courtiers agréés. Vos données ne sont jamais revendues.</p>
               </>
             ) : (
               <div className="cs-sent">
                 <div className="cs-sent-check" aria-hidden="true">
-                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-                    <path d="M6 16l7 7 13-14" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  <svg width="36" height="36" viewBox="0 0 36 36" fill="none">
+                    <circle cx="18" cy="18" r="18" fill="#dcfce7"/>
+                    <path d="M10 18l5.5 5.5L26 12" stroke="#059669" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
                   </svg>
                 </div>
-                <h3 className="cs-sent-title">Parfait !</h3>
-                <p className="cs-sent-msg">
-                  Votre dossier a bien été transmis à nos partenaires.<br/>
-                  Un courtier vous contactera dans les 24h.
-                </p>
+                <h3 className="cs-sent-title">C'est parti !</h3>
+                <p className="cs-sent-msg">Votre dossier a été transmis à nos partenaires.<br/>Un courtier vous contactera dans les 24h.</p>
               </div>
             )}
           </div>

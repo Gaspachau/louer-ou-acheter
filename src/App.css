@@ -12919,6 +12919,7 @@ svg { display: inline-block; }  /* keep inline for icons */
 }
 
 /* ─── CrossSell — Trigger Button ─────────────────────────── */
+/* ─── CrossSell — Trigger ────────────────────────────────── */
 .cs-trigger-wrap {
   display: flex;
   flex-direction: column;
@@ -12964,221 +12965,226 @@ svg { display: inline-block; }  /* keep inline for icons */
   pointer-events: none;
 }
 .cs-trigger-house { flex-shrink: 0; opacity: .9; }
-.cs-trigger-text {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-.cs-trigger-main {
-  font-size: 15px;
-  font-weight: 800;
-  line-height: 1.2;
-  display: block;
-}
-.cs-trigger-hint {
-  font-size: 12px;
-  opacity: .82;
-  font-weight: 400;
-}
-.cs-trigger-arrow {
-  font-size: 18px;
-  opacity: .8;
-  flex-shrink: 0;
-  transition: transform .15s;
-}
+.cs-trigger-text { flex: 1; display: flex; flex-direction: column; gap: 3px; }
+.cs-trigger-main { font-size: 15px; font-weight: 800; line-height: 1.2; display: block; }
+.cs-trigger-hint { font-size: 12px; opacity: .82; font-weight: 400; }
+.cs-trigger-arrow { font-size: 18px; opacity: .8; flex-shrink: 0; transition: transform .15s; }
 .cs-trigger-btn:hover .cs-trigger-arrow { transform: translateX(3px); }
-.cs-trigger-sub {
-  font-size: 12px;
-  color: #64748b;
-  margin: 0;
-}
-.cs-trust-badges {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: center;
-}
-.cs-trust-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #475569;
-  background: #f1f5f9;
-  border-radius: 20px;
-  padding: 4px 10px;
-}
+.cs-trigger-sub { font-size: 12px; color: #64748b; margin: 0; }
 
-/* ─── CrossSell — Backdrop ───────────────────────────────── */
+/* ─── CrossSell — Backdrop & animations ─────────────────── */
 @keyframes cs-fade-in  { from { opacity: 0; } to { opacity: 1; } }
 @keyframes cs-slide-up {
-  from { opacity: 0; transform: translateY(28px) scale(.97); }
-  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+  from { opacity: 0; transform: translateY(32px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes cs-drawer-up {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 .cs-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(10,20,50,.55);
-  backdrop-filter: blur(4px);
-  -webkit-backdrop-filter: blur(4px);
+  background: rgba(10, 20, 50, .6);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
   z-index: 10000;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  animation: cs-fade-in .2s ease;
+  animation: cs-fade-in .22s ease;
 }
 
 /* ─── CrossSell — Modal ──────────────────────────────────── */
 .cs-modal {
   background: #fff;
-  border-radius: 22px;
-  padding: 28px 24px 24px;
-  max-width: 460px;
+  border-radius: 24px;
+  padding: 0;
+  max-width: 480px;
   width: 100%;
   position: relative;
-  animation: cs-slide-up .24s cubic-bezier(.22,1,.36,1);
+  animation: cs-slide-up .28s cubic-bezier(.22, 1, .36, 1);
   max-height: 92vh;
   overflow-y: auto;
-  box-shadow: 0 24px 60px rgba(10,20,50,.22);
+  box-shadow: 0 32px 80px rgba(10, 20, 50, .28), 0 0 0 1px rgba(0,0,0,.04);
 }
 .cs-close {
   position: absolute;
   top: 14px; right: 14px;
-  background: #f1f5f9;
-  border: none;
+  background: rgba(255,255,255,.9);
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(0,0,0,.1);
+  z-index: 2;
   border-radius: 50%;
-  width: 32px; height: 32px;
+  width: 34px; height: 34px;
   display: flex; align-items: center; justify-content: center;
   color: #64748b;
   cursor: pointer;
-  transition: background .12s, color .12s;
-  z-index: 1;
+  transition: background .12s, color .12s, transform .12s;
 }
-.cs-close:hover { background: #e2e8f0; color: #0c1a35; }
+.cs-close:hover { background: #f1f5f9; color: #0c1a35; transform: scale(1.08); }
 
-/* Illustration header */
-.cs-modal-illo {
+/* ─── Hero section ───────────────────────────────────────── */
+.cs-hero {
   text-align: center;
-  margin-bottom: 16px;
+  padding: 32px 28px 24px;
+  background: linear-gradient(160deg, #f0f7ff 0%, #f8faff 100%);
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 24px 24px 0 0;
 }
-.cs-modal-illo-circle {
-  width: 80px; height: 80px;
-  background: linear-gradient(135deg, #eff6ff 0%, #e0f2fe 100%);
-  border-radius: 50%;
-  display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 14px;
-  box-shadow: 0 4px 16px rgba(26,86,219,.15);
+.cs-hero-illo {
+  margin: 0 auto 18px;
+  display: inline-block;
+  filter: drop-shadow(0 8px 24px rgba(26,86,219,.18));
 }
-.cs-modal-title {
-  font-size: 21px;
+.cs-hero-title {
+  font-size: clamp(20px, 5vw, 24px);
   font-weight: 800;
   color: #0c1a35;
-  margin: 0 0 7px;
+  margin: 0 0 10px;
   line-height: 1.2;
-  letter-spacing: -.025em;
+  letter-spacing: -.03em;
 }
-.cs-modal-sub { font-size: 13px; color: #64748b; margin: 0; line-height: 1.5; }
-
-/* Savings estimate */
-.cs-savings-box {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  background: linear-gradient(135deg, #fffbeb, #fef3c7);
-  border: 1px solid #fcd34d;
-  border-radius: 12px;
-  padding: 12px 14px;
-  margin-bottom: 14px;
+.cs-hero-sub {
+  font-size: 14px;
+  color: #475569;
+  margin: 0;
+  line-height: 1.55;
 }
-.cs-savings-icon { font-size: 18px; flex-shrink: 0; line-height: 1.4; }
-.cs-savings-text { font-size: 13px; color: #78350f; line-height: 1.5; margin: 0; }
-.cs-savings-amount { color: #b45309; font-size: 14px; }
+.cs-savings-hl {
+  color: #059669;
+  font-weight: 800;
+}
 
-/* Testimonials */
-.cs-testimonials {
+/* ─── Reassurance ────────────────────────────────────────── */
+.cs-reassurance {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+  gap: 0;
+  padding: 0 28px;
+  margin: 20px 0 0;
 }
-.cs-testimonial {
+.cs-reassure-item {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
-  font-size: 12.5px;
-  color: #475569;
-  background: #f8fafc;
-  border-radius: 8px;
-  padding: 7px 10px;
-  line-height: 1.4;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #f1f5f9;
 }
-.cs-testimonial-stars { color: #f59e0b; font-size: 11px; flex-shrink: 0; letter-spacing: 1px; }
-.cs-testimonial-text { flex: 1; }
+.cs-reassure-item:last-child { border-bottom: none; }
+.cs-reassure-check {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  background: #dcfce7;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin-top: 1px;
+}
+.cs-reassure-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.cs-reassure-text strong {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0c1a35;
+}
+.cs-reassure-text span {
+  font-size: 12px;
+  color: #64748b;
+}
 
-/* Form */
-.cs-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+/* ─── Form ───────────────────────────────────────────────── */
+.cs-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 28px 0;
+  margin-bottom: 0;
+}
 .cs-label {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  font-size: 12px;
-  font-weight: 600;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 700;
   color: #374151;
+  letter-spacing: .01em;
 }
 .cs-input {
   width: 100%;
   border: 1.5px solid #d1dae8;
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 13px 15px;
   font-size: 15px;
   font-family: inherit;
   color: #0c1a35;
   outline: none;
   transition: border-color .15s, box-shadow .15s;
   background: #fff;
+  box-sizing: border-box;
 }
-.cs-input:focus { border-color: #1a56db; box-shadow: 0 0 0 3px rgba(26,86,219,.12); }
-.cs-input::placeholder { color: #a0aec0; }
+.cs-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,.12); }
+.cs-input::placeholder { color: #94a3b8; }
 .cs-submit-btn {
   width: 100%;
-  background: linear-gradient(135deg, #1a56db 0%, #2563eb 60%, #0ea5e9 100%);
+  background: linear-gradient(135deg, #1d4ed8 0%, #2563eb 50%, #0ea5e9 100%);
   color: #fff;
   border: none;
-  border-radius: 12px;
-  padding: 16px 24px;
+  border-radius: 14px;
+  padding: 17px 24px;
   font-size: 16px;
   font-weight: 800;
   cursor: pointer;
   font-family: inherit;
-  transition: opacity .15s, transform .15s;
-  box-shadow: 0 4px 18px rgba(26,86,219,.38);
+  transition: opacity .15s, transform .15s, box-shadow .15s;
+  box-shadow: 0 6px 24px rgba(29,78,216,.42);
   line-height: 1.2;
   letter-spacing: -.01em;
+  margin-top: 4px;
 }
-.cs-submit-btn:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
-.cs-submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.cs-submit-btn:hover:not(:disabled) { opacity: .94; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(29,78,216,.5); }
+.cs-submit-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; }
 .cs-legal {
   font-size: 11px;
   color: #94a3b8;
   text-align: center;
-  line-height: 1.4;
+  line-height: 1.5;
   margin: 0;
+  padding: 14px 28px 24px;
 }
 
-/* ─── CrossSell — Confirmation ───────────────────────────── */
-.cs-sent { text-align: center; padding: 20px 0 8px; }
+/* ─── Confirmation ───────────────────────────────────────── */
+.cs-sent { text-align: center; padding: 40px 28px 32px; }
 .cs-sent-check {
-  width: 68px; height: 68px;
-  background: #d1fae5;
-  border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px;
+  margin: 0 auto 18px;
 }
-.cs-sent-title { font-size: 24px; font-weight: 800; color: #0c1a35; margin: 0 0 10px; }
+.cs-sent-title { font-size: 26px; font-weight: 800; color: #0c1a35; margin: 0 0 10px; }
 .cs-sent-msg { font-size: 15px; color: #64748b; line-height: 1.6; margin: 0; }
+
+/* ─── Mobile: drawer from bottom ────────────────────────── */
+@media (max-width: 600px) {
+  .cs-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+  .cs-modal {
+    width: 95%;
+    max-width: 100%;
+    border-radius: 24px 24px 0 0;
+    max-height: 92dvh;
+    animation: cs-drawer-up .3s cubic-bezier(.22, 1, .36, 1);
+    box-shadow: 0 -8px 40px rgba(10,20,50,.2), 0 0 0 1px rgba(0,0,0,.04);
+  }
+  .cs-hero { border-radius: 24px 24px 0 0; padding: 28px 20px 20px; }
+  .cs-reassurance { padding: 0 20px; }
+  .cs-form { padding: 16px 20px 0; }
+  .cs-legal { padding: 12px 20px 28px; }
+  .cs-sent { padding: 32px 20px 24px; }
+}
 
 /* ══════════════════════════════════════════════════════════════
    SV2 — Premium Simulator V2 shared styles
