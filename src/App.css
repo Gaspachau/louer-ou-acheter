@@ -7348,6 +7348,7 @@ input[type="radio"] {
   font-family: inherit;
   width: 100%;
   position: relative;
+  color: var(--text, #0c1a35);
 }
 .fv2-choices-row .fv2-choice { width: auto; flex: 1; min-width: 90px; }
 .fv2-choice:hover { border-color: #93c5fd; background: #f0f7ff; }
@@ -7435,6 +7436,7 @@ input[type="radio"] {
   left: 0;
   height: 6px;
   top: 50%; transform: translateY(-50%);
+  width: var(--pct, 0%);
   background: linear-gradient(90deg, #1a56db, #06b6d4);
   border-radius: 6px;
   pointer-events: none;

@@ -52,16 +52,18 @@ function calcAssurance({ montant, duree, age, fumeur }) {
 function Slider({ label, value, onChange, min, max, step = 1, format = String }) {
   const pct = ((value - min) / (max - min)) * 100;
   return (
-    <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
+    <div className="fv2-slider-wrap">
       <div className="fv2-slider-header">
         <span className="fv2-slider-label">{label}</span>
         <span className="fv2-slider-val">{format(value)}</span>
       </div>
-      <input
-        type="range" className="fv2-slider" min={min} max={max} step={step}
-        value={value} onChange={(e) => onChange(Number(e.target.value))}
-      />
-      <div className="fv2-slider-fill" />
+      <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
+        <input
+          type="range" className="fv2-slider" min={min} max={max} step={step}
+          value={value} onChange={(e) => onChange(Number(e.target.value))}
+        />
+        <div className="fv2-slider-fill" />
+      </div>
       <div className="fv2-slider-minmax">
         <span>{format(min)}</span>
         <span>{format(max)}</span>

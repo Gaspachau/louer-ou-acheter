@@ -131,8 +131,17 @@ export default function App() {
         <Route path="/simulateurs/assurance-pret" element={<SimAssurancePret />} />
         <Route path="/villes/:cityId" element={<PageVille />} />
         <Route path="/admin" element={<PageAdmin />} />
-        {/* SEO long-tail city pages */}
-        <Route path="/louer-ou-acheter-:citySlug" element={<PageVilleSEO />} />
+        {/* SEO long-tail city pages — explicit routes (React Router v7 ne supporte pas les params dans les segments mixtes) */}
+        <Route path="/louer-ou-acheter-paris"      element={<PageVilleSEO citySlug="paris" />} />
+        <Route path="/louer-ou-acheter-lyon"       element={<PageVilleSEO citySlug="lyon" />} />
+        <Route path="/louer-ou-acheter-marseille"  element={<PageVilleSEO citySlug="marseille" />} />
+        <Route path="/louer-ou-acheter-bordeaux"   element={<PageVilleSEO citySlug="bordeaux" />} />
+        <Route path="/louer-ou-acheter-toulouse"   element={<PageVilleSEO citySlug="toulouse" />} />
+        <Route path="/louer-ou-acheter-nantes"     element={<PageVilleSEO citySlug="nantes" />} />
+        <Route path="/louer-ou-acheter-lille"      element={<PageVilleSEO citySlug="lille" />} />
+        <Route path="/louer-ou-acheter-nice"       element={<PageVilleSEO citySlug="nice" />} />
+        <Route path="/louer-ou-acheter-rennes"     element={<PageVilleSEO citySlug="rennes" />} />
+        <Route path="/louer-ou-acheter-strasbourg" element={<PageVilleSEO citySlug="strasbourg" />} />
         {/* SEO topic pages */}
         <Route path="/simulateur-pret-immobilier-gratuit" element={<PagePretImmoSEO />} />
         <Route path="/calculateur-frais-de-notaire-2026" element={<PageFraisNotaireSEO />} />
