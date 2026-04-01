@@ -5,8 +5,8 @@ import ScrollToTop from "./components/ScrollToTop";
 import CookieBanner from "./components/CookieBanner";
 import TopBar from "./components/TopBar";
 import Footer from "./components/Footer";
-import FunnelV2 from "./components/FunnelV2";
 import LandingPage from "./components/LandingPage";
+const FunnelV2 = lazy(() => import("./components/FunnelV2"));
 const PageVille = lazy(() => import("./components/PageVille"));
 
 const BlogList = lazy(() => import("./components/BlogList"));

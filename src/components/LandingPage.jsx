@@ -2,7 +2,6 @@ import { useState, useEffect, useRef, Fragment } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
-import { saveNewsletter } from "../lib/supabase";
 
 /* ─── Helpers ────────────────────────────────────────────── */
 const fmtK = (v) =>
@@ -670,6 +669,7 @@ function NewsletterSection() {
     e.preventDefault();
     if (!email.includes("@")) return;
     setDone(true);
+    const { saveNewsletter } = await import("../lib/supabase");
     await saveNewsletter(email);
   };
   return (

@@ -140,12 +140,10 @@
     }
     </script>
 
-    <!-- Preconnect to speed up font negotiation -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <!-- Non-blocking font load — avoids render-blocking -->
-    <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400;1,14..32,700;1,14..32,800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400;0,14..32,500;0,14..32,600;0,14..32,700;0,14..32,800;0,14..32,900;1,14..32,400;1,14..32,700;1,14..32,800&display=swap" rel="stylesheet"></noscript>
+    <!-- DNS prefetch for external services -->
+    <link rel="dns-prefetch" href="https://app.posthog.com">
+    <link rel="dns-prefetch" href="https://eu.posthog.com">
+    <!-- Fonts are self-hosted via @fontsource/inter — no external Google Fonts request -->
   </head>
   <body>
     <div id="root"></div>

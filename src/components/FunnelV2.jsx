@@ -1030,7 +1030,7 @@ function ResultPage({ v, result, onRestart }) {
         ville_data: v.ville ? { id: v.ville.id, nom: v.ville.nom, prix_m2: v.ville.prix_m2 } : null,
       };
       saveSimulation(payload).then((id) => {
-        if (id) { setSimId(id); console.log("[FunnelV2] Simulation enregistrée, id:", id); }
+        if (id) setSimId(id);
       });
     }
 
