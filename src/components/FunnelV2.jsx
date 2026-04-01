@@ -779,12 +779,29 @@ function Step4({ v, set, onNext }) {
    RESULT PAGE
    ════════════════════════════════════════════════════════════ */
 /* ─── CrossSell ─────────────────────────────────────────────── */
-function CrossSell({ simId, tauxEndettement }) {
+const CS_TESTIMONIALS = [
+  { name: "Marie · Lyon",    text: "12 000 € économisés grâce à son courtier" },
+  { name: "Thomas · Paris",  text: "Taux obtenu 0,8 % sous le marché" },
+  { name: "Julie · Bordeaux",text: "Accompagnée de A à Z, sans stress" },
+];
+
+function CrossSell({ simId, tauxEndettement, loan, taux, dureeCredit }) {
   const [open, setOpen]       = useState(false);
   const [email, setEmail]     = useState("");
   const [phone, setPhone]     = useState("");
   const [sending, setSending] = useState(false);
   const [sent, setSent]       = useState(false);
+
+  // Estimated savings: difference over loan term between taux+0.8% and taux-0.8%
+  const savings = useMemo(() => {
+    if (!loan || loan <= 0) return 0;
+    const hi = Math.min(8,  (taux ?? 3.5) + 0.8);
+    const lo = Math.max(0.5,(taux ?? 3.5) - 0.8);
+    const months = (dureeCredit ?? 20) * 12;
+    const mHi = mortgage(loan, hi, dureeCredit ?? 20);
+    const mLo = mortgage(loan, lo, dureeCredit ?? 20);
+    return Math.round((mHi - mLo) * months);
+  }, [loan, taux, dureeCredit]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -800,25 +817,41 @@ function CrossSell({ simId, tauxEndettement }) {
 
   return (
     <>
-      {/* ── Trigger button ── */}
+      {/* ── Trigger ── */}
       <div className="cs-trigger-wrap">
         <button type="button" className="cs-trigger-btn" onClick={() => setOpen(true)}>
-          <span className="cs-trigger-icon" aria-hidden="true">
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-              <path d="M2 7l3.5 3.5L12 3" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+          {/* shimmer layer */}
+          <span className="cs-btn-shine" aria-hidden="true" />
+          <span className="cs-trigger-house" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+              <path d="M11 2L2 9v11h6v-6h6v6h6V9L11 2z" fill="rgba(255,255,255,.22)" stroke="rgba(255,255,255,.9)" strokeWidth="1.5" strokeLinejoin="round"/>
+              <path d="M9 16h4" stroke="rgba(255,255,255,.7)" strokeWidth="1.4" strokeLinecap="round"/>
             </svg>
           </span>
-          {tauxEndettement <= 35
-            ? "Votre dossier est éligible à un financement"
-            : "Un courtier peut optimiser votre dossier pour le rendre finançable"}
+          <span className="cs-trigger-text">
+            <strong className="cs-trigger-main">Obtenir mon taux personnalisé gratuitement</strong>
+            <span className="cs-trigger-hint">
+              {tauxEndettement <= 35
+                ? "Votre dossier est éligible — réponse en 24h"
+                : "Un courtier peut optimiser votre dossier — réponse en 24h"}
+            </span>
+          </span>
+          <span className="cs-trigger-arrow" aria-hidden="true">→</span>
         </button>
-        <div className="cs-trigger-reassure">
-          <svg width="13" height="14" viewBox="0 0 13 14" fill="none" aria-hidden="true">
-            <path d="M6.5 1L1 3.5v4C1 10.5 3.5 13 6.5 13S12 10.5 12 7.5v-4L6.5 1z"
-              stroke="#64748b" strokeWidth="1.3" fill="none" strokeLinejoin="round"/>
-            <path d="M4.5 7l1.5 1.5L8.5 5.5" stroke="#64748b" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
-          </svg>
-          Analyse gratuite · sans engagement
+        <p className="cs-trigger-sub">Réponse en 24h · sans impact sur votre crédit</p>
+        <div className="cs-trust-badges">
+          <span className="cs-trust-badge">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M6.5 1L1 3v4c0 3 2.5 4.8 5.5 5 3-.2 5.5-2 5.5-5V3L6.5 1z" stroke="#1a56db" strokeWidth="1.2" fill="none"/>
+            </svg>
+            +20 banques comparées
+          </span>
+          <span className="cs-trust-badge">
+            <svg width="13" height="13" viewBox="0 0 13 13" fill="none" aria-hidden="true">
+              <path d="M2 6.5L5 9.5l6-6" stroke="#059669" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            Gratuit · sans engagement
+          </span>
         </div>
       </div>
 
@@ -827,64 +860,86 @@ function CrossSell({ simId, tauxEndettement }) {
         <div className="cs-backdrop" onPointerDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
           <div className="cs-modal" role="dialog" aria-modal="true">
             <button type="button" className="cs-close" onClick={closeModal} aria-label="Fermer">
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              <svg width="11" height="11" viewBox="0 0 11 11" fill="none">
+                <path d="M1 1l9 9M10 1L1 10" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
               </svg>
             </button>
 
             {!sent ? (
               <>
-                <div className="cs-modal-head">
-                  <div className="cs-modal-check" aria-hidden="true">
-                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
-                      <path d="M5 13l5.5 5.5L21 7" stroke="#059669" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+                {/* Illustration header */}
+                <div className="cs-modal-illo">
+                  <div className="cs-modal-illo-circle">
+                    <svg width="52" height="52" viewBox="0 0 52 52" fill="none">
+                      <path d="M26 6L6 21v27h14V34h12v14h14V21L26 6z" fill="url(#csHouseGrad)" stroke="none"/>
+                      <circle cx="38" cy="14" r="9" fill="#10b981"/>
+                      <path d="M34 14l2.5 2.5L42 11" stroke="white" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <defs>
+                        <linearGradient id="csHouseGrad" x1="6" y1="6" x2="46" y2="48" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stopColor="#1a56db"/>
+                          <stop offset="100%" stopColor="#06b6d4"/>
+                        </linearGradient>
+                      </defs>
                     </svg>
                   </div>
-                  <h2 className="cs-modal-title">Votre projet immobilier peut être financé</h2>
-                  <p className="cs-modal-sub">
-                    Nos partenaires courtiers analysent votre dossier gratuitement et vous proposent le meilleur taux personnalisé.
-                  </p>
+                  <h2 className="cs-modal-title">Économisez des milliers d'euros sur votre crédit</h2>
+                  <p className="cs-modal-sub">Nos partenaires courtiers négocient pour vous le meilleur taux personnalisé.</p>
                 </div>
 
-                <div className="cs-features">
-                  <div className="cs-feature">
-                    <span className="cs-feature-icon" aria-hidden="true">⏱</span>
-                    <span>Réponse en moins de 24h</span>
+                {/* Personalized saving estimate */}
+                {savings > 500 && (
+                  <div className="cs-savings-box">
+                    <span className="cs-savings-icon" aria-hidden="true">💰</span>
+                    <p className="cs-savings-text">
+                      Sur votre emprunt de <strong>{fmt(loan)}</strong>, la différence entre le meilleur et le moins bon taux peut représenter jusqu'à{" "}
+                      <strong className="cs-savings-amount">{fmt(savings)} d'économies</strong> sur la durée de votre crédit.
+                    </p>
                   </div>
-                  <div className="cs-feature">
-                    <span className="cs-feature-icon" aria-hidden="true">🏦</span>
-                    <span>Comparaison de plus de 20 banques</span>
-                  </div>
-                  <div className="cs-feature">
-                    <span className="cs-feature-icon" aria-hidden="true">🛡</span>
-                    <span>Sans impact sur votre crédit score</span>
-                  </div>
+                )}
+
+                {/* Testimonials */}
+                <div className="cs-testimonials">
+                  {CS_TESTIMONIALS.map((t) => (
+                    <div key={t.name} className="cs-testimonial">
+                      <span className="cs-testimonial-stars" aria-hidden="true">★★★★★</span>
+                      <span className="cs-testimonial-text"><strong>{t.name}</strong> — {t.text}</span>
+                    </div>
+                  ))}
                 </div>
 
+                {/* Form */}
                 <form onSubmit={handleSubmit} className="cs-form">
-                  <input
-                    type="email" required
-                    placeholder="Email *"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="cs-input"
-                    autoComplete="email"
-                  />
-                  <input
-                    type="tel" required
-                    placeholder="Téléphone *"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    className="cs-input"
-                    autoComplete="tel"
-                    inputMode="tel"
-                  />
+                  <label className="cs-label">
+                    Votre email pour recevoir votre analyse
+                    <input
+                      type="email" required
+                      placeholder="prenom@email.com"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="cs-input"
+                      autoComplete="email"
+                    />
+                  </label>
+                  <label className="cs-label">
+                    Votre numéro pour être rappelé rapidement
+                    <input
+                      type="tel" required
+                      placeholder="06 XX XX XX XX"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="cs-input"
+                      autoComplete="tel"
+                      inputMode="tel"
+                    />
+                  </label>
                   <button type="submit" className="cs-submit-btn" disabled={sending}>
-                    {sending ? "Envoi en cours…" : "Recevoir mon analyse de taux gratuite"}
+                    {sending
+                      ? "Envoi en cours…"
+                      : "Je veux le meilleur taux pour mon projet →"}
                   </button>
                 </form>
                 <p className="cs-legal">
-                  En soumettant vous acceptez d'être contacté par nos partenaires courtiers de confiance.
+                  En soumettant vous acceptez d'être contacté par nos partenaires courtiers de confiance. Vos données ne seront jamais revendues.
                 </p>
               </>
             ) : (
@@ -947,7 +1002,7 @@ function ResultPage({ v, result, onRestart }) {
   }, []);
 
   const { isBuyBetter, advantage, breakEven, yearlyData, mensualite,
-          ownerNWEnd, renterPortfolio, taux_endettement, loyer_total } = result;
+          ownerNWEnd, renterPortfolio, taux_endettement, loyer_total, loan } = result;
 
   const buyColor  = "#2563eb";
   const rentColor = "#06b6d4";
@@ -1115,13 +1170,22 @@ function ResultPage({ v, result, onRestart }) {
 
       {/* ── Cross-sell (≤ 50 % endettement) ── */}
       {taux_endettement > 0 && taux_endettement <= 50 && (
-        <CrossSell simId={simId} tauxEndettement={taux_endettement} />
+        <CrossSell simId={simId} tauxEndettement={taux_endettement} loan={loan} taux={v.taux} dureeCredit={v.duree_credit} />
       )}
 
       {/* ── CTAs ── */}
       <div className="fv2-result-ctas">
-        <button type="button" className="fv2-btn-secondary" onClick={onRestart}>
-          🔄 Relancer une simulation
+        <button type="button" className="fv2-restart-btn" onClick={onRestart}>
+          <span className="fv2-restart-icon" aria-hidden="true">
+            <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+              <path d="M3 9a6 6 0 1 0 1.5-3.9" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              <path d="M3 4.5V9h4.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+          <span className="fv2-restart-text">
+            <strong>Simuler un autre scénario</strong>
+            <span>Modifier ma ville, mon budget ou ma durée</span>
+          </span>
         </button>
       </div>
 
