@@ -779,7 +779,7 @@ function Step4({ v, set, onNext }) {
    RESULT PAGE
    ════════════════════════════════════════════════════════════ */
 /* ─── CrossSell ─────────────────────────────────────────────── */
-function CrossSell({ simId }) {
+function CrossSell({ simId, tauxEndettement }) {
   const [open, setOpen]       = useState(false);
   const [email, setEmail]     = useState("");
   const [phone, setPhone]     = useState("");
@@ -808,7 +808,9 @@ function CrossSell({ simId }) {
               <path d="M2 7l3.5 3.5L12 3" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </span>
-          Votre dossier semble éligible à un financement
+          {tauxEndettement <= 35
+            ? "Votre dossier est éligible à un financement"
+            : "Un courtier peut optimiser votre dossier pour le rendre finançable"}
         </button>
         <div className="cs-trigger-reassure">
           <svg width="13" height="14" viewBox="0 0 13 14" fill="none" aria-hidden="true">
@@ -1111,9 +1113,9 @@ function ResultPage({ v, result, onRestart }) {
         </div>
       )}
 
-      {/* ── Cross-sell (finançable uniquement) ── */}
-      {taux_endettement > 0 && taux_endettement <= 35 && (
-        <CrossSell simId={simId} />
+      {/* ── Cross-sell (≤ 50 % endettement) ── */}
+      {taux_endettement > 0 && taux_endettement <= 50 && (
+        <CrossSell simId={simId} tauxEndettement={taux_endettement} />
       )}
 
       {/* ── CTAs ── */}
