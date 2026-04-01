@@ -50,7 +50,7 @@ export default function PageVilleSEO() {
               <span className="kf-label">Prix moyen</span>
             </div>
             <div className="key-figure">
-              <span className="kf-value">{ville.loyer_t2} €/mois</span>
+              <span className="kf-value">{ville.loyer_t2.toLocaleString("fr-FR")} €/mois</span>
               <span className="kf-label">Loyer T2 moyen</span>
             </div>
             <div className="key-figure">

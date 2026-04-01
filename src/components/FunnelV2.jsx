@@ -114,11 +114,12 @@ const RESULT_STEP = 5;
 /* ─── Slider ───────────────────────────────────────────────── */
 function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
   const pct = Math.max(0, Math.min(100, ((value - min) / (max - min)) * 100));
+  const displayVal = format ? format(value) : value;
   return (
     <div className="fv2-slider-wrap">
       <div className="fv2-slider-header">
         <span className="fv2-slider-label">{label}</span>
-        <span className="fv2-slider-val">{format ? format(value) : value}</span>
+        <span className="fv2-slider-val">{displayVal}</span>
       </div>
       {/* --pct on the PARENT so ::after pseudo can read it */}
       <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
@@ -128,6 +129,7 @@ function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
           className="fv2-slider"
         />
         <div className="fv2-slider-fill" style={{ width: `${pct}%` }} />
+        <span className="fv2-slider-bubble" aria-hidden="true">{displayVal}</span>
       </div>
       <div className="fv2-slider-minmax">
         <span>{format ? format(min) : min}</span>
@@ -206,6 +208,7 @@ function ApportSlider({ value, onChange, prixBien }) {
           onChange={(e) => onChange(Number(e.target.value))}
         />
         <div className="fv2-slider-fill" style={{ width: `${trackPct}%` }} />
+        <span className="fv2-slider-bubble" aria-hidden="true">{fmt(value)}</span>
       </div>
       <div className="fv2-slider-minmax">
         <span>0 €</span><span>{fmt(maxApport)}</span>
@@ -361,7 +364,7 @@ function CityCard({ ville }) {
           <span className="sf-city-stat-lbl">Prix/m²</span>
         </div>
         <div className="sf-city-stat">
-          <span className="sf-city-stat-val">{ville.loyer_t2} €</span>
+          <span className="sf-city-stat-val">{ville.loyer_t2.toLocaleString("fr-FR")} €</span>
           <span className="sf-city-stat-lbl">Loyer T2/mois</span>
         </div>
         <div className="sf-city-stat">
@@ -428,7 +431,20 @@ function ChartTip({ active, payload, label }) {
    STEP 1 — SITUATION + VILLE
    ════════════════════════════════════════════════════════════ */
 function Step1({ v, set, applyVille, onNext }) {
+  const [citySearchOpen, setCitySearchOpen] = useState(false);
   const villeDisplay = v.ville ?? MOYENNE_NATIONALE;
+  const hasRealCity = v.ville && v.ville.id !== "nationale";
+  const isNationaleSelected = v.ville?.id === "nationale";
+
+  const handleCitySelect = (c) => {
+    applyVille(c);
+    setCitySearchOpen(false);
+  };
+
+  const handleNationaleClick = () => {
+    applyVille(MOYENNE_NATIONALE);
+    setCitySearchOpen(false);
+  };
 
   return (
     <div className="fv2-card">
@@ -464,17 +480,53 @@ function Step1({ v, set, applyVille, onNext }) {
         <p className="fv2-field-label" style={{ marginBottom: 10 }}>
           Où souhaitez-vous acheter ?
         </p>
-        <CitySearch ville={v.ville} onSelect={applyVille} />
 
-        {!v.ville && (
-          <button
-            type="button"
-            className="sf-national-btn"
-            onClick={() => applyVille(MOYENNE_NATIONALE)}
-          >
-            Utiliser la moyenne nationale
+        {/* City selector */}
+        {citySearchOpen ? (
+          <CitySearch ville={v.ville} onSelect={handleCitySelect} />
+        ) : hasRealCity ? (
+          <div className="sf-city-selected-bar">
+            <span className="sf-city-selected-icon">📍</span>
+            <span className="sf-city-selected-name">{v.ville.nom}</span>
+            <span className="sf-city-selected-price">{v.ville.prix_m2.toLocaleString("fr-FR")} €/m²</span>
+            <button type="button" className="sf-city-change-btn" onClick={() => setCitySearchOpen(true)}>
+              Changer
+            </button>
+          </div>
+        ) : (
+          <button type="button" className="sf-city-pill-btn" onClick={() => setCitySearchOpen(true)}>
+            <svg className="sf-city-pill-icon" width="18" height="20" viewBox="0 0 18 20" fill="none" aria-hidden="true">
+              <path d="M9 1C5.686 1 3 3.686 3 7c0 5.25 6 12 6 12s6-6.75 6-12c0-3.314-2.686-6-6-6z"
+                stroke="currentColor" strokeWidth="1.8" fill="none"/>
+              <circle cx="9" cy="7" r="2.2" fill="currentColor"/>
+            </svg>
+            <span>Choisir ma ville</span>
+            <svg className="sf-city-pill-arrow" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M6 3l5 5-5 5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
           </button>
         )}
+
+        {/* National average option */}
+        <button
+          type="button"
+          className={`sf-national-btn${isNationaleSelected ? " sf-national-active" : ""}`}
+          onClick={handleNationaleClick}
+        >
+          <span className="sf-national-flag">🇫🇷</span>
+          <div className="sf-national-text">
+            <span className="sf-national-title">Moyenne nationale</span>
+            <span className="sf-national-sub">Données moyennes France entière</span>
+          </div>
+          {isNationaleSelected && (
+            <span className="sf-national-check" aria-hidden="true">
+              <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                <circle cx="9" cy="9" r="8" fill="#059669"/>
+                <path d="M5 9l3 3 5-5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </span>
+          )}
+        </button>
 
         <CityCard ville={villeDisplay} />
       </div>
@@ -764,7 +816,7 @@ function Step4({ v, set, onNext }) {
           </div>
         </div>
         <p className="fv2-hint" style={{ marginTop: 8 }}>
-          Référence {ville.nom} : loyer T2 ~{ville.loyer_t2} €/mois
+          Référence {ville.nom} : loyer T2 ~{ville.loyer_t2.toLocaleString("fr-FR")} €/mois
         </p>
       </div>
 
