@@ -1,206 +1,374 @@
-import { useMemo, useState } from "react";
-import Field from "../Field";
+import { useState, useMemo } from "react";
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer,
+} from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import DonutChart from "../DonutChart";
-import { formatCurrency } from "../../utils/finance";
+import SimCrossSell from "./SimCrossSell";
 
-const CHARGE_FIELDS = [
-  { key: "loyer", label: "Loyer / mensualité", icon: "🏠", hint: "Logement principal", color: "#2563eb", tooltip: "Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." },
-  { key: "alimentation", label: "Alimentation", icon: "🛒", hint: "Courses + restauration", color: "#06b6d4", tooltip: "Dépenses alimentaires incluant courses et restaurants. Moyenne France : ~300–400 €/mois pour une personne." },
-  { key: "transport", label: "Transport", icon: "🚗", hint: "Voiture, transports en commun", color: "#d97706", tooltip: "Tous les frais de déplacement : carburant, transports en commun, assurance auto, entretien véhicule." },
-  { key: "telecom", label: "Télécom", icon: "📱", hint: "Internet + téléphone", color: "#7c3aed", tooltip: "Internet fixe + téléphone mobile. Comptez ~30–60 €/mois pour des offres de base." },
-  { key: "assurances", label: "Assurances", icon: "🛡️", hint: "Habitation, auto, santé…", color: "#0891b2", tooltip: "Mutuelle santé, assurance auto, habitation... Vérifiez qu'il n'y a pas de doublons avec les charges saisies séparément." },
-  { key: "autres", label: "Autres charges", icon: "📦", hint: "Abonnements, loisirs fixes…", color: "#64748b", tooltip: undefined },
-];
+const fmt = (v) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${Math.round(v / 1000)}k €` : `${Math.round(v)} €`);
+
+function ChartTip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      {payload.map((p) => (
+        <div key={p.name} className="chart-tooltip-row">
+          <span style={{ color: p.payload.color }}>{p.name}</span>
+          <span>{fmt(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Pills({ value, options, onChange, format }) {
+  return (
+    <div className="fv2-revenus-pills">
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          className={`fv2-revenus-pill${value === o ? " active" : ""}`}
+          onClick={() => onChange(o)}
+        >
+          {format ? format(o) : o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function calcNiveauDeVie(v) {
+  const chargesFixesTot = v.electricite + v.telephone + v.internet + v.assurances;
+  const totalCharges =
+    v.loyer + chargesFixesTot + v.alimentation + v.transport + v.loisirs;
+  const resteVivre = v.revenus - totalCharges;
+  const resteVivrePct = v.revenus > 0 ? (resteVivre / v.revenus) * 100 : 0;
+
+  const segments = [
+    { name: "Logement",       value: v.loyer,         color: "#1a56db" },
+    { name: "Charges fixes",  value: chargesFixesTot, color: "#06b6d4" },
+    { name: "Alimentation",   value: v.alimentation,  color: "#8b5cf6" },
+    { name: "Transport",      value: v.transport,     color: "#f59e0b" },
+    { name: "Loisirs",        value: v.loisirs,       color: "#10b981" },
+    { name: "Reste à vivre",  value: Math.max(0, resteVivre), color: "#059669" },
+  ].filter((s) => s.value > 0);
+
+  return { resteVivre, resteVivrePct, totalCharges, chargesFixesTot, segments };
+}
+
+const MEDIANE_FR_RESTE = 1200;
+
+const RENDERIZED_LABEL = ({ cx, cy, midAngle, innerRadius, outerRadius, percent, name }) => {
+  if (percent < 0.05) return null;
+  const RADIAN = Math.PI / 180;
+  const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
+  const x = cx + radius * Math.cos(-midAngle * RADIAN);
+  const y = cy + radius * Math.sin(-midAngle * RADIAN);
+  return (
+    <text x={x} y={y} fill="white" textAnchor="middle" dominantBaseline="central" fontSize={10} fontWeight={600}>
+      {`${(percent * 100).toFixed(0)}%`}
+    </text>
+  );
+};
 
 export default function SimNiveauDeVie() {
   const [v, setV] = useState({
-    salaire: 2800,
-    loyer: 900,
-    alimentation: 400,
-    transport: 200,
-    telecom: 60,
-    assurances: 100,
-    autres: 150,
+    revenus: 2500,
+    loyer: 750,
+    electricite: 80,
+    telephone: 25,
+    internet: 30,
+    assurances: 80,
+    alimentation: 350,
+    transport: 150,
+    loisirs: 100,
   });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
-  // Médianes nationales France 2026 (INSEE / Banque de France)
-  const MEDIANE_FR = { salaire: 2260, loyer: 780, alimentation: 350, transport: 180, telecom: 50, assurances: 80, autres: 100 };
-  const MEDIANE_TOTAL_CHARGES = Object.entries(MEDIANE_FR).filter(([k]) => k !== "salaire").reduce((s, [, val]) => s + val, 0);
-  const MEDIANE_DISPONIBLE = MEDIANE_FR.salaire - MEDIANE_TOTAL_CHARGES;
+  const res = useMemo(() => calcNiveauDeVie(v), [v]);
 
-  const res = useMemo(() => {
-    const totalCharges = CHARGE_FIELDS.reduce((sum, f) => sum + (v[f.key] || 0), 0);
-    const disponible = v.salaire - totalCharges;
-    const tauxCharges = v.salaire > 0 ? (totalCharges / v.salaire) * 100 : 0;
-    return { totalCharges, disponible, tauxCharges };
-  }, [v]);
+  const verdictClass =
+    res.resteVivre >= 500
+      ? "sv2-verdict-green"
+      : res.resteVivre >= 200
+      ? "sv2-verdict-amber"
+      : "sv2-verdict-red";
 
-  const color = res.disponible < 0 ? "red" : res.tauxCharges > 70 ? "amber" : "green";
+  const diffMediane = res.resteVivre - MEDIANE_FR_RESTE;
 
-  const donutSegments = [
-    ...CHARGE_FIELDS.map((f) => ({ value: v[f.key] || 0, color: f.color, label: f.label })),
-    ...(res.disponible > 0 ? [{ value: res.disponible, color: "#e2e8f0", label: "Disponible" }] : []),
-  ].filter((s) => s.value > 0);
+  // Personalized advice
+  const charges = [
+    { label: "logement", val: v.loyer },
+    { label: "alimentation", val: v.alimentation },
+    { label: "transport", val: v.transport },
+    { label: "loisirs", val: v.loisirs },
+  ];
+  const biggestCharge = charges.sort((a, b) => b.val - a.val)[0];
+
+  let advice = "";
+  if (res.resteVivre < 200) {
+    advice = `Votre budget est très contraint. Le poste ${biggestCharge.label} (${fmt(biggestCharge.val)}/mois) est votre plus grande dépense — examinez si vous pouvez le réduire en priorité.`;
+  } else if (res.resteVivre < 500) {
+    advice = `Votre reste à vivre est limité. Pour améliorer votre situation, concentrez-vous sur votre poste ${biggestCharge.label} (${fmt(biggestCharge.val)}/mois). Même 10 % d'économie libèrerait ${fmt(biggestCharge.val * 0.1)}/mois.`;
+  } else {
+    advice = `Votre reste à vivre est confortable. Pensez à affecter au moins 10–20 % de vos revenus (${fmt(v.revenus * 0.15)}/mois) à l'épargne pour préparer vos projets futurs.`;
+  }
+
+  const runningTotal = v.loyer + v.electricite + v.telephone + v.internet + v.assurances;
 
   return (
     <SimLayout
       icon="📊"
-      title="Calculateur de niveau de vie"
-      description="Calculez votre revenu disponible après toutes vos charges fixes mensuelles."
-      simTime="3 min"
-      suggestions={["/simulateurs/endettement", "/simulateurs/epargne", "/simulateurs/pret-immobilier"]}
+      title="Calculez votre reste à vivre réel"
+      description="Visualisez votre budget mensuel après toutes vos charges"
+      suggestions={[
+        "/simulateurs/endettement",
+        "/simulateurs/pret-conso",
+        "/simulateurs/epargne",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Vos revenus",
-            icon: "💰",
-            content: (
-              <div className="step-fields">
-                <div className="field-full">
-                  <Field label="Salaire net mensuel" value={v.salaire} onChange={set("salaire")} suffix="€/mois" hint="Après impôts et cotisations" tooltip="Votre salaire net après prélèvement à la source et cotisations. Regardez votre fiche de paie, ligne 'net à payer avant impôt'." />
-                </div>
-              </div>
-            ),
-          },
-          {
-            title: "Vos charges mensuelles",
-            icon: "📊",
-            content: (
-              <div className="step-fields">
-                {CHARGE_FIELDS.map((f) => (
-                  <Field key={f.key} label={`${f.icon} ${f.label}`} value={v[f.key]} onChange={set(f.key)} suffix="€/mois" hint={f.hint} tooltip={f.tooltip} />
-                ))}
-              </div>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            <div className={`sim-stat-hero sim-hero-${color}`}>
-              <span className="sim-stat-label">Revenu disponible</span>
-              <span className="sim-stat-value">
-                {res.disponible < 0 ? "−" : ""}{formatCurrency(Math.abs(res.disponible))}
-                <span className="sim-stat-unit">/mois</span>
-              </span>
-              {res.disponible < 0 && <span className="sim-hero-badge sim-badge-red">Budget déficitaire</span>}
-            </div>
+      <div className="sv2-container">
+        {/* ── Inputs ── */}
+        <div className="fv2-card">
+          <p className="fv2-card-kicker">Paramètres</p>
+          <h2 className="fv2-card-title">Votre budget mensuel</h2>
 
-            <div className="sim-stats-grid">
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Revenus nets</span>
-                <span className="sim-stat-card-value">{formatCurrency(v.salaire)}</span>
-              </div>
-              <div className={`sim-stat-card ${res.tauxCharges > 70 ? "sim-stat-card-red" : "sim-stat-card-blue"}`}>
-                <span className="sim-stat-card-label">Total charges</span>
-                <span className="sim-stat-card-value">{formatCurrency(res.totalCharges)}</span>
-              </div>
-              <div className={`sim-stat-card ${res.tauxCharges > 70 ? "sim-stat-card-red" : res.tauxCharges > 50 ? "sim-stat-card-amber" : "sim-stat-card-green"}`}>
-                <span className="sim-stat-card-label">Taux de charges</span>
-                <span className="sim-stat-card-value">{res.tauxCharges.toFixed(0)} %</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Disponible / an</span>
-                <span className="sim-stat-card-value">{formatCurrency(res.disponible * 12)}</span>
-              </div>
-            </div>
-
-            {/* Donut + category bars */}
-            <div className="sim-donut-section">
-              <DonutChart
-                segments={donutSegments}
-                size={130}
-                thickness={22}
-                label={formatCurrency(v.salaire)}
-                subLabel="revenus"
+          {/* 1 – Revenus */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Revenus nets mensuels</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.revenus || ""}
+                min={0} max={20000} step={100}
+                onChange={(e) =>
+                  set("revenus")(Math.max(0, Math.min(20000, Number(e.target.value) || 0)))
+                }
               />
-              <div className="sim-donut-legend" style={{ flex: 1 }}>
-                <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition par poste</p>
-                <div className="charge-category-bars">
-                  {CHARGE_FIELDS.map((f) => {
-                    const pct = v.salaire > 0 ? Math.min(100, ((v[f.key] || 0) / v.salaire) * 100) : 0;
-                    return (
-                      <div key={f.key} className="charge-bar-row">
-                        <span className="charge-bar-row-icon">{f.icon}</span>
-                        <span className="charge-bar-row-label">{f.label}</span>
-                        <div className="charge-bar-track">
-                          <div
-                            className="charge-bar-fill"
-                            style={{ width: `${pct}%`, background: f.color }}
-                          />
-                        </div>
-                        <span className="charge-bar-row-value">{formatCurrency(v[f.key] || 0)}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
+              <span className="fv2-revenus-unit">€/mois</span>
             </div>
+            <Pills
+              value={v.revenus}
+              options={[1500, 2000, 2500, 3000, 3500, 4000]}
+              onChange={set("revenus")}
+              format={(o) => `${o} €`}
+            />
+          </div>
 
-            <div className="sim-budget-rule">
-              <p className="sim-bar-label">Règle 50/30/20 recommandée</p>
-              <div className="budget-rule-rows">
-                <div className="budget-rule-row">
-                  <span className="budget-rule-cat">Besoins essentiels (50%)</span>
-                  <span className="budget-rule-target">{formatCurrency(v.salaire * 0.5)}</span>
-                </div>
-                <div className="budget-rule-row">
-                  <span className="budget-rule-cat">Loisirs &amp; extras (30%)</span>
-                  <span className="budget-rule-target">{formatCurrency(v.salaire * 0.3)}</span>
-                </div>
-                <div className="budget-rule-row budget-rule-highlight">
-                  <span className="budget-rule-cat">Épargne (20%)</span>
-                  <span className="budget-rule-target">{formatCurrency(v.salaire * 0.2)}</span>
-                </div>
-              </div>
+          {/* 2 – Logement */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Logement (loyer ou mensualité)</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.loyer || ""}
+                min={0} max={5000} step={50}
+                onChange={(e) =>
+                  set("loyer")(Math.max(0, Math.min(5000, Number(e.target.value) || 0)))
+                }
+              />
+              <span className="fv2-revenus-unit">€/mois</span>
             </div>
+          </div>
 
-            {/* Comparaison médiane France */}
-            <div className="sim-info-box" style={{ marginTop: 16 }}>
-              <p className="sim-info-title">🇫🇷 Comparaison à la médiane française (2026)</p>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8, marginTop: 8 }}>
-                {[
-                  { label: "Salaire médian", yours: v.salaire, median: MEDIANE_FR.salaire, suffix: "€/mois" },
-                  { label: "Charges médianes", yours: res.totalCharges, median: MEDIANE_TOTAL_CHARGES, suffix: "€/mois", invertColor: true },
-                  { label: "Reste à vivre médian", yours: Math.max(0, res.disponible), median: MEDIANE_DISPONIBLE, suffix: "€/mois" },
-                ].map(({ label, yours, median, suffix, invertColor }) => {
-                  const better = invertColor ? yours <= median : yours >= median;
-                  return (
-                    <div key={label} style={{ background: "var(--bg)", borderRadius: 10, padding: "10px 12px", border: "1px solid var(--line)" }}>
-                      <p style={{ fontSize: 11, color: "var(--muted)", marginBottom: 4 }}>{label}</p>
-                      <p style={{ fontWeight: 800, fontSize: 15, color: better ? "#059669" : "#dc2626", marginBottom: 2 }}>{formatCurrency(yours)}</p>
-                      <p style={{ fontSize: 11, color: "var(--muted)" }}>médiane : {formatCurrency(median)}</p>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="sim-info-body" style={{ marginTop: 8 }}>
-                {res.disponible >= MEDIANE_DISPONIBLE
-                  ? `Votre reste à vivre est supérieur à la médiane française (+${formatCurrency(res.disponible - MEDIANE_DISPONIBLE)}/mois). Vous avez une bonne marge pour épargner.`
-                  : `Votre reste à vivre est inférieur à la médiane française (−${formatCurrency(MEDIANE_DISPONIBLE - Math.max(0, res.disponible))}/mois). Revoyez vos charges fixes en priorité.`}
+          {/* 3 – Charges fixes */}
+          <div style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Charges fixes</p>
+            <div className="sv2-charges-grid" style={{ marginTop: 8 }}>
+              {[
+                { key: "electricite", label: "Électricité" },
+                { key: "telephone",   label: "Téléphone" },
+                { key: "internet",    label: "Internet" },
+                { key: "assurances",  label: "Assurances" },
+              ].map(({ key, label }) => (
+                <div key={key} className="sv2-charge-item">
+                  <label className="sv2-charge-item-label">{label}</label>
+                  <div className="fv2-revenus-input-row" style={{ marginTop: 4 }}>
+                    <input
+                      type="number"
+                      className="fv2-revenus-input"
+                      value={v[key] || ""}
+                      min={0} max={2000} step={5}
+                      onChange={(e) =>
+                        set(key)(Math.max(0, Math.min(2000, Number(e.target.value) || 0)))
+                      }
+                    />
+                    <span className="fv2-revenus-unit">€</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="fv2-hint">
+              Total charges fixes : <strong>{fmt(v.electricite + v.telephone + v.internet + v.assurances)}/mois</strong>
+              {" · "}Déduites jusqu'ici : <strong>{fmt(runningTotal)}/mois</strong>
+            </p>
+          </div>
+
+          {/* 4 – Alimentation */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Alimentation</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.alimentation || ""}
+                min={0} max={2000} step={25}
+                onChange={(e) =>
+                  set("alimentation")(Math.max(0, Math.min(2000, Number(e.target.value) || 0)))
+                }
+              />
+              <span className="fv2-revenus-unit">€/mois</span>
+            </div>
+            <Pills
+              value={v.alimentation}
+              options={[200, 300, 400, 500]}
+              onChange={set("alimentation")}
+              format={(o) => `${o} €`}
+            />
+          </div>
+
+          {/* 5 – Transport */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Transport</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.transport || ""}
+                min={0} max={2000} step={25}
+                onChange={(e) =>
+                  set("transport")(Math.max(0, Math.min(2000, Number(e.target.value) || 0)))
+                }
+              />
+              <span className="fv2-revenus-unit">€/mois</span>
+            </div>
+            <Pills
+              value={v.transport}
+              options={[50, 100, 200, 300]}
+              onChange={set("transport")}
+              format={(o) => `${o} €`}
+            />
+          </div>
+
+          {/* 6 – Loisirs */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Loisirs & divers</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.loisirs || ""}
+                min={0} max={2000} step={25}
+                onChange={(e) =>
+                  set("loisirs")(Math.max(0, Math.min(2000, Number(e.target.value) || 0)))
+                }
+              />
+              <span className="fv2-revenus-unit">€/mois</span>
+            </div>
+            <Pills
+              value={v.loisirs}
+              options={[50, 100, 150, 200]}
+              onChange={set("loisirs")}
+              format={(o) => `${o} €`}
+            />
+          </div>
+        </div>
+
+        {/* ── Results ── */}
+        {v.revenus > 0 && (
+          <div className="fv2-card" style={{ marginTop: 16 }}>
+            {/* Verdict */}
+            <div className={`sv2-verdict ${verdictClass}`}>
+              <p className="sv2-verdict-label">Votre reste à vivre est de</p>
+              <p className="sv2-verdict-amount">
+                {res.resteVivre < 0 ? "−" : ""}
+                {fmt(Math.abs(res.resteVivre))}/mois
+              </p>
+              <p className="sv2-verdict-sub">
+                Soit {res.resteVivrePct.toFixed(0)} % de vos revenus · Total charges : {fmt(res.totalCharges)}/mois
               </p>
             </div>
 
-            {(() => {
-              const maxMens = v.salaire * 0.35;
-              const capitalCapacity = maxMens * (1 - Math.pow(1 + 3.5/100/12, -240)) / (3.5/100/12);
-              return (
-                <div className="sim-info-box" style={{ marginTop: 16 }}>
-                  <p className="sim-info-title">🏠 Capacité d'achat indicative</p>
-                  <p className="sim-info-body">
-                    À 35 % de vos revenus, votre mensualité max est de <strong>{formatCurrency(Math.round(maxMens))}/mois</strong>.
-                    Cela correspond à une capacité d'emprunt d'environ <strong>{formatCurrency(Math.round(capitalCapacity))}</strong> sur 20 ans à 3,5 %.
-                    {res.tauxCharges > 65 ? " ⚠️ Votre taux de charges actuel est élevé — réduire certains postes améliorera votre dossier bancaire." : ""}
-                  </p>
+            {/* Stat cards */}
+            <div className="sim-stats-grid" style={{ marginTop: 20 }}>
+              <div className="sim-stat-card">
+                <span className="sim-stat-card-label">Revenus nets</span>
+                <span className="sim-stat-card-value">{fmt(v.revenus)}</span>
+              </div>
+              <div className="sim-stat-card sim-stat-card-blue">
+                <span className="sim-stat-card-label">Total charges</span>
+                <span className="sim-stat-card-value">{fmt(res.totalCharges)}</span>
+              </div>
+              <div className={`sim-stat-card ${res.resteVivre >= 500 ? "sim-stat-card-green" : res.resteVivre >= 200 ? "" : "sim-stat-card-red"}`}>
+                <span className="sim-stat-card-label">Reste à vivre</span>
+                <span className="sim-stat-card-value">{fmt(res.resteVivre)}/mois</span>
+              </div>
+            </div>
+
+            {/* Donut chart */}
+            {res.segments.length > 0 && (
+              <div style={{ marginTop: 24 }}>
+                <div className="fv2-slider-header">
+                  <span className="fv2-slider-label">Répartition de votre budget</span>
                 </div>
-              );
-            })()}
+                <ResponsiveContainer width="100%" height={260}>
+                  <PieChart>
+                    <Pie
+                      data={res.segments}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={55}
+                      outerRadius={90}
+                      paddingAngle={2}
+                      dataKey="value"
+                      labelLine={false}
+                      label={RENDERIZED_LABEL}
+                    >
+                      {res.segments.map((seg, i) => (
+                        <Cell key={i} fill={seg.color} />
+                      ))}
+                    </Pie>
+                    <Tooltip content={<ChartTip />} />
+                    <Legend
+                      formatter={(value) => (
+                        <span style={{ fontSize: 12, color: "#374151" }}>{value}</span>
+                      )}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Comparison to national median */}
+            <div className="sv2-insight" style={{ marginTop: 20 }}>
+              La médiane française est de <strong>{fmt(MEDIANE_FR_RESTE)}/mois</strong> de reste à vivre. Vous êtes{" "}
+              {diffMediane >= 0 ? (
+                <strong style={{ color: "#059669" }}>{fmt(diffMediane)} au-dessus</strong>
+              ) : (
+                <strong style={{ color: "#dc2626" }}>{fmt(Math.abs(diffMediane))} en-dessous</strong>
+              )}{" "}
+              de cette médiane.
+            </div>
+
+            {/* Personalized advice */}
+            <div className="sv2-insight" style={{ marginTop: 12 }}>
+              {advice}
+            </div>
           </div>
-        }
-      />
+        )}
+
+        <SimCrossSell
+          show={res.resteVivre >= 200 && v.loyer > 0}
+          loan={v.loyer * 12 * 20}
+          taux={3.5}
+          dureeCredit={20}
+        />
+      </div>
     </SimLayout>
   );
 }

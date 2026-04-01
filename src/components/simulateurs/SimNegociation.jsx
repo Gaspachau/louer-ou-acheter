@@ -1,223 +1,343 @@
 import { useMemo, useState } from "react";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine,
+  ResponsiveContainer, CartesianGrid, Legend,
+} from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import Field from "../Field";
-import { LineChart, Line, XAxis, YAxis, Tooltip, ReferenceLine, ResponsiveContainer, CartesianGrid } from "recharts";
+import SimCrossSell from "./SimCrossSell";
 
-const fmtCur = (v) =>
+/* ─── Formatters ─────────────────────────────────────────── */
+const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) =>
+  v >= 1000 ? `${Math.round(v / 1000)}k €` : `${Math.round(v)} €`;
+const fmtPct = (v) => `${v.toFixed(1)} %`;
 
-function calcMensualite(capital, taux, dureeAns) {
-  if (capital <= 0 || dureeAns <= 0) return 0;
-  const r = taux / 100 / 12;
-  const n = dureeAns * 12;
-  return r === 0 ? capital / n : (capital * r) / (1 - Math.pow(1 + r, -n));
+/* ─── Core helpers ───────────────────────────────────────── */
+function mortgage(p, r, y) {
+  if (p <= 0 || y <= 0) return 0;
+  const mr = r / 100 / 12;
+  if (mr === 0) return p / (y * 12);
+  return (p * mr) / (1 - Math.pow(1 + mr, -(y * 12)));
 }
 
-const CONSEILS = [
-  "Les biens en vente depuis plus de 90 jours ont en moyenne 5–8 % de marge de négociation.",
-  "Demandez le prix d'achat initial du vendeur : une plus-value latente ouvre la discussion.",
-  "Un DPE F/G justifie une décote de 10–25 % pour les travaux de rénovation énergétique.",
-  "En zone tendue, la marge de négociation est souvent réduite à 2–3 % maximum.",
-  "Négocier 5 % sur 250 000 € = 12 500 € d'économie, soit ~50 €/mois sur 20 ans.",
-];
+function calcNegociation({ prixAffiche, loyer, duree, taux, apport }) {
+  const totalLocation = loyer * 12 * duree;
+  const capital = Math.max(0, prixAffiche - apport);
+  const mensualite = mortgage(capital, taux, 20);
+  const totalAchat = mensualite * 12 * duree + prixAffiche * 0.08 + apport;
+  const diff = totalAchat - totalLocation;
 
-export default function SimNegociation() {
-  const [prixAffiche, setPrixAffiche] = useState(280000);
-  const [loyer, setLoyer] = useState(950);
-  const [taux, setTaux] = useState(3.5);
-  const [duree, setDuree] = useState(20);
-  const [apport, setApport] = useState(40000);
-  const [horizon, setHorizon] = useState(7);
-  const [rendementEpargne, setRendementEpargne] = useState(3.5);
+  // Binary search for break-even price
+  let lo = 0, hi = prixAffiche * 2, prixEquilibre = prixAffiche;
+  for (let i = 0; i < 50; i++) {
+    const mid = (lo + hi) / 2;
+    const cap = Math.max(0, mid - apport);
+    const mens = mortgage(cap, taux, 20);
+    const totMid = mens * 12 * duree + mid * 0.08 + apport;
+    if (totMid > totalLocation) { hi = mid; }
+    else { lo = mid; prixEquilibre = mid; }
+  }
 
-  const res = useMemo(() => {
-    // On cherche le prix maximum pour que l'achat soit équivalent à la location sur l'horizon
-    // Méthode : binary search sur le prix pour trouver l'équilibre patrimonial
+  const remise = Math.max(0, ((prixAffiche - prixEquilibre) / prixAffiche) * 100);
 
-    const fraisNotaire = 0.08; // 8%
-    const chargesAnnuelles = 0.015; // taxe + entretien = 1.5%/an du prix
-    const appreciation = 0.02; // 2%/an
+  // Chart: cost by price multiplier (70% to 110% of listed price)
+  const chartData = [];
+  for (let mult = 0.70; mult <= 1.105; mult += 0.025) {
+    const p = Math.round(prixAffiche * mult);
+    const cap = Math.max(0, p - apport);
+    const mens = mortgage(cap, taux, 20);
+    const totAch = mens * 12 * duree + p * 0.08 + apport;
+    chartData.push({
+      prix: `${Math.round(mult * 100)} %`,
+      "Coût achat": Math.round(totAch),
+      "Coût location": Math.round(totalLocation),
+    });
+  }
 
-    function patrimoineAchat(prix) {
-      const capital = Math.max(0, prix * (1 + fraisNotaire) - apport);
-      const mens = calcMensualite(capital, taux, duree);
-      let capitalRestant = capital;
-      for (let y = 0; y < horizon; y++) {
-        const r = taux / 100 / 12;
-        for (let m = 0; m < 12; m++) {
-          const interet = capitalRestant * r;
-          const remboursement = Math.min(mens - interet, capitalRestant);
-          capitalRestant -= remboursement;
-        }
-      }
-      const valeurFuture = prix * Math.pow(1 + appreciation, horizon);
-      return valeurFuture - capitalRestant;
-    }
-
-    function patrimoineLocation() {
-      // Épargne la différence entre mensualité de référence et loyer
-      const mensRef = calcMensualite(
-        Math.max(0, prixAffiche * (1 + fraisNotaire) - apport),
-        taux, duree
-      );
-      const chargesMois = (prixAffiche * chargesAnnuelles) / 12;
-      const loyerActuel = loyer;
-      const loyerFin = loyerActuel * Math.pow(1.02, horizon);
-      const loyerMoyen = (loyerActuel + loyerFin) / 2;
-
-      const coutMensuelAchat = mensRef + chargesMois;
-      const epargneSupp = Math.max(0, coutMensuelAchat - loyerMoyen);
-      const capitalPlace = apport + epargneSupp * horizon * 12;
-      return capitalPlace * Math.pow(1 + rendementEpargne / 100, horizon);
-    }
-
-    // Binary search pour trouver le prix d'équilibre
-    let lo = prixAffiche * 0.5, hi = prixAffiche;
-    for (let i = 0; i < 40; i++) {
-      const mid = (lo + hi) / 2;
-      if (patrimoineAchat(mid) < patrimoineLocation()) hi = mid;
-      else lo = mid;
-    }
-    const prixEquilibre = (lo + hi) / 2;
-    const margeNego = prixAffiche - prixEquilibre;
-    const pctNego = (margeNego / prixAffiche) * 100;
-
-    // Courbe : patrimoine achat selon le prix négocié
-    const chartData = [];
-    for (let pct = 0; pct <= 20; pct += 2) {
-      const prix = prixAffiche * (1 - pct / 100);
-      chartData.push({
-        pct: `-${pct}%`,
-        prix,
-        patAchat: Math.round(patrimoineAchat(prix) / 1000),
-        patLoc: Math.round(patrimoineLocation() / 1000),
-      });
-    }
-
-    const mensualiteAffiche = calcMensualite(
-      Math.max(0, prixAffiche * 1.08 - apport), taux, duree
-    );
-    const mensualiteNego = calcMensualite(
-      Math.max(0, prixEquilibre * 1.08 - apport), taux, duree
-    );
-
-    return {
-      prixEquilibre,
-      margeNego: Math.max(0, margeNego),
-      pctNego: Math.max(0, pctNego),
-      chartData,
-      mensualiteAffiche,
-      mensualiteNego,
-      eligible: pctNego >= 0,
-    };
-  }, [prixAffiche, loyer, taux, duree, apport, horizon, rendementEpargne]);
-
-  const negoZone = res.pctNego < 3 ? "safe"
-    : res.pctNego < 8 ? "warning"
-    : "danger";
-
-  const negoColors = {
-    safe: { bg: "#d1fae5", border: "#6ee7b7", accent: "#059669", label: "Marge faible — marché tendu" },
-    warning: { bg: "#fef3c7", border: "#fcd34d", accent: "#d97706", label: "Marge raisonnable" },
-    danger: { bg: "#fee2e2", border: "#fca5a5", accent: "#dc2626", label: "Forte décote nécessaire — bien surévalué ?" },
+  return {
+    prixEquilibre: Math.round(prixEquilibre),
+    remise,
+    mensualite,
+    diff,
+    totalAchat,
+    totalLocation,
+    capital,
+    chartData,
   };
-  const c = negoColors[negoZone];
+}
 
-  const CustomTooltip = ({ active, payload }) => {
-    if (!active || !payload?.length) return null;
-    return (
-      <div className="chart-tooltip">
-        <p style={{ margin: 0, fontWeight: 600 }}>Réduction : {payload[0]?.payload.pct}</p>
-        <p style={{ margin: "2px 0 0", color: "#2563eb" }}>Achat : {payload[0]?.value}k€</p>
-        <p style={{ margin: "2px 0 0", color: "#059669" }}>Location : {payload[1]?.value}k€</p>
+/* ─── Slider ─────────────────────────────────────────────── */
+function Slider({ label, value, onChange, min, max, step = 1, format = String }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
+      <div className="fv2-slider-header">
+        <span className="fv2-slider-label">{label}</span>
+        <span className="fv2-slider-val">{format(value)}</span>
       </div>
-    );
-  };
+      <input
+        type="range" className="fv2-slider" min={min} max={max} step={step}
+        value={value} onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <div className="fv2-slider-fill" />
+      <div className="fv2-slider-minmax">
+        <span>{format(min)}</span>
+        <span>{format(max)}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Chart Tooltip ──────────────────────────────────────── */
+function ChartTip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      <p className="chart-tooltip-label">Prix affiché : {label}</p>
+      {payload.map((p) => (
+        <div key={p.dataKey} className="chart-tooltip-row">
+          <span style={{ color: p.stroke }}>{p.name}</span>
+          <span>{fmt(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Component ──────────────────────────────────────────── */
+export default function SimNegociation() {
+  const [s, setS] = useState({
+    prixAffiche: 300000,
+    loyer: 900,
+    duree: 10,
+    taux: 3.5,
+    apport: 40000,
+  });
+  const set = (k) => (val) => setS((prev) => ({ ...prev, [k]: val }));
+
+  const res = useMemo(() => calcNegociation(s), [s]);
+
+  // Find intersection label for reference line
+  const intersectLabel = (() => {
+    const data = res.chartData;
+    for (let i = 0; i < data.length - 1; i++) {
+      const d1 = data[i], d2 = data[i + 1];
+      const diff1 = d1["Coût achat"] - d1["Coût location"];
+      const diff2 = d2["Coût achat"] - d2["Coût location"];
+      if (diff1 > 0 && diff2 <= 0) return d2.prix;
+      if (diff1 <= 0 && diff2 > 0) return d1.prix;
+    }
+    return null;
+  })();
+
+  const verdictClass = res.remise < 5 ? "sv2-verdict-blue" : "sv2-verdict-amber";
+  const remiseMinPrix = Math.round(s.prixAffiche * (1 - res.remise / 2 / 100));
+  const remiseMinPct = res.remise / 2;
 
   return (
     <SimLayout
       icon="🤝"
-      title="Simulateur de négociation"
-      description="À quel prix négocier pour que l'achat soit au moins aussi rentable que la location sur votre horizon ?"
-      conseils={CONSEILS}
-      suggestions={["/simulateurs/frais-notaire", "/simulateurs/pret-immobilier", "/simulateurs/budget-maximum"]}
+      title="À quel prix négocier pour que votre achat soit rentable ?"
+      description="Calculez le prix maximum à payer selon votre horizon"
+      suggestions={[
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/comparateur-villes",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Le bien à négocier",
-            icon: "🏠",
-            content: (
-              <>
-                <Field label="Prix affiché" value={prixAffiche} onChange={setPrixAffiche} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-                <Field label="Loyer mensuel équivalent" value={loyer} onChange={setLoyer} suffix="€" hint="Loyer d'un bien similaire dans le même secteur" tooltip="Loyer mensuel charges comprises. Moyenne nationale : ~700 €/mois. À Paris : ~1 400 €, en province : ~600–700 €." />
-                <Field label="Apport personnel" value={apport} onChange={setApport} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-              </>
-            ),
-          },
-          {
-            title: "Votre stratégie",
-            icon: "🤝",
-            content: (
-              <>
-                <Field label="Taux du crédit" value={taux} onChange={setTaux} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-                <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-                <Field label="Horizon de détention" value={horizon} onChange={setHorizon} suffix="ans" step={1} min={3} max={20} />
-                <Field label="Rendement épargne si on loue" value={rendementEpargne} onChange={setRendementEpargne} suffix="%" step={0.5} hint="Livret A = 1,5 %, PEA = 5–7 %" tooltip="Rendement net annuel de votre épargne. Livret A en 2026 : 1,5 %. Assurance-vie fonds euro : ~2,5–3 %. PEA/ETF monde : ~7–8 % sur 20 ans en moyenne." />
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            <div className="nego-verdict" style={{ background: c.bg, borderColor: c.border }}>
-              <div className="nego-verdict-header">
-                <span className="nego-verdict-tag" style={{ color: c.accent, borderColor: c.accent }}>{c.label}</span>
+      <div className="sv2-container">
+
+        {/* ── Inputs ── */}
+        <div className="fv2-card">
+          <p className="fv2-card-kicker">Votre projet</p>
+          <h2 className="fv2-card-title">Paramètres de négociation</h2>
+
+          {/* Prix affiché */}
+          <div style={{ marginBottom: 20 }}>
+            <label className="fv2-field-label">Prix affiché par le vendeur</label>
+            <div className="fv2-revenus-input-row">
+              <div className="fv2-revenus-wrap">
+                <input
+                  type="number" className="fv2-revenus-input"
+                  value={s.prixAffiche}
+                  onChange={(e) => set("prixAffiche")(Number(e.target.value))}
+                />
+                <span className="fv2-revenus-unit">€</span>
               </div>
-              <p className="nego-prix-max-label">Prix maximum recommandé</p>
-              <p className="nego-prix-max" style={{ color: c.accent }}>{fmtCur(res.prixEquilibre)}</p>
-              <p className="nego-prix-delta">
-                Soit <strong style={{ color: c.accent }}>−{res.pctNego.toFixed(1)} %</strong> par rapport au prix affiché ({fmtCur(res.margeNego)} à négocier)
+            </div>
+            <div className="fv2-revenus-pills">
+              {[150000, 200000, 250000, 300000, 400000, 500000].map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${s.prixAffiche === p ? " active" : ""}`}
+                  onClick={() => set("prixAffiche")(p)}>
+                  {fmtK(p)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Loyer */}
+          <div style={{ marginBottom: 20 }}>
+            <label className="fv2-field-label">Votre loyer actuel (ou loyer équivalent)</label>
+            <div className="fv2-revenus-input-row">
+              <div className="fv2-revenus-wrap">
+                <input
+                  type="number" className="fv2-revenus-input"
+                  value={s.loyer}
+                  onChange={(e) => set("loyer")(Number(e.target.value))}
+                />
+                <span className="fv2-revenus-unit">€/mois</span>
+              </div>
+            </div>
+            <div className="fv2-revenus-pills">
+              {[600, 800, 900, 1000, 1200, 1500].map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${s.loyer === p ? " active" : ""}`}
+                  onClick={() => set("loyer")(p)}>
+                  {fmt(p)}
+                </button>
+              ))}
+            </div>
+            <p className="fv2-hint">Loyer que vous évitez si vous achetez</p>
+          </div>
+
+          {/* Durée */}
+          <div style={{ marginBottom: 20 }}>
+            <Slider
+              label="Durée prévue dans le bien"
+              value={s.duree}
+              onChange={set("duree")}
+              min={3} max={20} step={1}
+              format={(v) => `${v} ans`}
+            />
+            <div className="fv2-revenus-pills" style={{ marginTop: 6 }}>
+              {[5, 7, 10, 15, 20].map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${s.duree === p ? " active" : ""}`}
+                  onClick={() => set("duree")(p)}>
+                  {p} ans
+                </button>
+              ))}
+            </div>
+            {s.duree < 5 && (
+              <p className="fv2-hint" style={{ color: "#dc2626" }}>
+                ⚠️ Moins de 5 ans : les frais de notaire (8 %) s'amortissent difficilement — louer est souvent plus avantageux.
+              </p>
+            )}
+          </div>
+
+          {/* Taux */}
+          <div>
+            <Slider
+              label="Taux du crédit"
+              value={s.taux}
+              onChange={set("taux")}
+              min={1} max={7} step={0.1}
+              format={(v) => `${v.toFixed(1)} %`}
+            />
+          </div>
+        </div>
+
+        {/* ── Results ── */}
+        {res && (
+          <>
+            {/* Verdict */}
+            <div className={`sv2-verdict ${verdictClass}`}>
+              <p className="sv2-verdict-label">Prix maximum à payer</p>
+              <p className="sv2-verdict-amount">{fmt(res.prixEquilibre)}</p>
+              <p className="sv2-verdict-sub">
+                soit <strong>{fmtPct(res.remise)}</strong> de remise sur le prix affiché
               </p>
             </div>
 
-            <div className="nego-compare">
-              <div className="nego-compare-item">
-                <span className="nego-compare-label">Mensualité au prix affiché</span>
-                <strong style={{ color: "var(--muted)" }}>{fmtCur(res.mensualiteAffiche)}/mois</strong>
+            {/* 3 scenario cards */}
+            <div className="sv2-scenarios">
+              <div className="sv2-scenario-card">
+                <p className="sv2-scenario-dur">Prix affiché</p>
+                <p className="sv2-scenario-amt">{fmt(s.prixAffiche)}</p>
               </div>
-              <div className="nego-compare-item">
-                <span className="nego-compare-label">Mensualité au prix négocié</span>
-                <strong style={{ color: "#059669" }}>{fmtCur(res.mensualiteNego)}/mois</strong>
+              <div className="sv2-scenario-card highlight">
+                <p className="sv2-scenario-dur">Prix d'équilibre</p>
+                <p className="sv2-scenario-amt">{fmt(res.prixEquilibre)}</p>
               </div>
-              <div className="nego-compare-item" style={{ borderTop: "1px solid var(--line)", paddingTop: 10, marginTop: 4 }}>
-                <span className="nego-compare-label">Économie mensuelle</span>
-                <strong style={{ color: c.accent }}>−{fmtCur(res.mensualiteAffiche - res.mensualiteNego)}/mois</strong>
+              <div className="sv2-scenario-card" style={{ color: "#059669" }}>
+                <p className="sv2-scenario-dur">Remise à négocier</p>
+                <p className="sv2-scenario-amt" style={{ color: "#059669" }}>
+                  -{fmt(s.prixAffiche - res.prixEquilibre)}
+                </p>
               </div>
             </div>
 
-            <div style={{ marginTop: 16 }}>
-              <p className="sim-card-legend">Patrimoine selon la remise négociée ({horizon} ans)</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <LineChart data={res.chartData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="var(--line)" />
-                  <XAxis dataKey="pct" tick={{ fontSize: 11 }} />
-                  <YAxis unit="k€" tick={{ fontSize: 11 }} />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Line type="monotone" dataKey="patAchat" stroke="#2563eb" strokeWidth={2} dot={false} name="Achat" />
-                  <Line type="monotone" dataKey="patLoc" stroke="#059669" strokeWidth={2} dot={false} strokeDasharray="5 3" name="Location" />
-                  <ReferenceLine x={`-${Math.round(res.pctNego)}%`} stroke={c.accent} strokeDasharray="4 2" label={{ value: "Équilibre", fontSize: 10, fill: c.accent }} />
+            {/* Line chart */}
+            <div className="fv2-card" style={{ marginTop: 16 }}>
+              <p className="fv2-card-kicker">Simulation</p>
+              <p className="fv2-card-title" style={{ fontSize: 15, marginBottom: 12 }}>
+                Coût total achat vs location selon le prix payé
+              </p>
+              <ResponsiveContainer width="100%" height={220}>
+                <LineChart data={res.chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="prix" tick={{ fontSize: 10 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtK} />
+                  <Tooltip content={<ChartTip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  {intersectLabel && (
+                    <ReferenceLine
+                      x={intersectLabel}
+                      stroke="#f59e0b"
+                      strokeDasharray="4 3"
+                      label={{ value: "Équilibre", fontSize: 10, fill: "#f59e0b", position: "insideTopRight" }}
+                    />
+                  )}
+                  <Line
+                    type="monotone" dataKey="Coût achat" stroke="#2563eb"
+                    strokeWidth={2} dot={false} name="Coût achat"
+                  />
+                  <Line
+                    type="monotone" dataKey="Coût location" stroke="#059669"
+                    strokeWidth={2} dot={false} strokeDasharray="5 3" name="Coût location"
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
 
-            <p className="sim-detail-note" style={{ marginTop: 8 }}>
-              Simulation sur {horizon} ans avec appréciation +2 %/an, hausse loyers +2 %/an, frais de notaire 8 %. Les conditions de marché peuvent varier.
-            </p>
-          </div>
-        }
-      />
+            {/* Insight */}
+            <div className="sv2-insight">
+              <p>
+                🎯 Pour rentabiliser votre achat en <strong>{s.duree} ans</strong>, vous ne devez pas payer plus de{" "}
+                <strong style={{ color: "#2563eb" }}>{fmt(res.prixEquilibre)}</strong>. Cela représente une négociation de{" "}
+                <strong style={{ color: "#059669" }}>{fmtPct(res.remise)}</strong> sur le prix affiché.
+              </p>
+            </div>
+
+            {/* Fourchette recommandée */}
+            <div className="sv2-nego-range">
+              <p className="sv2-nego-range-title">Fourchette recommandée</p>
+              <div className="sv2-nego-range-item">
+                <span className="sv2-nego-range-label">Négociation minimale recommandée</span>
+                <span className="sv2-nego-range-val">
+                  -{fmtPct(remiseMinPct)} soit {fmt(remiseMinPrix)}
+                </span>
+              </div>
+              <div className="sv2-nego-range-item">
+                <span className="sv2-nego-range-label">Négociation optimale</span>
+                <span className="sv2-nego-range-val">
+                  -{fmtPct(res.remise)} soit {fmt(res.prixEquilibre)}
+                </span>
+              </div>
+            </div>
+
+            {/* Cross-sell */}
+            <SimCrossSell
+              show={s.prixAffiche > 0}
+              loan={res.capital}
+              taux={s.taux}
+              dureeCredit={20}
+            />
+          </>
+        )}
+      </div>
     </SimLayout>
   );
 }

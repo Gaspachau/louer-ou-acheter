@@ -1,109 +1,81 @@
-import { useMemo, useState } from "react";
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { useState, useMemo } from "react";
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import CityPicker from "../CityPicker";
-import { CITY_LIST, PRICE_INDEX, CITY_INDEX_MULTIPLIER } from "../../data/cityData";
 
-const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmt = (v) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k €` : `${v} €`);
 
-const YEARS = Object.keys(PRICE_INDEX).map(Number).filter((y) => y <= 2023);
+// Approximate average annual inflation per year for France
+// Source: INSEE historical CPI data (simplified)
+const INFLATION_HISTORY = {
+  1980: 13.3, 1981: 13.4, 1982: 11.8, 1983: 9.6,  1984: 7.4,
+  1985: 5.8,  1986: 2.7,  1987: 3.1,  1988: 2.7,  1989: 3.6,
+  1990: 3.4,  1991: 3.2,  1992: 2.4,  1993: 2.1,  1994: 1.7,
+  1995: 1.7,  1996: 2.0,  1997: 1.2,  1998: 0.7,  1999: 0.5,
+  2000: 1.7,  2001: 1.7,  2002: 1.9,  2003: 2.1,  2004: 2.1,
+  2005: 1.7,  2006: 1.7,  2007: 1.5,  2008: 2.8,  2009: 0.1,
+  2010: 1.5,  2011: 2.1,  2012: 2.0,  2013: 0.9,  2014: 0.5,
+  2015: 0.0,  2016: 0.2,  2017: 1.0,  2018: 1.8,  2019: 1.1,
+  2020: 0.5,  2021: 1.6,  2022: 5.2,  2023: 4.9,  2024: 2.3,
+  2025: 1.5,
+};
 
-function calc({ cityId, yearBought, surface, investReturn }) {
-  const city = CITY_LIST.find((c) => c.id === cityId);
-  if (!city) return null;
+// Approximate price per m² national average France
+const PRIX_M2_HISTORY = {
+  1980: 500,  1990: 1100, 2000: 1400, 2005: 2200,
+  2010: 2800, 2015: 2700, 2018: 2900, 2020: 3000,
+  2022: 3200, 2023: 3100, 2024: 3050, 2025: 3050,
+  2026: 3100,
+};
 
-  const multiplier = CITY_INDEX_MULTIPLIER[cityId] ?? 1;
-  const currentIndex = PRICE_INDEX[2026];
-  const pastIndex = PRICE_INDEX[yearBought];
+function getPrixM2(year) {
+  if (PRIX_M2_HISTORY[year]) return PRIX_M2_HISTORY[year];
+  const years = Object.keys(PRIX_M2_HISTORY).map(Number).sort((a, b) => a - b);
+  const before = years.filter((y) => y <= year).pop();
+  const after  = years.filter((y) => y > year).shift();
+  if (!before) return PRIX_M2_HISTORY[years[0]];
+  if (!after)  return PRIX_M2_HISTORY[years[years.length - 1]];
+  const t = (year - before) / (after - before);
+  return Math.round(PRIX_M2_HISTORY[before] + t * (PRIX_M2_HISTORY[after] - PRIX_M2_HISTORY[before]));
+}
 
-  // Price at time of purchase
-  const currentPricePerM2 = city.pricePerM2;
-  const pastPricePerM2 = Math.round(currentPricePerM2 * (pastIndex / currentIndex) / multiplier * multiplier);
-  const prixAchat = pastPricePerM2 * surface;
-  const fraisNotaire = prixAchat * 0.08;
-  const apport = Math.round(prixAchat * 0.15);
-  const emprunt = prixAchat + fraisNotaire - apport;
-  const rate = yearBought < 2015 ? 3.2 : yearBought < 2020 ? 1.8 : yearBought < 2022 ? 1.2 : 3.0;
-  const monthlyRate = rate / 100 / 12;
-  const n = 20 * 12;
-  const mensualite = (emprunt * monthlyRate) / (1 - Math.pow(1 + monthlyRate, -n));
-
-  // Current value
-  const currentValue = city.pricePerM2 * surface;
-  const yearsOwned = 2026 - yearBought;
-  const monthsOwned = Math.min(yearsOwned * 12, n);
-
-  // Remaining balance
-  let balance = emprunt;
-  for (let m = 0; m < monthsOwned; m++) {
-    const interest = balance * monthlyRate;
-    balance = Math.max(0, balance - (mensualite - interest));
+function calcHistoricalInflation(startYear, endYear = 2026) {
+  let cumulative = 1;
+  for (let y = startYear; y < endYear; y++) {
+    const rate = INFLATION_HISTORY[y] ?? 2.0;
+    cumulative *= 1 + rate / 100;
   }
+  return cumulative;
+}
 
-  // Owner net worth
-  const saleValue = currentValue * 0.95; // 5% frais revente
-  const ownerWorth = saleValue - balance;
+const MONTANT_PILLS   = [100, 500, 1000, 5000, 10000];
+const ANNEE_PILLS     = [1980, 1990, 2000, 2010, 2015, 2020];
+const INFLATION_PILLS = [2, 3, 4];
 
-  // Renter alternative: invested apport + frais + monthly diff
-  const rentAtBuy = city.rentT2 * (surface / city.surfaceRef);
-  const charges = (city.taxeFonciere + prixAchat * 0.01 + 300) / 12;
-  const totalOwnerMonthly = mensualite + charges;
-  const monthlyDiff = Math.max(0, totalOwnerMonthly - rentAtBuy);
-  const investMonthly = investReturn / 100 / 12;
-
-  let renterPortfolio = apport + fraisNotaire;
-  for (let m = 0; m < monthsOwned; m++) {
-    const yr = Math.floor(m / 12);
-    const currentRent = rentAtBuy * Math.pow(1.015, yr);
-    const surplus = Math.max(0, totalOwnerMonthly - currentRent);
-    renterPortfolio = renterPortfolio * (1 + investMonthly) + surplus;
-  }
-
-  // Timeline data
-  const timelineData = [];
-  let bal = emprunt;
-  let rent = renterPortfolio * 0;
-  let rentPf = apport + fraisNotaire;
-  for (let y = 0; y <= yearsOwned; y++) {
-    const propVal = pastPricePerM2 * surface * (PRICE_INDEX[yearBought + y] ?? currentIndex) / pastIndex * multiplier / multiplier;
-    const monthsP = Math.min(y * 12, n);
-    let b = emprunt;
-    for (let m = 0; m < monthsP; m++) {
-      const i = b * monthlyRate;
-      b = Math.max(0, b - (mensualite - i));
-    }
-    let rp = apport + fraisNotaire;
-    for (let m = 0; m < monthsP; m++) {
-      const yr2 = Math.floor(m / 12);
-      const cr = rentAtBuy * Math.pow(1.015, yr2);
-      const s = Math.max(0, totalOwnerMonthly - cr);
-      rp = rp * (1 + investMonthly) + s;
-    }
-    timelineData.push({
-      year: yearBought + y,
-      achat: Math.round(propVal * 0.95 - b),
-      location: Math.round(rp),
-    });
-  }
-
-  return {
-    prixAchat, apport, emprunt, mensualite, ownerWorth, renterPortfolio,
-    advantage: ownerWorth - renterPortfolio,
-    pastPricePerM2, currentPricePerM2, rate, timelineData, yearsOwned,
-    plusValue: currentValue - prixAchat,
-  };
+function Pills({ values, current, onSelect, format }) {
+  return (
+    <div className="fv2-revenus-pills">
+      {values.map((v) => (
+        <button key={v} type="button"
+          className={`fv2-revenus-pill${current === v ? " active" : ""}`}
+          onClick={() => onSelect(v)}>
+          {format ? format(v) : v}
+        </button>
+      ))}
+    </div>
+  );
 }
 
 function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="chart-tooltip">
-      <p style={{ fontWeight: 700, marginBottom: 4 }}>{label}</p>
+      <div className="chart-tooltip-label" style={{ fontWeight: 700, marginBottom: 4 }}>{label}</div>
       {payload.map((p) => (
         <div key={p.dataKey} className="chart-tooltip-row">
-          <span style={{ color: p.stroke }}>{p.name}</span>
-          <span>{fmtCur(p.value)}</span>
+          <span style={{ color: p.stroke }}>{p.name} :</span>
+          <span>&nbsp;{fmt(p.value)}</span>
         </div>
       ))}
     </div>
@@ -111,158 +83,269 @@ function ChartTip({ active, payload, label }) {
 }
 
 export default function SimMachineTemps() {
-  const [cityId, setCityId] = useState("lyon");
-  const [yearBought, setYearBought] = useState(2018);
-  const [surface, setSurface] = useState(50);
-  const [investReturn, setInvestReturn] = useState(3.5);
+  const [montant, setMontant]         = useState(1000);
+  const [annee, setAnnee]             = useState(2000);
+  const [useCustomRate, setUseCustomRate] = useState(false);
+  const [customRate, setCustomRate]   = useState(2.0);
+  const [inflationMode, setInflationMode] = useState(2); // 2=historical, otherwise pill value
 
-  const saveValues = { cityId, yearBought, surface, investReturn };
-  const handleRestore = (v) => {
-    if (v.cityId) setCityId(v.cityId);
-    if (v.yearBought) setYearBought(v.yearBought);
-    if (v.surface) setSurface(v.surface);
-    if (v.investReturn) setInvestReturn(v.investReturn);
-  };
+  const effectiveRate = useCustomRate ? customRate : null; // null = use historical data
 
-  const res = useMemo(() => calc({ cityId, yearBought, surface, investReturn }), [cityId, yearBought, surface, investReturn]);
+  const res = useMemo(() => {
+    const anneeDebut  = annee;
+    const anneeFin    = 2026;
+    const nbAnnees    = anneeFin - anneeDebut;
 
-  const isBuyingBetter = res && res.advantage >= 0;
-  const heroColor = isBuyingBetter ? "green" : "amber";
+    // Valeur équivalente aujourd'hui
+    let valeurAujourdhui;
+    let tauxMoyen;
+
+    if (effectiveRate !== null) {
+      // Manuel: taux fixe
+      valeurAujourdhui = montant * Math.pow(1 + effectiveRate / 100, nbAnnees);
+      tauxMoyen = effectiveRate;
+    } else {
+      // Données historiques
+      const cumul = calcHistoricalInflation(anneeDebut, anneeFin);
+      valeurAujourdhui = montant * cumul;
+      tauxMoyen = nbAnnees > 0 ? (Math.pow(cumul, 1 / nbAnnees) - 1) * 100 : 0;
+    }
+
+    const pouvoirAchatPerdu = ((valeurAujourdhui - montant) / valeurAujourdhui) * 100;
+
+    // Prix immobilier
+    const prixM2Depart     = getPrixM2(anneeDebut);
+    const prixM2Aujourdhui = getPrixM2(2026);
+    const surfaceAchetable = montant / prixM2Depart;
+    const memeArgentAujourd = montant; // même budget nominal
+    const surfaceAujourd   = memeArgentAujourd / prixM2Aujourdhui;
+
+    // Courbe annuelle
+    const chartData = [];
+    for (let y = anneeDebut; y <= anneeFin; y++) {
+      let val;
+      if (effectiveRate !== null) {
+        val = montant * Math.pow(1 + effectiveRate / 100, y - anneeDebut);
+      } else {
+        const c = calcHistoricalInflation(anneeDebut, y);
+        val = montant * c;
+      }
+      chartData.push({ annee: y, valeur: Math.round(val) });
+    }
+
+    return {
+      valeurAujourdhui,
+      pouvoirAchatPerdu,
+      tauxMoyen,
+      nbAnnees,
+      prixM2Depart,
+      prixM2Aujourdhui,
+      surfaceAchetable,
+      surfaceAujourd,
+      chartData,
+    };
+  }, [montant, annee, effectiveRate]);
+
+  const inflationSliderPct = Math.min(100, ((customRate - 0.5) / 9.5) * 100);
 
   return (
     <SimLayout
-      icon="⏳"
-      title="Machine à remonter le temps"
-      description="Et si vous aviez acheté en 2010, 2015 ou 2018 ? Calculez le gain ou la perte réelle selon la date et la ville."
+      icon="⏰"
+      title="Que valait 100 € en [année] ?"
+      description="Mesurez l'érosion du pouvoir d'achat et comparez avec l'évolution du marché immobilier"
       simTime="1 min"
-      saveValues={saveValues}
-      onRestore={handleRestore}
-      suggestions={["/simulateurs/rentabilite-locative", "/simulateurs/plus-value", "/simulateurs/comparateur-villes"]}
+      suggestions={[
+        "/simulateurs/pouvoir-achat-m2",
+        "/simulateurs/comparateur-villes",
+        "/simulateurs/rentabilite-locative",
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/endettement",
+        "/simulateurs/budget-maximum",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "L'époque et la ville",
-            icon: "⏳",
-            content: (
-              <>
-                <CityPicker cityId={cityId} onChange={setCityId} label="Ville d'achat hypothétique" />
+      <div className="sv2-container">
 
-                <div className="field">
-                  <label className="field-label">Année d'achat hypothétique</label>
-                  <div className="horizon-box" style={{ marginTop: 8 }}>
-                    <div className="horizon-row">
-                      <p className="horizon-explain">Quelle année auriez-vous acheté ?</p>
-                      <strong className="horizon-value">{yearBought}</strong>
-                    </div>
-                    <input type="range" min="2010" max="2023" step="1" value={yearBought}
-                      onChange={(e) => setYearBought(Number(e.target.value))}
-                      style={{ "--range-pct": `${((yearBought - 2010) / (2023 - 2010)) * 100}%` }} />
-                    <div className="horizon-ticks"><span>2010</span><span>2016</span><span>2023</span></div>
-                  </div>
-                </div>
-              </>
-            ),
-          },
-          {
-            title: "Le bien",
-            icon: "🏠",
-            content: (
-              <>
-                <div className="field" style={{ marginTop: 16 }}>
-                  <label className="field-label">Surface du bien</label>
-                  <div className="horizon-box" style={{ marginTop: 8 }}>
-                    <div className="horizon-row">
-                      <p className="horizon-explain">En m²</p>
-                      <strong className="horizon-value">{surface} m²</strong>
-                    </div>
-                    <input type="range" min="20" max="120" step="5" value={surface}
-                      onChange={(e) => setSurface(Number(e.target.value))}
-                      style={{ "--range-pct": `${((surface - 20) / (120 - 20)) * 100}%` }} />
-                    <div className="horizon-ticks"><span>20 m²</span><span>70 m²</span><span>120 m²</span></div>
-                  </div>
-                </div>
+        {/* ── Inputs card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+          <p className="fv2-card-kicker">Machine à remonter le temps</p>
+          <p className="fv2-card-title">Comparez le pouvoir d'achat</p>
 
-                {res && (
-                  <div className="sim-info-box" style={{ marginTop: 16 }}>
-                    <p className="sim-info-title">📊 Données historiques reconstituées</p>
-                    <p className="sim-info-body">
-                      Prix estimé en {yearBought} à {CITY_LIST.find(c=>c.id===cityId)?.name} : {fmtCur(res.pastPricePerM2)}/m² (vs {fmtCur(res.currentPricePerM2)}/m² aujourd'hui).
-                      Taux de crédit simulé : {res.rate} %. Durée d'occupation : {res.yearsOwned} ans.
-                    </p>
-                  </div>
-                )}
-              </>
-            ),
-          },
-        ]}
-        result={
-          res && (
-            <div className="sim-results-panel">
-              <div className={`sim-stat-hero sim-hero-${heroColor}`}>
-                <span className="sim-stat-label">
-                  {isBuyingBetter ? "L'achat était gagnant" : "La location était gagnante"}
-                </span>
-                <span className="sim-stat-value">
-                  {fmtCur(Math.abs(res.advantage))}
-                </span>
-                <p className="sim-stat-hero-summary">
-                  {isBuyingBetter
-                    ? `Acheter en ${yearBought} vous aurait rapporté ${fmtCur(res.advantage)} de plus que rester locataire et placer la différence.`
-                    : `Rester locataire et investir vous aurait rapporté ${fmtCur(-res.advantage)} de plus qu'acheter en ${yearBought}.`
-                  }
-                </p>
-              </div>
-
-              <div className="sim-stats-grid">
-                <div className="sim-stat-card sim-stat-card-blue">
-                  <span className="sim-stat-card-label">Prix d'achat {yearBought}</span>
-                  <span className="sim-stat-card-value">{fmtCur(res.prixAchat)}</span>
-                </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Valeur actuelle</span>
-                  <span className="sim-stat-card-value">{fmtCur(res.currentPricePerM2 * surface)}</span>
-                </div>
-                <div className={`sim-stat-card ${isBuyingBetter ? "sim-stat-card-green" : "sim-stat-card-red"}`}>
-                  <span className="sim-stat-card-label">Patrimoine achat net</span>
-                  <span className="sim-stat-card-value">{fmtCur(res.ownerWorth)}</span>
-                </div>
-                <div className="sim-stat-card">
-                  <span className="sim-stat-card-label">Portefeuille locataire</span>
-                  <span className="sim-stat-card-value">{fmtCur(res.renterPortfolio)}</span>
-                </div>
-              </div>
-
-              <div className="sim-chart-wrap">
-                <p className="sim-chart-title">Évolution des deux patrimoines depuis {yearBought}</p>
-                <ResponsiveContainer width="100%" height={200}>
-                  <AreaChart data={res.timelineData} margin={{ top: 4, right: 16, bottom: 0, left: 0 }}>
-                    <defs>
-                      <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#2563eb" stopOpacity={0.2} /><stop offset="95%" stopColor="#2563eb" stopOpacity={0.02} />
-                      </linearGradient>
-                      <linearGradient id="gL" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#ec4899" stopOpacity={0.15} /><stop offset="95%" stopColor="#ec4899" stopOpacity={0.02} />
-                      </linearGradient>
-                    </defs>
-                    <XAxis dataKey="year" tick={{ fontSize: 10, fill: "var(--muted)" }} axisLine={false} tickLine={false} />
-                    <YAxis tickFormatter={(v) => v >= 1000 ? `${Math.round(v/1000)}k` : v} tick={{ fontSize: 10, fill: "var(--muted)" }} axisLine={false} tickLine={false} width={48} />
-                    <Tooltip content={<ChartTip />} />
-                    <Area type="monotone" dataKey="location" name="Location + invest." stroke="#ec4899" strokeWidth={2} fill="url(#gL)" dot={false} />
-                    <Area type="monotone" dataKey="achat" name="Achat" stroke="#2563eb" strokeWidth={2} fill="url(#gA)" dot={false} />
-                    <ReferenceLine x={2026} stroke="#94a3b8" strokeDasharray="4 3" label={{ value: "Aujourd'hui", fontSize: 9, fill: "#94a3b8" }} />
-                  </AreaChart>
-                </ResponsiveContainer>
-              </div>
-
-              <div className="sim-info-box">
-                <p className="sim-info-title">⚠️ Hypothèses simplifiées</p>
-                <p className="sim-info-body">Simulation reconstituée sur la base des indices de prix nationaux (Notaires de France / Banque de France). Ne tient pas compte des fiscalités locales, des travaux, ni des variations micro-locales.</p>
-              </div>
+          {/* Montant */}
+          <div style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Montant de départ</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={montant || ""} min={1} max={1000000} step={100}
+                placeholder="1 000"
+                onChange={(e) => setMontant(Math.max(1, Number(e.target.value) || 1))}
+              />
+              <span className="fv2-revenus-unit">€</span>
             </div>
-          )
-        }
-      />
+            <Pills
+              values={MONTANT_PILLS}
+              current={montant}
+              onSelect={setMontant}
+              format={(v) => `${v.toLocaleString("fr-FR")} €`}
+            />
+          </div>
+
+          {/* Année de départ */}
+          <div style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Année de départ</p>
+            <Pills
+              values={ANNEE_PILLS}
+              current={annee}
+              onSelect={setAnnee}
+            />
+            <div style={{ marginTop: 12 }}>
+              <div className="fv2-slider-header">
+                <span className="fv2-slider-label">Ou choisissez une année précise</span>
+                <span className="fv2-slider-val">{annee}</span>
+              </div>
+              <div className="fv2-slider-track-wrap"
+                style={{ "--pct": `${((annee - 1975) / (2025 - 1975)) * 100}%` }}>
+                <input type="range" className="fv2-slider"
+                  min={1975} max={2025} step={1} value={annee}
+                  onChange={(e) => setAnnee(Number(e.target.value))} />
+                <div className="fv2-slider-fill"
+                  style={{ width: `${((annee - 1975) / (2025 - 1975)) * 100}%` }} />
+              </div>
+              <div className="fv2-slider-minmax"><span>1975</span><span>2025</span></div>
+            </div>
+          </div>
+
+          {/* Taux d'inflation */}
+          <div style={{ marginBottom: 8 }}>
+            <p className="fv2-field-label">Hypothèse d'inflation</p>
+            <div className="fv2-choice-row" style={{ marginBottom: 12 }}>
+              <button type="button"
+                className={`fv2-choice-btn${!useCustomRate ? " active" : ""}`}
+                onClick={() => setUseCustomRate(false)}>
+                Données historiques INSEE
+              </button>
+              <button type="button"
+                className={`fv2-choice-btn${useCustomRate ? " active" : ""}`}
+                onClick={() => setUseCustomRate(true)}>
+                Taux personnalisé
+              </button>
+            </div>
+
+            {!useCustomRate ? (
+              <p className="fv2-hint">
+                Taux moyen reconstruit depuis {annee} : <strong>{res.tauxMoyen.toFixed(1)} %/an</strong>
+              </p>
+            ) : (
+              <>
+                <div className="fv2-slider-header">
+                  <span className="fv2-slider-label">Taux d'inflation annuel moyen</span>
+                  <span className="fv2-slider-val">{customRate.toFixed(1)} %</span>
+                </div>
+                <div className="fv2-slider-track-wrap" style={{ "--pct": `${inflationSliderPct}%` }}>
+                  <input type="range" className="fv2-slider"
+                    min={0.5} max={10} step={0.5} value={customRate}
+                    onChange={(e) => setCustomRate(Number(e.target.value))} />
+                  <div className="fv2-slider-fill" style={{ width: `${inflationSliderPct}%` }} />
+                </div>
+                <div className="fv2-slider-minmax"><span>0,5 %</span><span>10 %</span></div>
+                <div className="fv2-revenus-pills" style={{ marginTop: 8 }}>
+                  {INFLATION_PILLS.map((p) => (
+                    <button key={p} type="button"
+                      className={`fv2-revenus-pill${customRate === p ? " active" : ""}`}
+                      onClick={() => setCustomRate(p)}>
+                      {p} %
+                    </button>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+
+        {/* ── Results card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Verdict */}
+          <div className="sv2-verdict sv2-verdict-amber" style={{ marginBottom: 20 }}>
+            <div className="sv2-verdict-label">
+              {fmt(montant)} en {annee} équivaut aujourd'hui à
+            </div>
+            <div className="sv2-verdict-amount">{fmt(Math.round(res.valeurAujourdhui))}</div>
+            <div className="sv2-verdict-sub">
+              Pouvoir d'achat perdu : {res.pouvoirAchatPerdu.toFixed(1)} % sur {res.nbAnnees} ans
+            </div>
+          </div>
+
+          {/* Stat cards */}
+          <div className="sv2-scenarios" style={{ marginBottom: 20 }}>
+            <div className="sv2-scenario-card">
+              <div className="sv2-scenario-dur">Valeur nominale {annee}</div>
+              <div className="sv2-scenario-amt" style={{ fontSize: 15 }}>{fmt(montant)}</div>
+            </div>
+            <div className="sv2-scenario-card highlight">
+              <div className="sv2-scenario-dur">Équivalent 2026</div>
+              <div className="sv2-scenario-amt" style={{ fontSize: 14 }}>{fmt(Math.round(res.valeurAujourdhui))}</div>
+              <div className="sv2-scenario-badge">Pouvoir d'achat</div>
+            </div>
+            <div className="sv2-scenario-card">
+              <div className="sv2-scenario-dur">Inflation moyenne</div>
+              <div className="sv2-scenario-amt" style={{ fontSize: 15 }}>{res.tauxMoyen.toFixed(1)} %/an</div>
+            </div>
+          </div>
+
+          {/* Line chart */}
+          <div style={{ height: 220, marginBottom: 16 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={res.chartData} margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="lineGradMT" x1="0" y1="0" x2="1" y2="0">
+                    <stop offset="0%" stopColor="#1a56db" />
+                    <stop offset="100%" stopColor="#f59e0b" />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="annee" tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={(v) => fmtK(v)} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={58} />
+                <Tooltip content={<ChartTip />} />
+                <ReferenceLine x={2026} stroke="#94a3b8" strokeDasharray="4 3"
+                  label={{ value: "Auj.", fontSize: 10, fill: "#94a3b8", position: "insideTopRight" }} />
+                <Line type="monotone" dataKey="valeur" name="Valeur équivalente"
+                  stroke="#1a56db" strokeWidth={2.5} dot={false} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Immobilier comparison */}
+          <div className="sv2-insight" style={{ marginBottom: 12 }}>
+            <strong>Comparaison immobilière</strong><br />
+            En {annee}, {fmt(montant)} permettaient d'acheter environ{" "}
+            <strong>{res.surfaceAchetable.toFixed(1)} m²</strong> en France (prix moyen :{" "}
+            {res.prixM2Depart.toLocaleString("fr-FR")} €/m²).<br />
+            Aujourd'hui avec le même budget nominal, vous obtenez{" "}
+            <strong>{res.surfaceAujourd.toFixed(1)} m²</strong> (prix moyen : {res.prixM2Aujourdhui.toLocaleString("fr-FR")} €/m²).
+          </div>
+
+          {/* Stats grid */}
+          <div className="sim-stats-grid">
+            <div className="sim-stat-card sim-stat-card-blue">
+              <span className="sim-stat-card-label">Prix m² en {annee}</span>
+              <span className="sim-stat-card-value">{res.prixM2Depart.toLocaleString("fr-FR")} €</span>
+            </div>
+            <div className="sim-stat-card">
+              <span className="sim-stat-card-label">Prix m² en 2026</span>
+              <span className="sim-stat-card-value">{res.prixM2Aujourdhui.toLocaleString("fr-FR")} €</span>
+            </div>
+            <div className="sim-stat-card">
+              <span className="sim-stat-card-label">Surface {annee}</span>
+              <span className="sim-stat-card-value">{res.surfaceAchetable.toFixed(1)} m²</span>
+            </div>
+            <div className="sim-stat-card">
+              <span className="sim-stat-card-label">Surface 2026</span>
+              <span className="sim-stat-card-value">{res.surfaceAujourd.toFixed(1)} m²</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </SimLayout>
   );
 }

@@ -1,193 +1,321 @@
 import { useMemo, useState } from "react";
+import {
+  AreaChart, Area, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid, Legend,
+} from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import Field from "../Field";
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import SimCrossSell from "./SimCrossSell";
 
-const fmtCur = (v) =>
+/* ─── Formatters ─────────────────────────────────────────── */
+const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) =>
+  v >= 1000 ? `${Math.round(v / 1000)}k €` : `${Math.round(v)} €`;
 
-const CONSEILS = [
-  "La loi Lemoine (2022) permet de changer d'assurance emprunteur à tout moment sans frais.",
-  "L'assurance banque coûte en moyenne 2× plus cher que l'assurance déléguée pour un profil sain.",
-  "Pour un emprunt de 200 000 € / 20 ans, changer d'assurance peut économiser 10 000 à 20 000 €.",
-  "Le TAEA (Taux Annuel Effectif d'Assurance) est l'indicateur clé pour comparer les offres.",
-  "Les jeunes non-fumeurs en bonne santé obtiennent les meilleurs taux en délégation.",
-];
+/* ─── Core calculation ───────────────────────────────────── */
+function calcAssurance({ montant, duree, age, fumeur }) {
+  const tauxBanque =
+    0.0036 + (age > 45 ? 0.0004 * (age - 45) : 0) + (fumeur ? 0.0008 : 0);
+  const tauxDelegation =
+    0.0012 + (age > 45 ? 0.0002 * (age - 45) : 0) + (fumeur ? 0.0003 : 0);
 
-export default function SimAssurancePret() {
-  const [montant, setMontant] = useState(200000);
-  const [duree, setDuree] = useState(20);
-  const [tauxBanque, setTauxBanque] = useState(0.36);
-  const [tauxDelegue, setTauxDelegue] = useState(0.14);
-  const [tauxCredit, setTauxCredit] = useState(3.5);
+  const coutBanqueAnnuel = montant * tauxBanque;
+  const coutDelegationAnnuel = montant * tauxDelegation;
+  const coutBanqueTotal = coutBanqueAnnuel * duree;
+  const coutDelegationTotal = coutDelegationAnnuel * duree;
+  const economie = coutBanqueTotal - coutDelegationTotal;
+  const economieAnnuelle = coutBanqueAnnuel - coutDelegationAnnuel;
+  const coutBanqueMensuel = coutBanqueAnnuel / 12;
+  const coutDelegationMensuel = coutDelegationAnnuel / 12;
 
-  const res = useMemo(() => {
-    // Cotisations mensuelles sur capital initial (méthode simplifiée)
-    const cotisationBanqueMois = (montant * tauxBanque / 100) / 12;
-    const cotisationDelegueMois = (montant * tauxDelegue / 100) / 12;
+  const chartData = Array.from({ length: duree }, (_, i) => ({
+    annee: `An ${i + 1}`,
+    "Assurance banque (cumulée)": Math.round(coutBanqueAnnuel * (i + 1)),
+    "Délégation (cumulée)": Math.round(coutDelegationAnnuel * (i + 1)),
+    "Économies cumulées": Math.round(economieAnnuelle * (i + 1)),
+  }));
 
-    const totalBanque = cotisationBanqueMois * duree * 12;
-    const totalDelegue = cotisationDelegueMois * duree * 12;
-    const economie = totalBanque - totalDelegue;
-    const economieMois = cotisationBanqueMois - cotisationDelegueMois;
-
-    // Mensualité crédit hors assurance
-    const r = tauxCredit / 100 / 12;
-    const n = duree * 12;
-    const mensCredit = r === 0 ? montant / n : (montant * r) / (1 - Math.pow(1 + r, -n));
-
-    const mensAvecBanque = mensCredit + cotisationBanqueMois;
-    const mensAvecDelegue = mensCredit + cotisationDelegueMois;
-
-    // TAEG approximatif
-    const taegBanque = tauxCredit + tauxBanque;
-    const taegDelegue = tauxCredit + tauxDelegue;
-
-    const pieData = [
-      { name: "Capital", value: montant, color: "#2563eb" },
-      { name: "Intérêts", value: Math.round(mensCredit * n - montant), color: "#93c5fd" },
-      { name: "Assurance banque", value: Math.round(totalBanque), color: "#ef4444" },
-    ];
-
-    const pieDataDelegue = [
-      { name: "Capital", value: montant, color: "#2563eb" },
-      { name: "Intérêts", value: Math.round(mensCredit * n - montant), color: "#93c5fd" },
-      { name: "Assurance déléguée", value: Math.round(totalDelegue), color: "#22c55e" },
-    ];
-
-    return {
-      cotisationBanqueMois, cotisationDelegueMois,
-      totalBanque, totalDelegue, economie, economieMois,
-      mensCredit, mensAvecBanque, mensAvecDelegue,
-      taegBanque, taegDelegue,
-      pieData, pieDataDelegue,
-    };
-  }, [montant, duree, tauxBanque, tauxDelegue, tauxCredit]);
-
-  const economieNiveau = res.economie < 5000 ? "safe" : res.economie < 15000 ? "warning" : "danger";
-  const econColors = {
-    safe: "#6ee7b7",
-    warning: "#fcd34d",
-    danger: "#059669",
+  return {
+    tauxBanque: tauxBanque * 100,
+    tauxDelegation: tauxDelegation * 100,
+    coutBanqueMensuel,
+    coutDelegationMensuel,
+    coutBanqueTotal,
+    coutDelegationTotal,
+    economie,
+    economieAnnuelle,
+    chartData,
   };
+}
+
+/* ─── Slider ─────────────────────────────────────────────── */
+function Slider({ label, value, onChange, min, max, step = 1, format = String }) {
+  const pct = ((value - min) / (max - min)) * 100;
+  return (
+    <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
+      <div className="fv2-slider-header">
+        <span className="fv2-slider-label">{label}</span>
+        <span className="fv2-slider-val">{format(value)}</span>
+      </div>
+      <input
+        type="range" className="fv2-slider" min={min} max={max} step={step}
+        value={value} onChange={(e) => onChange(Number(e.target.value))}
+      />
+      <div className="fv2-slider-fill" />
+      <div className="fv2-slider-minmax">
+        <span>{format(min)}</span>
+        <span>{format(max)}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ─── Chart Tooltip ──────────────────────────────────────── */
+function ChartTip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      <p className="chart-tooltip-label">{label}</p>
+      {payload.map((p) => (
+        <div key={p.dataKey} className="chart-tooltip-row">
+          <span style={{ color: p.stroke || p.fill }}>{p.name}</span>
+          <span>{fmt(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ─── Component ──────────────────────────────────────────── */
+export default function SimAssurancePret() {
+  const [s, setS] = useState({
+    montant: 200000,
+    duree: 20,
+    age: 35,
+    fumeur: false,
+  });
+  const set = (k) => (val) => setS((prev) => ({ ...prev, [k]: val }));
+
+  const res = useMemo(() => calcAssurance(s), [s]);
 
   return (
     <SimLayout
       icon="🛡️"
-      title="Assurance emprunteur"
-      description="Comparez le coût de l'assurance banque vs la délégation d'assurance. Découvrez combien vous pouvez économiser."
-      conseils={CONSEILS}
-      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/frais-notaire"]}
+      title="Économisez sur votre assurance emprunteur"
+      description="Comparez l'assurance de votre banque avec la délégation d'assurance"
+      suggestions={[
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/remboursement-anticipe",
+        "/simulateurs/endettement",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre prêt",
-            icon: "🏦",
-            content: (
-              <>
-                <Field label="Montant emprunté" value={montant} onChange={setMontant} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-                <Field label="Durée du crédit" value={duree} onChange={setDuree} suffix="ans" step={1} min={5} max={30} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-                <Field label="Taux du crédit" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-              </>
-            ),
-          },
-          {
-            title: "Les taux d'assurance",
-            icon: "🛡️",
-            content: (
-              <>
-                <Field
-                  label="Taux assurance banque (TAEA)"
-                  value={tauxBanque}
-                  onChange={setTauxBanque}
-                  suffix="%"
-                  step={0.01}
-                  hint="Moyen : 0,25–0,45 % selon profil et banque"
-                  tooltip="Taux Annuel Effectif d'Assurance proposé par votre banque. Souvent entre 0,25 % et 0,45 % du capital initial."
+      <div className="sv2-container">
+
+        {/* ── Inputs ── */}
+        <div className="fv2-card">
+          <p className="fv2-card-kicker">Votre emprunt</p>
+          <h2 className="fv2-card-title">Renseignez votre profil</h2>
+
+          {/* Montant emprunté */}
+          <div style={{ marginBottom: 20 }}>
+            <label className="fv2-field-label">Montant emprunté</label>
+            <div className="fv2-revenus-input-row">
+              <div className="fv2-revenus-wrap">
+                <input
+                  type="number" className="fv2-revenus-input"
+                  value={s.montant}
+                  onChange={(e) => set("montant")(Number(e.target.value))}
                 />
-                <Field
-                  label="Taux assurance déléguée (TAEA)"
-                  value={tauxDelegue}
-                  onChange={setTauxDelegue}
-                  suffix="%"
-                  step={0.01}
-                  hint="Moyen : 0,08–0,25 % selon profil et assureur"
-                  tooltip="Taux d'une assurance externe (Comparateur en ligne, courtier). Souvent 2× moins cher que l'assurance banque pour les profils sains."
-                />
-
-                <div className="assur-taux-tip">
-                  <p>💡 Obtenez votre taux banque dans votre offre de prêt (ligne TAEA). Comparez sur des courtiers en ligne pour la délégation.</p>
-                </div>
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            <div className="assur-economie-banner" style={{ borderColor: econColors[economieNiveau] }}>
-              <p className="assur-economie-label">Économie potentielle en changeant d'assurance</p>
-              <p className="assur-economie-val" style={{ color: "#059669" }}>{fmtCur(res.economie)}</p>
-              <p className="assur-economie-sub">soit {fmtCur(res.economieMois)}/mois pendant {duree} ans</p>
-            </div>
-
-            <div className="assur-compare-grid">
-              <div className="assur-compare-col">
-                <p className="assur-compare-title">Assurance banque</p>
-                <p className="assur-compare-mens">{fmtCur(res.mensAvecBanque)}/mois</p>
-                <div className="assur-compare-detail">
-                  <span>TAEA</span><strong>{tauxBanque} %</strong>
-                </div>
-                <div className="assur-compare-detail">
-                  <span>Cotisation mois</span><strong>{fmtCur(res.cotisationBanqueMois)}</strong>
-                </div>
-                <div className="assur-compare-detail">
-                  <span>Total sur {duree} ans</span><strong style={{ color: "#ef4444" }}>{fmtCur(res.totalBanque)}</strong>
-                </div>
-                <div className="assur-compare-detail">
-                  <span>TAEG global</span><strong>{res.taegBanque.toFixed(2)} %</strong>
-                </div>
-              </div>
-
-              <div className="assur-compare-col assur-compare-col-green">
-                <p className="assur-compare-title">Assurance déléguée</p>
-                <p className="assur-compare-mens" style={{ color: "#059669" }}>{fmtCur(res.mensAvecDelegue)}/mois</p>
-                <div className="assur-compare-detail">
-                  <span>TAEA</span><strong>{tauxDelegue} %</strong>
-                </div>
-                <div className="assur-compare-detail">
-                  <span>Cotisation mois</span><strong>{fmtCur(res.cotisationDelegueMois)}</strong>
-                </div>
-                <div className="assur-compare-detail">
-                  <span>Total sur {duree} ans</span><strong style={{ color: "#059669" }}>{fmtCur(res.totalDelegue)}</strong>
-                </div>
-                <div className="assur-compare-detail">
-                  <span>TAEG global</span><strong>{res.taegDelegue.toFixed(2)} %</strong>
-                </div>
+                <span className="fv2-revenus-unit">€</span>
               </div>
             </div>
+            <div className="fv2-revenus-pills">
+              {[100000, 150000, 200000, 250000, 300000].map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${s.montant === p ? " active" : ""}`}
+                  onClick={() => set("montant")(p)}>
+                  {fmtK(p)}
+                </button>
+              ))}
+            </div>
+          </div>
 
-            <div style={{ marginTop: 20 }}>
-              <p className="sim-card-legend">Répartition du coût total (assurance banque)</p>
-              <ResponsiveContainer width="100%" height={200}>
-                <PieChart>
-                  <Pie data={res.pieData} cx="50%" cy="50%" outerRadius={75} dataKey="value">
-                    {res.pieData.map((d, i) => <Cell key={i} fill={d.color} />)}
-                  </Pie>
-                  <Tooltip formatter={(v) => fmtCur(v)} />
-                  <Legend />
-                </PieChart>
+          {/* Durée */}
+          <div style={{ marginBottom: 20 }}>
+            <label className="fv2-field-label">Durée du crédit</label>
+            <div className="fv2-choices-row">
+              {[10, 15, 20, 25].map((d) => (
+                <button key={d} type="button"
+                  className={`fv2-choice${s.duree === d ? " fv2-choice-active" : ""}`}
+                  onClick={() => set("duree")(d)}>
+                  {d} ans
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Âge */}
+          <div style={{ marginBottom: 20 }}>
+            <Slider
+              label="Votre âge"
+              value={s.age}
+              onChange={set("age")}
+              min={18} max={70} step={1}
+              format={(v) => `${v} ans`}
+            />
+            <div className="fv2-revenus-pills" style={{ marginTop: 6 }}>
+              {[25, 30, 35, 40, 45, 50].map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${s.age === p ? " active" : ""}`}
+                  onClick={() => set("age")(p)}>
+                  {p} ans
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Fumeur */}
+          <div>
+            <label className="fv2-field-label">Tabagisme</label>
+            <div className="fv2-choices-row">
+              <button type="button"
+                className={`fv2-choice${!s.fumeur ? " fv2-choice-active" : ""}`}
+                onClick={() => set("fumeur")(false)}>
+                🚭 Non-fumeur
+              </button>
+              <button type="button"
+                className={`fv2-choice${s.fumeur ? " fv2-choice-active" : ""}`}
+                onClick={() => set("fumeur")(true)}>
+                🚬 Fumeur
+              </button>
+            </div>
+            <p className="fv2-hint">Le tabagisme majore la prime d'assurance de 25–50 %</p>
+          </div>
+        </div>
+
+        {/* ── Results ── */}
+        {res && (
+          <>
+            {/* Verdict */}
+            <div className="sv2-verdict sv2-verdict-green">
+              <p className="sv2-verdict-label">Vous pouvez économiser jusqu'à</p>
+              <p className="sv2-verdict-amount">{fmt(res.economie)}</p>
+              <p className="sv2-verdict-sub">
+                sur la durée de votre crédit ({s.duree} ans)
+              </p>
+            </div>
+
+            {/* Comparison table */}
+            <div className="sv2-compare-table" style={{ marginTop: 16 }}>
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "8px 10px", fontSize: 12, color: "#64748b", fontWeight: 600 }}></th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "#dc2626" }}>Assurance banque</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "#059669" }}>Délégation</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "#2563eb" }}>Économie</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      label: "Taux (TAEA)",
+                      v1: `${res.tauxBanque.toFixed(3)} %`,
+                      v2: `${res.tauxDelegation.toFixed(3)} %`,
+                      eco: `-${(res.tauxBanque - res.tauxDelegation).toFixed(3)} %`,
+                    },
+                    {
+                      label: "Mensualité assurance",
+                      v1: fmt(res.coutBanqueMensuel),
+                      v2: fmt(res.coutDelegationMensuel),
+                      eco: `${fmt(res.coutBanqueMensuel - res.coutDelegationMensuel)}/mois`,
+                      highlight: true,
+                    },
+                    {
+                      label: `Coût total (${s.duree} ans)`,
+                      v1: fmt(res.coutBanqueTotal),
+                      v2: fmt(res.coutDelegationTotal),
+                      eco: fmt(res.economie),
+                      bold: true,
+                    },
+                  ].map(({ label, v1, v2, eco, highlight, bold }) => (
+                    <tr key={label} style={{
+                      background: highlight ? "#f8faff" : "transparent",
+                      borderBottom: "1px solid #f1f5f9",
+                    }}>
+                      <td style={{ padding: "9px 10px", fontSize: 13, color: "#64748b" }}>{label}</td>
+                      <td style={{ padding: "9px 10px", fontSize: 13, fontWeight: bold ? 700 : 500, textAlign: "right", color: "#dc2626" }}>{v1}</td>
+                      <td style={{ padding: "9px 10px", fontSize: 13, fontWeight: bold ? 700 : 500, textAlign: "right", color: "#059669" }}>{v2}</td>
+                      <td style={{ padding: "9px 10px", fontSize: 13, fontWeight: bold ? 700 : 500, textAlign: "right", color: "#2563eb" }}>{eco}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Area chart */}
+            <div className="fv2-card" style={{ marginTop: 16 }}>
+              <p className="fv2-card-kicker">Évolution dans le temps</p>
+              <p className="fv2-card-title" style={{ fontSize: 15, marginBottom: 12 }}>
+                Coûts cumulés : banque vs délégation
+              </p>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={res.chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <defs>
+                    <linearGradient id="gradBanque" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#dc2626" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#dc2626" stopOpacity={0.02} />
+                    </linearGradient>
+                    <linearGradient id="gradDeleg" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="#059669" stopOpacity={0.25} />
+                      <stop offset="100%" stopColor="#059669" stopOpacity={0.02} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="annee" tick={{ fontSize: 10 }} interval={Math.floor(s.duree / 5)} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtK} />
+                  <Tooltip content={<ChartTip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Area
+                    type="monotone" dataKey="Assurance banque (cumulée)" stroke="#dc2626" strokeWidth={2}
+                    fill="url(#gradBanque)" name="Assurance banque (cumulée)"
+                  />
+                  <Area
+                    type="monotone" dataKey="Délégation (cumulée)" stroke="#059669" strokeWidth={2}
+                    fill="url(#gradDeleg)" name="Délégation (cumulée)"
+                  />
+                  <Area
+                    type="monotone" dataKey="Économies cumulées" stroke="#2563eb" strokeWidth={2}
+                    fill="none" strokeDasharray="4 3" name="Économies cumulées"
+                  />
+                </AreaChart>
               </ResponsiveContainer>
             </div>
 
-            <div className="assur-loi-box">
-              <strong>📋 Loi Lemoine 2022</strong>
-              <p>Vous pouvez changer d'assurance à tout moment, sans frais ni délai de résiliation. La banque doit accepter si les garanties sont équivalentes (fiche standardisée d'information).</p>
+            {/* Insight */}
+            <div className="sv2-insight">
+              <p>
+                💡 En changeant d'assurance, vous économisez{" "}
+                <strong style={{ color: "#059669" }}>{fmt(res.economieAnnuelle)} par an</strong> soit{" "}
+                <strong>{fmt(res.coutBanqueMensuel - res.coutDelegationMensuel)} par mois</strong>. La délégation d'assurance est un droit depuis la loi Lemoine 2022.
+              </p>
             </div>
-          </div>
-        }
-      />
+
+            {/* Info box */}
+            <div className="sv2-assurance-info">
+              🔑 Depuis la loi Lemoine (2022), vous pouvez changer d'assurance emprunteur à tout moment, sans frais ni justification. Votre banque ne peut pas refuser si les garanties sont équivalentes.
+            </div>
+
+            {/* Cross-sell */}
+            <SimCrossSell
+              show={s.montant > 0}
+              loan={s.montant}
+              taux={3.5}
+              dureeCredit={s.duree}
+            />
+          </>
+        )}
+      </div>
     </SimLayout>
   );
 }

@@ -1,245 +1,304 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import Field from "../Field";
+import SimCrossSell from "./SimCrossSell";
 
-const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
-const fmtPct = (v) => `${v.toFixed(1)} %`;
+const fmt = (v) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) =>
+  v >= 1000000 ? `${(v / 1000000).toFixed(1)}M €` : v >= 1000 ? `${(v / 1000).toFixed(0)}k €` : `${v} €`;
 
-function calcHeritage({
-  propertyValue, remainingDebt, monthlyRent, annualCharges, annualTaxe,
-  capitalGainsTax, duration, investReturn, occupiedBySelf
-}) {
-  // --- Option A: Keep & rent (or keep & live) ---
-  const netValue = propertyValue - remainingDebt;
-  const annualRent = monthlyRent * 12;
-  const annualNetRent = annualRent - annualCharges - annualTaxe;
-  const grossYield = propertyValue > 0 ? (annualRent / propertyValue) * 100 : 0;
-  const netYield = propertyValue > 0 ? (annualNetRent / propertyValue) * 100 : 0;
+const PATRIMOINE_PILLS = [100000, 200000, 500000, 1000000, 2000000];
 
-  // Property value growth over duration
-  const appreciation = 1.5; // average French appreciation %/year
-  const futurePropertyValue = propertyValue * Math.pow(1 + appreciation / 100, duration);
-  const futureDebt = remainingDebt > 0 ? remainingDebt * Math.pow(1.035, duration) : 0; // simplified
-  const keepWorth = futurePropertyValue - futureDebt + annualNetRent * duration; // simplified (no compounding on rents)
+const LIENS = [
+  { id: "enfant",   label: "Enfant",         abattement: 100000   },
+  { id: "conjoint", label: "Conjoint / PACS", abattement: Infinity },
+  { id: "frere",    label: "Frère / Sœur",   abattement: 15932    },
+  { id: "neveu",    label: "Neveu / Nièce",  abattement: 7967     },
+  { id: "autre",    label: "Autre",          abattement: 1594     },
+];
 
-  // --- Option B: Sell & invest ---
-  const saleProceeds = propertyValue * 0.94 - remainingDebt; // 6% agency fees
-  const taxableGain = Math.max(0, propertyValue * 0.94 - capitalGainsTax);
-  // Plus-value: 19% IR + 17.2% PS with abattements after 5y (22y for IR, 30y for PS)
-  const pvIR = taxableGain * 0.19;
-  const pvPS = taxableGain * 0.172;
-  const pvTotal = pvIR + pvPS;
-  const netSaleProceeds = Math.max(0, saleProceeds - pvTotal);
-  const investMonthly = investReturn / 100 / 12;
-  const sellWorth = netSaleProceeds * Math.pow(1 + investReturn / 100, duration);
+function calcDroits(base, lien) {
+  if (lien === "conjoint" || base <= 0) return 0;
+  if (lien === "enfant") {
+    const TRANCHES = [
+      [8072,             0.05],
+      [12109 - 8072,     0.10],
+      [15932 - 12109,    0.15],
+      [552324 - 15932,   0.20],
+      [902838 - 552324,  0.30],
+      [1805677 - 902838, 0.40],
+      [Infinity,         0.45],
+    ];
+    let droits = 0, reste = base;
+    for (const [tranche, taux] of TRANCHES) {
+      const imposable = Math.min(reste, tranche);
+      droits += imposable * taux;
+      reste -= imposable;
+      if (reste <= 0) break;
+    }
+    return droits;
+  }
+  if (lien === "frere") {
+    return Math.min(base, 24430) * 0.35 + Math.max(0, base - 24430) * 0.45;
+  }
+  if (lien === "neveu") return base * 0.55;
+  return base * 0.60;
+}
 
-  // --- Option C: Sell your primary residence & buy smaller ---
-  const downsizeProceeds = propertyValue * 0.94 - remainingDebt;
-  const smallerPurchase = propertyValue * 0.6; // buy something 40% cheaper
-  const cashout = downsizeProceeds - smallerPurchase * 1.08; // with notary fees
-  const downsizeWorth = cashout > 0 ? cashout * Math.pow(1 + investReturn / 100, duration) + smallerPurchase * Math.pow(1 + appreciation / 100, duration) : 0;
-
-  const advantage = keepWorth - sellWorth;
-
-  // Cashflow monthly (if renting out)
-  const monthlyCashflow = annualNetRent / 12;
-
-  // Break-even: months until rent income covers sale opportunity cost
-  const opportunityCost = netSaleProceeds * (investReturn / 100 / 12);
-  const breakEvenMonths = monthlyCashflow > opportunityCost
-    ? Math.ceil((netSaleProceeds * 0.06) / (monthlyCashflow - opportunityCost))
-    : null;
-
-  return {
-    netValue, grossYield, netYield, annualNetRent, monthlyCashflow,
-    keepWorth, sellWorth, downsizeWorth,
-    advantage,
-    netSaleProceeds, pvTotal, taxableGain,
-    breakEvenMonths,
-    futurePropertyValue,
-  };
+function ChartTip({ active, payload }) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="chart-tooltip">
+      {payload.map((p) => (
+        <div key={p.dataKey} className="chart-tooltip-row">
+          <span style={{ color: p.fill, fontWeight: 700 }}>{p.name} :</span>
+          <span className="chart-tooltip-label">&nbsp;{fmt(p.value)}</span>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function SimHeritage() {
-  const [v, setV] = useState({
-    propertyValue: 280000,
-    remainingDebt: 0,
-    monthlyRent: 900,
-    annualCharges: 2400,
-    annualTaxe: 1200,
-    capitalGainsTax: 50000,
-    duration: 15,
-    investReturn: 4.0,
-    occupiedBySelf: false,
-  });
-  const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+  const [patrimoine, setPatrimoine]         = useState(500000);
+  const [lien, setLien]                     = useState("enfant");
+  const [assuranceVie, setAssuranceVie]     = useState(false);
+  const [nbBenef, setNbBenef]               = useState(1);
 
-  const res = useMemo(() => calcHeritage(v), [v]);
+  const sliderPct = Math.min(100, (patrimoine / 5000000) * 100);
 
-  const bestOption = res.keepWorth >= res.sellWorth ? "garder" : "vendre";
-  const heroColor = bestOption === "garder" ? "green" : "amber";
+  const res = useMemo(() => {
+    const lienData      = LIENS.find((l) => l.id === lien);
+    const abattBase     = lienData.abattement === Infinity ? patrimoine : lienData.abattement;
+    const abattAV       = assuranceVie ? 152500 * nbBenef : 0;
+    const abattTotal    = Math.min(patrimoine, abattBase + abattAV);
+    const baseImposable = Math.max(0, patrimoine - abattTotal);
+    const droitsNets    = calcDroits(baseImposable, lien);
+    const tauxEffectif  = patrimoine > 0 ? (droitsNets / patrimoine) * 100 : 0;
+    const patrimoineNet = patrimoine - droitsNets;
+    return { abattTotal, baseImposable, droitsNets, tauxEffectif, patrimoineNet };
+  }, [patrimoine, lien, assuranceVie, nbBenef]);
+
+  const verdictClass =
+    lien === "conjoint"       ? "sv2-verdict-green"
+    : res.tauxEffectif === 0  ? "sv2-verdict-green"
+    : res.tauxEffectif < 20   ? "sv2-verdict-amber"
+    : "sv2-verdict-red";
+
+  const chartData = [
+    { name: "Patrimoine net reçu",    value: Math.round(res.patrimoineNet), fill: "#1a56db" },
+    { name: "Droits de succession",   value: Math.round(res.droitsNets),    fill: "#dc2626" },
+    { name: "Abattement",             value: Math.round(res.abattTotal),    fill: "#10b981" },
+  ].filter((d) => d.value > 0);
+
+  const lienData = LIENS.find((l) => l.id === lien);
 
   return (
     <SimLayout
       icon="🏛️"
-      title="Héritage immobilier : garder ou vendre ?"
-      description="Vous héritez d'un bien ou en possédez un en plus de votre résidence. Calculez s'il vaut mieux le garder, le louer ou le vendre."
-      suggestions={["/simulateurs/plus-value", "/simulateurs/taxe-fonciere", "/simulateurs/frais-notaire"]}
+      title="Estimez vos droits de succession"
+      description="Calculez les droits à payer selon le lien de parenté et les abattements fiscaux applicables"
+      simTime="2 min"
+      suggestions={[
+        "/simulateurs/plus-value",
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/rentabilite-locative",
+        "/simulateurs/taxe-fonciere",
+        "/simulateurs/endettement",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Le bien hérité",
-            icon: "🏛️",
-            content: (
-              <>
-                <Field label="Valeur du bien" value={v.propertyValue} onChange={set("propertyValue")} suffix="€"
-                  hint="Prix de marché estimé aujourd'hui" />
-                <Field label="Capital restant dû" value={v.remainingDebt} onChange={set("remainingDebt")} suffix="€"
-                  hint="0 si le bien est entièrement payé (héritage classique)" />
-                <Field label="Charges annuelles" value={v.annualCharges} onChange={set("annualCharges")} suffix="€/an"
-                  hint="Charges de copropriété + entretien + assurance PNO" />
-                <Field label="Taxe foncière" value={v.annualTaxe} onChange={set("annualTaxe")} suffix="€/an"
-                  hint="Taxe foncière annuelle du bien" />
-              </>
-            ),
-          },
-          {
-            title: "Les options",
-            icon: "🔄",
-            content: (
-              <>
-                <Field label="Loyer mensuel potentiel" value={v.monthlyRent} onChange={set("monthlyRent")} suffix="€/mois"
-                  hint="Loyer que vous pourriez percevoir si vous louez le bien" />
-                <Field label="Plus-value estimée (base imposable)" value={v.capitalGainsTax} onChange={set("capitalGainsTax")} suffix="€"
-                  hint="Différence entre valeur actuelle et prix d'acquisition. Exonéré après 22 ans de détention." />
-                <Field label="Rendement placement alternatif" value={v.investReturn} onChange={set("investReturn")} suffix="%"
-                  hint="Rendement annuel si vous placez le produit de la vente (ETF, assurance-vie…)" />
-                <Field label="Horizon de comparaison" value={v.duration} onChange={set("duration")} suffix="ans"
-                  hint="Sur combien d'années comparer les deux options ?" />
+      <div className="sv2-container">
 
-                {res.grossYield > 0 && (
-                  <div className="sim-info-box" style={{ marginTop: 16 }}>
-                    <p className="sim-info-title">📊 Rentabilité locative</p>
-                    <p className="sim-info-body">
-                      Rendement brut : <strong>{fmtPct(res.grossYield)}</strong> — Rendement net : <strong>{fmtPct(res.netYield)}</strong>.
-                      Cashflow mensuel net : <strong>{fmtCur(res.monthlyCashflow)}</strong> après charges et taxe foncière.
-                    </p>
-                  </div>
-                )}
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            <div className={`sim-stat-hero sim-hero-${heroColor}`}>
-              <span className="sim-stat-label">
-                {bestOption === "garder" ? "Garder le bien est plus rentable" : "Vendre est plus rentable"}
-              </span>
-              <span className="sim-stat-value">
-                {fmtCur(Math.abs(res.advantage))}
-              </span>
-              <p className="sim-stat-hero-summary">
-                {bestOption === "garder"
-                  ? `Garder et louer génère ${fmtCur(res.advantage)} de plus sur ${v.duration} ans que vendre et placer.`
-                  : `Vendre et investir génère ${fmtCur(-res.advantage)} de plus sur ${v.duration} ans que garder le bien.`
-                }
-              </p>
+        {/* ── Inputs card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+          <p className="fv2-card-kicker">Succession</p>
+          <p className="fv2-card-title">Renseignez les paramètres</p>
+
+          {/* Patrimoine */}
+          <div style={{ marginBottom: 24 }}>
+            <div className="fv2-slider-header">
+              <span className="fv2-slider-label">Valeur du patrimoine transmis</span>
+              <span className="fv2-slider-val">{fmtK(patrimoine)}</span>
             </div>
-
-            <div className="heritage-options">
-              <div className={`heritage-option${bestOption === "garder" ? " heritage-option-best" : ""}`}>
-                <div className="heritage-option-header">
-                  <span className="heritage-option-icon">🏠</span>
-                  <span className="heritage-option-title">Garder & louer</span>
-                  {bestOption === "garder" && <span className="heritage-option-badge">Recommandé</span>}
-                </div>
-                <div className="heritage-option-value">{fmtCur(res.keepWorth)}</div>
-                <p className="heritage-option-desc">
-                  Patrimoine estimé dans {v.duration} ans, incluant la valorisation du bien et les loyers nets perçus.
-                </p>
-                <div className="heritage-option-detail">
-                  <span>Valeur future du bien</span><span>{fmtCur(res.futurePropertyValue)}</span>
-                </div>
-                <div className="heritage-option-detail">
-                  <span>Loyers nets cumulés</span><span>{fmtCur(res.annualNetRent * v.duration)}</span>
-                </div>
-              </div>
-
-              <div className={`heritage-option${bestOption === "vendre" ? " heritage-option-best" : ""}`}>
-                <div className="heritage-option-header">
-                  <span className="heritage-option-icon">💰</span>
-                  <span className="heritage-option-title">Vendre & investir</span>
-                  {bestOption === "vendre" && <span className="heritage-option-badge">Recommandé</span>}
-                </div>
-                <div className="heritage-option-value">{fmtCur(res.sellWorth)}</div>
-                <p className="heritage-option-desc">
-                  Produit net de vente placé à {v.investReturn} %/an pendant {v.duration} ans, capitalisé.
-                </p>
-                <div className="heritage-option-detail">
-                  <span>Produit net de vente</span><span>{fmtCur(res.netSaleProceeds)}</span>
-                </div>
-                <div className="heritage-option-detail">
-                  <span>Gain à {v.investReturn} %/an</span><span>{fmtCur(res.sellWorth - res.netSaleProceeds)}</span>
-                </div>
-              </div>
+            <div className="fv2-slider-track-wrap" style={{ "--pct": `${sliderPct}%` }}>
+              <input
+                type="range" className="fv2-slider"
+                min={0} max={5000000} step={10000} value={patrimoine}
+                onChange={(e) => setPatrimoine(Number(e.target.value))}
+              />
+              <div className="fv2-slider-fill" style={{ width: `${sliderPct}%` }} />
             </div>
-
-            {res.pvTotal > 0 && (
-              <div className="sim-info-box" style={{ marginTop: 16 }}>
-                <p className="sim-info-title">📋 Fiscalité de la plus-value (cession)</p>
-                <p className="sim-info-body">
-                  Plus-value taxable estimée : <strong>{fmtCur(res.taxableGain)}</strong>.
-                  Impôt IR (19 %) : <strong>{fmtCur(res.pvTotal * 19 / (19 + 17.2))}</strong> — Prélèvements sociaux (17,2 %) : <strong>{fmtCur(res.pvTotal * 17.2 / (19 + 17.2))}</strong>.
-                  Total imposition : <strong style={{ color: "#dc2626" }}>{fmtCur(res.pvTotal)}</strong>.
-                  Note : des abattements progressifs s'appliquent après 5 ans de détention (exonération totale IR après 22 ans, PS après 30 ans). Consultez un notaire.
-                </p>
-              </div>
-            )}
-
-            {res.breakEvenMonths !== null && (
-              <div className="sim-info-box" style={{ marginTop: 16 }}>
-                <p className="sim-info-title">⏱️ Point de rentabilité locative</p>
-                <p className="sim-info-body">
-                  La location devient plus rentable que le placement financier au bout de{" "}
-                  <strong>~{res.breakEvenMonths} mois</strong> ({Math.ceil(res.breakEvenMonths / 12)} an{Math.ceil(res.breakEvenMonths / 12) > 1 ? "s" : ""}).
-                  Au-delà, chaque mois supplémentaire joue en faveur de la conservation du bien.
-                </p>
-              </div>
-            )}
-
-            <div className="sim-stats-grid" style={{ marginTop: 16 }}>
-              <div className="sim-stat-card sim-stat-card-blue">
-                <span className="sim-stat-card-label">Valeur nette du bien</span>
-                <span className="sim-stat-card-value">{fmtCur(res.netValue)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Rendement brut</span>
-                <span className="sim-stat-card-value">{fmtPct(res.grossYield)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Rendement net</span>
-                <span className="sim-stat-card-value">{fmtPct(res.netYield)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Cashflow mensuel</span>
-                <span className="sim-stat-card-value">{fmtCur(res.monthlyCashflow)}</span>
-              </div>
-            </div>
-
-            <div className="sim-info-box">
-              <p className="sim-info-title">⚖️ Facteurs non financiers</p>
-              <p className="sim-info-body">
-                Cette analyse compare uniquement les flux financiers. D'autres facteurs comptent : facilité de gestion, charge mentale du bailleur,
-                diversification patrimoniale, risque de vacance locative (6–10 % en moyenne), fiscalité des revenus fonciers (jusqu'à 45 % + 17,2 % PS).
-                Consultez un conseiller en gestion de patrimoine (CGP) pour une analyse personnalisée.
-              </p>
+            <div className="fv2-slider-minmax"><span>0 €</span><span>5 000 000 €</span></div>
+            <div className="fv2-revenus-pills" style={{ marginTop: 10 }}>
+              {PATRIMOINE_PILLS.map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${patrimoine === p ? " active" : ""}`}
+                  onClick={() => setPatrimoine(p)}>
+                  {fmtK(p)}
+                </button>
+              ))}
             </div>
           </div>
-        }
-      />
+
+          {/* Lien de parenté */}
+          <div style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Lien de parenté avec le défunt</p>
+            <div className="fv2-choice-row" style={{ flexWrap: "wrap", gap: 8 }}>
+              {LIENS.map((l) => (
+                <button key={l.id} type="button"
+                  className={`fv2-choice-btn${lien === l.id ? " active" : ""}`}
+                  onClick={() => setLien(l.id)}>
+                  {l.label}
+                </button>
+              ))}
+            </div>
+            <p className="fv2-hint">
+              Abattement légal :{" "}
+              {lien === "conjoint"
+                ? "Exonération totale"
+                : fmt(lienData?.abattement ?? 0)}
+            </p>
+          </div>
+
+          {/* Assurance-vie toggle */}
+          <div style={{ marginBottom: 8 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+              <p className="fv2-field-label" style={{ margin: 0 }}>
+                Assurance-vie (abattement 152 500 € / bénéficiaire)
+              </p>
+              <button
+                type="button"
+                onClick={() => setAssuranceVie(!assuranceVie)}
+                style={{
+                  width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer",
+                  background: assuranceVie ? "#1a56db" : "#cbd5e1",
+                  position: "relative", transition: "background .2s", flexShrink: 0,
+                }}
+                aria-label={assuranceVie ? "Désactiver l'assurance-vie" : "Activer l'assurance-vie"}
+              >
+                <span style={{
+                  position: "absolute", top: 3, left: assuranceVie ? 23 : 3,
+                  width: 18, height: 18, borderRadius: "50%", background: "#fff",
+                  transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,.2)",
+                }} />
+              </button>
+            </div>
+            {assuranceVie && (
+              <div style={{ marginTop: 8 }}>
+                <p className="fv2-field-label" style={{ marginBottom: 6 }}>Nombre de bénéficiaires</p>
+                <div className="fv2-revenus-pills">
+                  {[1, 2, 3, 4].map((n) => (
+                    <button key={n} type="button"
+                      className={`fv2-revenus-pill${nbBenef === n ? " active" : ""}`}
+                      onClick={() => setNbBenef(n)}>
+                      {n}
+                    </button>
+                  ))}
+                </div>
+                <p className="fv2-hint">Abattement AV total : {fmt(152500 * nbBenef)}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ── Results card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Verdict */}
+          <div className={`sv2-verdict ${verdictClass}`} style={{ marginBottom: 20 }}>
+            {lien === "conjoint" ? (
+              <>
+                <div className="sv2-verdict-label">Droits de succession</div>
+                <div className="sv2-verdict-amount">0 €</div>
+                <div className="sv2-verdict-sub">Exonération totale — conjoint / partenaire PACS</div>
+              </>
+            ) : (
+              <>
+                <div className="sv2-verdict-label">Droits de succession nets</div>
+                <div className="sv2-verdict-amount">{fmt(Math.round(res.droitsNets))}</div>
+                <div className="sv2-verdict-sub">
+                  Taux effectif : {res.tauxEffectif.toFixed(1)} % du patrimoine
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* Line items */}
+          <div className="sv2-line-items" style={{ marginBottom: 20 }}>
+            {[
+              { label: "Patrimoine brut transmis",  value: patrimoine,           color: "#1a56db", pct: 100 },
+              { label: "Abattement total appliqué", value: res.abattTotal,       color: "#10b981", pct: (res.abattTotal / Math.max(1, patrimoine)) * 100, prefix: "− " },
+              { label: "Base imposable",            value: res.baseImposable,    color: "#f59e0b", pct: (res.baseImposable / Math.max(1, patrimoine)) * 100 },
+              { label: "Droits de succession nets", value: res.droitsNets,       color: "#dc2626", pct: (res.droitsNets / Math.max(1, patrimoine)) * 100 },
+              { label: "Patrimoine net reçu",       value: res.patrimoineNet,    color: "#1a56db", pct: (res.patrimoineNet / Math.max(1, patrimoine)) * 100, bold: true },
+            ].map(({ label, value, color, pct, prefix, bold }) => (
+              <div key={label} className="sv2-line-item">
+                <div className="sv2-line-item-row">
+                  <span className="sv2-line-item-label">{label}</span>
+                  <span className="sv2-line-item-amount" style={{ color: color, fontWeight: bold ? 800 : undefined }}>
+                    {prefix || ""}{fmt(Math.round(value))}
+                  </span>
+                </div>
+                <div className="sv2-line-bar-track">
+                  <div className="sv2-line-bar-fill" style={{ width: `${Math.min(100, pct)}%`, background: color }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Bar chart */}
+          {lien !== "conjoint" && chartData.length > 0 && (
+            <div style={{ height: 190, marginBottom: 16 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={chartData} layout="vertical" margin={{ top: 0, right: 24, left: 0, bottom: 0 }}>
+                  <XAxis type="number" tickFormatter={(v) => fmtK(v)}
+                    tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                  <YAxis type="category" dataKey="name"
+                    tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} width={150} />
+                  <Tooltip content={<ChartTip />} />
+                  <Bar dataKey="value" radius={[0, 6, 6, 0]}>
+                    {chartData.map((entry, i) => (
+                      <Cell key={i} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {/* Insight */}
+          {lien !== "conjoint" && res.droitsNets > 0 && (
+            <div className="sv2-insight">
+              Sur un patrimoine de <strong>{fmtK(patrimoine)}</strong>, les droits s'élèvent à{" "}
+              <strong>{fmt(Math.round(res.droitsNets))}</strong>
+              {assuranceVie
+                ? ` (après abattement assurance-vie de ${fmt(152500 * nbBenef)})`
+                : ""}
+              . Le bénéficiaire reçoit effectivement{" "}
+              <strong>{fmt(Math.round(res.patrimoineNet))}</strong>.
+            </div>
+          )}
+          {lien !== "conjoint" && res.droitsNets === 0 && patrimoine > 0 && (
+            <div className="sv2-insight" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", color: "#166534" }}>
+              Le patrimoine est entièrement couvert par les abattements — aucun droit de succession n'est dû.
+            </div>
+          )}
+          {lien === "conjoint" && (
+            <div className="sv2-insight" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", color: "#166534" }}>
+              Le conjoint survivant et le partenaire de PACS sont totalement exonérés de droits de succession depuis la loi TEPA de 2007.
+            </div>
+          )}
+        </div>
+
+        <SimCrossSell
+          show={res.patrimoineNet > 200000}
+          loan={Math.round(res.patrimoineNet * 0.6)}
+          taux={3.5}
+          dureeCredit={20}
+        />
+      </div>
     </SimLayout>
   );
 }

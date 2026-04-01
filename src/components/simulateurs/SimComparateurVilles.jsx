@@ -1,254 +1,366 @@
-import { useMemo, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, Legend } from "recharts";
+import { useMemo, useState, useRef, useEffect } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, Legend,
+  ResponsiveContainer, CartesianGrid,
+} from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import { formatCurrency } from "../../utils/finance";
+import SimCrossSell from "./SimCrossSell";
+import { VILLES } from "../../data/villes";
 
-/** Prix moyen m² à l'achat et loyer m² moyen par ville et type de bien (données 2024) */
-const VILLES = [
-  { id: "paris",       nom: "Paris",        flag: "🗼", m2Achat: { T1: 10200, T2: 9800, T3: 9200 }, loyerM2: { T1: 38, T2: 34, T3: 30 }, surface: { T1: 24, T2: 38, T3: 60 } },
-  { id: "lyon",        nom: "Lyon",          flag: "🦁", m2Achat: { T1: 5200, T2: 4700, T3: 4200 }, loyerM2: { T1: 20, T2: 18, T3: 16 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "bordeaux",    nom: "Bordeaux",      flag: "🍷", m2Achat: { T1: 4600, T2: 4200, T3: 3800 }, loyerM2: { T1: 17, T2: 16, T3: 14 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "nice",        nom: "Nice",          flag: "☀️", m2Achat: { T1: 6000, T2: 5500, T3: 5000 }, loyerM2: { T1: 22, T2: 20, T3: 18 }, surface: { T1: 24, T2: 38, T3: 58 } },
-  { id: "nantes",      nom: "Nantes",        flag: "🏰", m2Achat: { T1: 4500, T2: 4100, T3: 3700 }, loyerM2: { T1: 16, T2: 15, T3: 13 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "toulouse",    nom: "Toulouse",      flag: "🌸", m2Achat: { T1: 4200, T2: 3800, T3: 3400 }, loyerM2: { T1: 16, T2: 15, T3: 13 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "montpellier", nom: "Montpellier",   flag: "🎭", m2Achat: { T1: 3900, T2: 3600, T3: 3200 }, loyerM2: { T1: 16, T2: 15, T3: 13 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "rennes",      nom: "Rennes",        flag: "⚓", m2Achat: { T1: 4600, T2: 4200, T3: 3700 }, loyerM2: { T1: 16, T2: 15, T3: 13 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "lille",       nom: "Lille",         flag: "🍺", m2Achat: { T1: 3700, T2: 3400, T3: 3000 }, loyerM2: { T1: 16, T2: 15, T3: 13 }, surface: { T1: 24, T2: 38, T3: 58 } },
-  { id: "strasbourg",  nom: "Strasbourg",    flag: "🎄", m2Achat: { T1: 3800, T2: 3500, T3: 3100 }, loyerM2: { T1: 15, T2: 14, T3: 12 }, surface: { T1: 24, T2: 38, T3: 58 } },
-  { id: "grenoble",    nom: "Grenoble",      flag: "⛷️", m2Achat: { T1: 3000, T2: 2800, T3: 2500 }, loyerM2: { T1: 14, T2: 13, T3: 11 }, surface: { T1: 25, T2: 40, T3: 62 } },
-  { id: "marseille",   nom: "Marseille",     flag: "⚓", m2Achat: { T1: 3600, T2: 3300, T3: 2900 }, loyerM2: { T1: 15, T2: 14, T3: 12 }, surface: { T1: 25, T2: 40, T3: 62 } },
-];
+/* ─── Formatters ─────────────────────────────────────────── */
+const fmt = (v) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) =>
+  v >= 1000 ? `${Math.round(v / 1000)}k €` : `${Math.round(v)} €`;
 
-function calcMensualite(capital, apport, tauxAnnuel, dureeAns) {
-  const principal = capital - apport;
-  if (principal <= 0) return 0;
-  const r = tauxAnnuel / 100 / 12;
-  const n = dureeAns * 12;
-  return r === 0 ? principal / n : principal * r / (1 - Math.pow(1 + r, -n));
+/* ─── Helpers ────────────────────────────────────────────── */
+const normalizeStr = (s) =>
+  s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+
+function mortgage(p, r, y) {
+  if (p <= 0 || y <= 0) return 0;
+  const mr = r / 100 / 12;
+  if (mr === 0) return p / (y * 12);
+  return (p * mr) / (1 - Math.pow(1 + mr, -(y * 12)));
 }
 
-const fmtCur = (v) =>
-  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+function getLoyerByTypo(ville, typo) {
+  if (typo === "t1") return ville.loyer_studio;
+  if (typo === "t3") return ville.loyer_t3;
+  return ville.loyer_t2;
+}
 
-function ChartTooltip({ active, payload, label }) {
+function tensionColor(tension) {
+  if (!tension) return "#94a3b8";
+  const t = tension.toLowerCase();
+  if (t.includes("très tendu")) return "#dc2626";
+  if (t.includes("tendu")) return "#f59e0b";
+  if (t.includes("dynamique")) return "#2563eb";
+  if (t.includes("stable")) return "#059669";
+  return "#94a3b8";
+}
+
+/* ─── CitySearch ─────────────────────────────────────────── */
+function CitySearch({ ville, onSelect, placeholder = "Rechercher une ville..." }) {
+  const [query, setQuery] = useState(ville?.nom ?? "");
+  const [open, setOpen] = useState(false);
+  const closeTimer = useRef(null);
+
+  const suggestions = useMemo(() => {
+    if (query.length < 1) return [];
+    const norm = normalizeStr(query);
+    return VILLES.filter((c) => normalizeStr(c.nom).includes(norm)).slice(0, 8);
+  }, [query]);
+
+  const select = (c) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    setQuery(c.nom);
+    setOpen(false);
+    onSelect(c);
+  };
+
+  return (
+    <div className="sf-city-search">
+      <div className="sf-city-search-wrap">
+        <input
+          type="text" className="sf-city-search-input" value={query}
+          placeholder={placeholder} autoComplete="off" spellCheck={false}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(e.target.value.length >= 1);
+            if (!e.target.value) onSelect(null);
+          }}
+          onFocus={() => {
+            if (closeTimer.current) clearTimeout(closeTimer.current);
+            if (query.length >= 1) setOpen(true);
+          }}
+          onBlur={() => { closeTimer.current = setTimeout(() => setOpen(false), 250); }}
+        />
+        {query && (
+          <button type="button" className="sf-city-search-clear"
+            onClick={() => { setQuery(""); setOpen(false); onSelect(null); }}>
+            ✕
+          </button>
+        )}
+      </div>
+      {open && suggestions.length > 0 && (
+        <div className="sf-city-suggestions">
+          {suggestions.map((c) => (
+            <button key={c.id} type="button" className="sf-city-suggestion-item"
+              onPointerDown={(e) => { e.preventDefault(); select(c); }}>
+              <span className="sf-sug-name">{c.nom}</span>
+              <span className="sf-sug-price">{c.prix_m2.toLocaleString("fr-FR")} €/m²</span>
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── Chart Tooltip ──────────────────────────────────────── */
+function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="chart-tooltip">
       <p className="chart-tooltip-label">{label}</p>
       {payload.map((p) => (
         <div key={p.dataKey} className="chart-tooltip-row">
-          <span style={{ color: p.fill || p.stroke }}>{p.name}</span>
-          <span>{fmtCur(p.value)}/mois</span>
+          <span style={{ color: p.fill }}>{p.name}</span>
+          <span>{fmt(p.value)}</span>
         </div>
       ))}
     </div>
   );
 }
 
+/* ─── Comparison row ─────────────────────────────────────── */
+function CmpRow({ label, v1, v2, highlight = false }) {
+  return (
+    <tr className={highlight ? "sv2-cmp-row-highlight" : ""}>
+      <td className="sv2-cmp-label">{label}</td>
+      <td className="sv2-cmp-v1">{v1}</td>
+      <td className="sv2-cmp-v2">{v2}</td>
+    </tr>
+  );
+}
+
+/* ─── Component ──────────────────────────────────────────── */
 export default function SimComparateurVilles() {
-  const [typeBien, setTypeBien] = useState("T2");
-  const [apport, setApport] = useState(40000);
-  const [taux, setTaux] = useState(3.8);
-  const [duree, setDuree] = useState(20);
+  const [ville1, setVille1] = useState(() => VILLES.find((v) => v.nom === "Paris") ?? null);
+  const [ville2, setVille2] = useState(() => VILLES.find((v) => v.nom === "Lyon") ?? null);
+  const [typo, setTypo] = useState("t2");
 
-  const data = useMemo(() => {
-    return VILLES.map((v) => {
-      const surface = v.surface[typeBien];
-      const prixAchat = v.m2Achat[typeBien] * surface;
-      const prixTotal = prixAchat * 1.08; // +8% frais notaire
-      const mensualite = calcMensualite(prixTotal, apport, taux, duree);
-      const loyer = v.loyerM2[typeBien] * surface;
-      const delta = mensualite - loyer; // positif = achat plus cher
-      // Breakeven: années pour que l'achat soit équivalent à la location
-      // Simplification : capitalisation patrimoine vs loyers cumulés
-      const loyerAnnuel = loyer * 12;
-      const coutCreditTotal = mensualite * duree * 12 - (prixTotal - apport);
-      // Seuil où patrimoine net = somme loyers payés (à ~2% revalorisation annuelle)
-      let breakEvenYears = null;
-      let cumLoyer = 0;
-      let patrimoineNet = -apport - (prixTotal - prixAchat); // apport + frais notaire
-      for (let yr = 1; yr <= 30; yr++) {
-        const loyerYr = loyerAnnuel * Math.pow(1.015, yr - 1);
-        cumLoyer += loyerYr;
-        const propValue = prixAchat * Math.pow(1.02, yr); // +2%/an
-        const r = taux / 100 / 12;
-        const n = duree * 12;
-        const monthsPaid = Math.min(yr * 12, n);
-        let bal = prixTotal - apport;
-        for (let m = 0; m < monthsPaid; m++) {
-          const i = bal * r;
-          bal = Math.max(0, bal - (mensualite - i));
-        }
-        const netWorth = propValue * 0.95 - bal;
-        if (breakEvenYears === null && netWorth >= cumLoyer) {
-          breakEvenYears = yr;
-        }
-      }
-      return {
-        nom: `${v.flag} ${v.nom}`,
-        nomCourt: v.nom,
-        flag: v.flag,
-        prixAchat,
-        mensualite: Math.round(mensualite),
-        loyer: Math.round(loyer),
-        delta: Math.round(delta),
-        surface,
-        m2Achat: v.m2Achat[typeBien],
-        breakEvenYears,
-        coutCreditTotal: Math.round(coutCreditTotal),
-      };
-    }).sort((a, b) => a.mensualite - b.mensualite);
-  }, [typeBien, apport, taux, duree]);
+  const res = useMemo(() => {
+    if (!ville1 || !ville2) return null;
 
-  const minLoyer = Math.min(...data.map((d) => d.loyer));
-  const maxMens  = Math.max(...data.map((d) => d.mensualite));
+    const loyer1 = getLoyerByTypo(ville1, typo);
+    const loyer2 = getLoyerByTypo(ville2, typo);
+    const prix1 = ville1.prix_m2 * 50;
+    const prix2 = ville2.prix_m2 * 50;
+    const mens1 = Math.round(mortgage(Math.max(0, prix1 - 40000), 3.5, 20));
+    const mens2 = Math.round(mortgage(Math.max(0, prix2 - 40000), 3.5, 20));
+
+    // Bar chart data
+    const chartData = [
+      {
+        metric: "Prix m²",
+        [ville1.nom]: ville1.prix_m2,
+        [ville2.nom]: ville2.prix_m2,
+      },
+      {
+        metric: "Loyer mensuel",
+        [ville1.nom]: loyer1,
+        [ville2.nom]: loyer2,
+      },
+      {
+        metric: "Taxe foncière",
+        [ville1.nom]: ville1.taxe_fonciere,
+        [ville2.nom]: ville2.taxe_fonciere,
+      },
+    ];
+
+    const better = ville1.rentabilite_annees <= ville2.rentabilite_annees ? ville1 : ville2;
+    const other = better.id === ville1.id ? ville2 : ville1;
+
+    // 10-year appreciation
+    const val = 200000;
+    const gain1 = Math.round(val * (Math.pow(1 + ville1.appreciation / 100, 10) - 1));
+    const gain2 = Math.round(val * (Math.pow(1 + ville2.appreciation / 100, 10) - 1));
+
+    return {
+      loyer1, loyer2, prix1, prix2, mens1, mens2,
+      chartData, better, other,
+      gain1, gain2,
+    };
+  }, [ville1, ville2, typo]);
+
+  const crossLoan = ville1 && ville2
+    ? Math.min(ville1.prix_m2, ville2.prix_m2) * 50
+    : 0;
 
   return (
     <SimLayout
       icon="🗺️"
-      title="Comparateur loyer vs mensualité par ville"
-      description="Comparez le coût mensuel d'un achat versus une location dans les 12 principales villes françaises."
-      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
+      title="Comparez deux villes pour votre projet immobilier"
+      description="Loyer, mensualité, prix et rentabilité côte à côte"
+      suggestions={[
+        "/simulateurs/endettement",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/ptz",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre budget",
-            icon: "💰",
-            content: (
-              <>
-                <div className="step-fields">
-                  <div className="field-row">
-                    <label className="field-label">Apport personnel</label>
-                    <div className="input-wrap"><input type="number" className="input-num" value={apport} onChange={(e) => setApport(Number(e.target.value))} /><span className="input-suffix">€</span></div>
-                    <p className="field-hint">Somme disponible pour l'achat — réduit le capital à emprunter</p>
-                  </div>
-                  <div className="field-row">
-                    <label className="field-label">Taux du prêt</label>
-                    <div className="input-wrap"><input type="number" className="input-num" value={taux} onChange={(e) => setTaux(Number(e.target.value))} step="0.1" /><span className="input-suffix">%</span></div>
-                    <p className="field-hint">Mars 2026 : entre 3,3 % et 4,0 %</p>
-                  </div>
-                </div>
-              </>
-            ),
-          },
-          {
-            title: "Paramètres",
-            icon: "⚙️",
-            content: (
-              <>
-                <div className="step-fields">
-                  <div className="field-row">
-                    <label className="field-label">Durée du prêt</label>
-                    <div className="input-wrap"><input type="number" className="input-num" value={duree} onChange={(e) => setDuree(Number(e.target.value))} /><span className="input-suffix">ans</span></div>
-                    <p className="field-hint">15, 20 ou 25 ans — plus court = moins d'intérêts</p>
-                  </div>
-                </div>
+      <div className="sv2-container">
 
-                <div style={{ marginTop: 16 }}>
-                  <label className="field-label">Type de bien</label>
-                  <div className="loan-type-grid loan-type-grid-3" style={{ marginTop: 8 }}>
-                    {["T1", "T2", "T3"].map((t) => (
-                      <button key={t} type="button" className={`loan-type-btn${typeBien === t ? " loan-type-active" : ""}`} onClick={() => setTypeBien(t)}>
-                        <span>{t === "T1" ? "🛏️" : t === "T2" ? "🛋️" : "🏠"}</span>
-                        <span>{t === "T1" ? "Studio / T1" : t === "T2" ? "2 pièces" : "3 pièces"}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
+        {/* ── Inputs ── */}
+        <div className="fv2-card">
+          <p className="fv2-card-kicker">Sélection</p>
+          <h2 className="fv2-card-title">Choisissez vos deux villes</h2>
 
-                <div className="sim-info-box" style={{ marginTop: 16 }}>
-                  <p className="sim-info-title">📌 Comment lire ce comparateur</p>
-                  <p className="sim-info-body">La mensualité inclut 8 % de frais de notaire. Elle ne tient pas compte de la taxe foncière, des charges de copropriété, ni de la constitution de patrimoine à long terme. La barre bleue est la mensualité de crédit, la barre teal est le loyer équivalent.</p>
-                </div>
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel comparateur-results">
-            {(() => {
-              const buyWins = data.filter(d => d.delta <= 0).length;
-              const rentWins = data.length - buyWins;
-              const cheapestBuy = data.slice().sort((a,b) => a.mensualite - b.mensualite)[0];
-              return (
-                <div className="sim-stats-grid" style={{ marginBottom: 16 }}>
-                  <div className="sim-stat-card sim-stat-card-blue">
-                    <span className="sim-stat-card-label">Villes où acheter coûte moins</span>
-                    <span className="sim-stat-card-value">{buyWins} / {data.length}</span>
-                  </div>
-                  <div className="sim-stat-card">
-                    <span className="sim-stat-card-label">Ville la moins chère à l'achat</span>
-                    <span className="sim-stat-card-value">{cheapestBuy?.flag} {cheapestBuy?.nomCourt}</span>
-                  </div>
-                </div>
-              );
-            })()}
-            <p className="sim-stat-label" style={{ fontWeight: 700, fontSize: 13, marginBottom: 12, textTransform: "uppercase", letterSpacing: ".06em" }}>
-              Loyer vs mensualité — {typeBien} (prix marché 2026)
-            </p>
-
-            <ResponsiveContainer width="100%" height={380}>
-              <BarChart data={data} layout="vertical" margin={{ top: 4, right: 16, bottom: 4, left: 0 }}>
-                <XAxis type="number" tickFormatter={(v) => `${Math.round(v / 100) * 100} €`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false}/>
-                <YAxis type="category" dataKey="nom" tick={{ fontSize: 11, fill: "#0c1a35" }} axisLine={false} tickLine={false} width={120}/>
-                <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
-                <Legend wrapperStyle={{ fontSize: 11, paddingTop: 8 }}/>
-                <Bar dataKey="mensualite" name="Mensualité crédit" fill="#2563eb" radius={[0, 6, 6, 0]} barSize={9}/>
-                <Bar dataKey="loyer" name="Loyer estimé" fill="#06b6d4" radius={[0, 6, 6, 0]} barSize={9}/>
-              </BarChart>
-            </ResponsiveContainer>
-
-            {/* City cards */}
-            <div className="comparateur-cards">
-              {data.map((d) => {
-                const cheaper = d.loyer < d.mensualite ? "loyer" : "achat";
-                return (
-                  <div key={d.nomCourt} className={`comparateur-city-card ${cheaper === "loyer" ? "city-card-rent" : "city-card-buy"}`}>
-                    <div className="city-card-header">
-                      <strong className="city-card-nom">{d.nomCourt}</strong>
-                      <span className={`city-card-badge ${cheaper === "loyer" ? "badge-rent" : "badge-buy"}`}>
-                        {cheaper === "loyer" ? "Location + avantageuse" : "Achat + avantageux"}
-                      </span>
-                    </div>
-                    <div className="city-card-rows">
-                      <div className="city-card-row">
-                        <span>Mensualité crédit</span>
-                        <strong style={{ color: "#2563eb" }}>{fmtCur(d.mensualite)}/mois</strong>
-                      </div>
-                      <div className="city-card-row">
-                        <span>Loyer estimé</span>
-                        <strong style={{ color: "#06b6d4" }}>{fmtCur(d.loyer)}/mois</strong>
-                      </div>
-                      <div className="city-card-row city-card-delta">
-                        <span>Différence</span>
-                        <strong style={{ color: d.delta > 0 ? "#dc2626" : "#059669" }}>
-                          {d.delta > 0 ? "+" : ""}{fmtCur(d.delta)}/mois
-                        </strong>
-                      </div>
-                      <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
-                        <span>Prix m² achat</span>
-                        <span style={{ color: "var(--muted)" }}>{fmtCur(d.m2Achat)}/m²</span>
-                      </div>
-                      <div className="city-card-row">
-                        <span>Surface typique {typeBien}</span>
-                        <span style={{ color: "var(--muted)" }}>{d.surface} m²</span>
-                      </div>
-                      <div className="city-card-row" style={{ paddingTop: 4, borderTop: "1px solid var(--line)", marginTop: 4 }}>
-                        <span>Point de rentabilité</span>
-                        <span style={{ color: d.breakEvenYears !== null && d.breakEvenYears <= 15 ? "#059669" : d.breakEvenYears !== null && d.breakEvenYears <= 22 ? "#d97706" : "#dc2626", fontWeight: 700 }}>
-                          {d.breakEvenYears !== null ? `${d.breakEvenYears} ans` : "> 30 ans"}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 20 }}>
+            <div>
+              <label className="fv2-field-label">Première ville</label>
+              <CitySearch ville={ville1} onSelect={setVille1} placeholder="Ex : Paris…" />
+            </div>
+            <div>
+              <label className="fv2-field-label">Deuxième ville</label>
+              <CitySearch ville={ville2} onSelect={setVille2} placeholder="Ex : Lyon…" />
             </div>
           </div>
-        }
-      />
+
+          {/* Typologie */}
+          <div>
+            <label className="fv2-field-label">Typologie</label>
+            <div className="fv2-choices-row">
+              {[
+                { id: "t1", label: "T1 / Studio" },
+                { id: "t2", label: "T2" },
+                { id: "t3", label: "T3" },
+              ].map(({ id, label }) => (
+                <button key={id} type="button"
+                  className={`fv2-choice${typo === id ? " fv2-choice-active" : ""}`}
+                  onClick={() => setTypo(id)}>
+                  {label}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* ── Results ── */}
+        {ville1 && ville2 && res && (
+          <>
+            {/* Compare header */}
+            <div className="sv2-compare-header">
+              <div className="sv2-compare-city-card">
+                <p className="sv2-compare-city-name">{ville1.nom}</p>
+                <p className="sv2-compare-city-prix">{ville1.prix_m2.toLocaleString("fr-FR")} €/m²</p>
+              </div>
+              <div className="sv2-compare-vs">VS</div>
+              <div className="sv2-compare-city-card">
+                <p className="sv2-compare-city-name">{ville2.nom}</p>
+                <p className="sv2-compare-city-prix">{ville2.prix_m2.toLocaleString("fr-FR")} €/m²</p>
+              </div>
+            </div>
+
+            {/* Comparison table */}
+            <div className="sv2-compare-table">
+              <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: "left", padding: "8px 10px", fontSize: 12, color: "#64748b", fontWeight: 600 }}>Métrique</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "#1e3a5f" }}>{ville1.nom}</th>
+                    <th style={{ textAlign: "right", padding: "8px 10px", fontSize: 13, fontWeight: 700, color: "#1e3a5f" }}>{ville2.nom}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {[
+                    {
+                      label: "Prix au m²",
+                      v1: `${ville1.prix_m2.toLocaleString("fr-FR")} €/m²`,
+                      v2: `${ville2.prix_m2.toLocaleString("fr-FR")} €/m²`,
+                    },
+                    {
+                      label: `Loyer mensuel (${typo.toUpperCase()})`,
+                      v1: fmt(res.loyer1),
+                      v2: fmt(res.loyer2),
+                    },
+                    {
+                      label: "Mensualité estimée (50 m²)",
+                      v1: fmt(res.mens1) + "/mois",
+                      v2: fmt(res.mens2) + "/mois",
+                      highlight: true,
+                    },
+                    {
+                      label: "Taxe foncière",
+                      v1: fmt(ville1.taxe_fonciere) + "/an",
+                      v2: fmt(ville2.taxe_fonciere) + "/an",
+                    },
+                    {
+                      label: "Appréciation annuelle",
+                      v1: `+${ville1.appreciation} %/an`,
+                      v2: `+${ville2.appreciation} %/an`,
+                    },
+                    {
+                      label: "Seuil rentabilité",
+                      v1: `${ville1.rentabilite_annees} ans`,
+                      v2: `${ville2.rentabilite_annees} ans`,
+                      highlight: true,
+                    },
+                    {
+                      label: "Tension du marché",
+                      v1: <span style={{ color: tensionColor(ville1.tension), fontWeight: 600 }}>{ville1.tension}</span>,
+                      v2: <span style={{ color: tensionColor(ville2.tension), fontWeight: 600 }}>{ville2.tension}</span>,
+                    },
+                  ].map(({ label, v1, v2, highlight }) => (
+                    <tr key={label} style={{
+                      background: highlight ? "#f8faff" : "transparent",
+                      borderBottom: "1px solid #f1f5f9",
+                    }}>
+                      <td style={{ padding: "9px 10px", fontSize: 13, color: "#64748b" }}>{label}</td>
+                      <td style={{ padding: "9px 10px", fontSize: 13, fontWeight: 600, textAlign: "right", color: "#0f172a" }}>{v1}</td>
+                      <td style={{ padding: "9px 10px", fontSize: 13, fontWeight: 600, textAlign: "right", color: "#0f172a" }}>{v2}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Bar chart */}
+            <div className="fv2-card" style={{ marginTop: 16 }}>
+              <p className="fv2-card-kicker">Comparaison visuelle</p>
+              <p className="fv2-card-title" style={{ fontSize: 15, marginBottom: 12 }}>
+                Indicateurs clés côte à côte
+              </p>
+              <ResponsiveContainer width="100%" height={220}>
+                <BarChart data={res.chartData} margin={{ top: 8, right: 12, left: 0, bottom: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                  <XAxis dataKey="metric" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 10 }} tickFormatter={fmtK} />
+                  <Tooltip content={<ChartTip />} />
+                  <Legend wrapperStyle={{ fontSize: 11 }} />
+                  <Bar dataKey={ville1.nom} fill="#2563eb" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey={ville2.nom} fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+
+            {/* Verdict */}
+            <div className="sv2-verdict sv2-verdict-blue">
+              <p className="sv2-verdict-label">Meilleure ville pour acheter</p>
+              <p className="sv2-verdict-amount">{res.better.nom}</p>
+              <p className="sv2-verdict-sub">
+                Seuil de rentabilité : {res.better.rentabilite_annees} ans vs {res.other.rentabilite_annees} ans à {res.other.nom}
+              </p>
+            </div>
+
+            {/* Insight */}
+            <div className="sv2-insight">
+              <p>
+                📈 Sur 10 ans, un bien de 200&nbsp;000 € à <strong>{ville1.nom}</strong> prendrait{" "}
+                <strong style={{ color: "#059669" }}>{fmt(res.gain1)}</strong> de valeur, contre{" "}
+                <strong style={{ color: "#2563eb" }}>{fmt(res.gain2)}</strong> à <strong>{ville2.nom}</strong>{" "}
+                (appréciation annuelle de {ville1.appreciation} % vs {ville2.appreciation} %).
+              </p>
+            </div>
+
+            {/* Cross-sell */}
+            <SimCrossSell
+              show
+              loan={crossLoan}
+              taux={3.5}
+              dureeCredit={20}
+            />
+          </>
+        )}
+
+        {/* Empty state */}
+        {(!ville1 || !ville2) && (
+          <div className="sv2-insight" style={{ textAlign: "center", color: "#94a3b8" }}>
+            Sélectionnez deux villes pour lancer la comparaison.
+          </div>
+        )}
+      </div>
     </SimLayout>
   );
 }

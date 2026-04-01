@@ -1,293 +1,467 @@
-import { useMemo, useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from "recharts";
-import Field from "../Field";
+import { useState, useMemo } from "react";
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip,
+  ResponsiveContainer, CartesianGrid, Cell, ReferenceLine,
+} from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import DonutChart from "../DonutChart";
-import { formatCurrency } from "../../utils/finance";
+import SimCrossSell from "./SimCrossSell";
 
-function calcRenta({ prixAchat, fraisNotairePct, travaux, loyerMensuel, chargesMensuelles, tauxOccupation, assurancePNO, taxeFonciere, regimeFiscal, tmi }) {
-  const fraisNotaire = prixAchat * (fraisNotairePct / 100);
-  const investissementTotal = prixAchat + fraisNotaire + travaux;
-  const loyerAnnuelBrut = loyerMensuel * 12 * (tauxOccupation / 100);
-  const chargesAnnuelles = chargesMensuelles * 12 + assurancePNO + taxeFonciere;
-  const loyerAnnuelNet = loyerAnnuelBrut - chargesAnnuelles;
-  const rendementBrut = investissementTotal > 0 ? (loyerAnnuelBrut / investissementTotal) * 100 : 0;
-  const rendementNet = investissementTotal > 0 ? (loyerAnnuelNet / investissementTotal) * 100 : 0;
-  const cashflowMensuel = loyerAnnuelNet / 12;
-  const dureeRecup = loyerAnnuelNet > 0 ? investissementTotal / loyerAnnuelNet : null;
-
-  // Calcul fiscal
-  const revenuImposable = regimeFiscal === "micro-foncier"
-    ? loyerAnnuelBrut * 0.70
-    : Math.max(0, loyerAnnuelNet);
-  const impotIR = revenuImposable * (tmi / 100);
-  const prelevementsSociaux = revenuImposable * 0.172;
-  const impotTotal = impotIR + prelevementsSociaux;
-  const loyerAnnuelNetNet = loyerAnnuelNet - impotTotal;
-  const rendementNetNet = investissementTotal > 0 ? (loyerAnnuelNetNet / investissementTotal) * 100 : 0;
-
-  return { investissementTotal, fraisNotaire, loyerAnnuelBrut, loyerAnnuelNet, chargesAnnuelles, rendementBrut, rendementNet, cashflowMensuel, dureeRecup, revenuImposable, impotIR, prelevementsSociaux, impotTotal, loyerAnnuelNetNet, rendementNetNet };
-}
-
-const fmtCur = (v) =>
+const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${Math.round(v / 1000)}k €` : `${Math.round(v)} €`);
+const fmtPct = (v) => `${v.toFixed(2)} %`;
 
-function ChartTooltip({ active, payload }) {
+function ChartTip({ active, payload, label }) {
   if (!active || !payload?.length) return null;
   return (
     <div className="chart-tooltip">
+      <p className="chart-tooltip-label">{label}</p>
       {payload.map((p) => (
         <div key={p.dataKey} className="chart-tooltip-row">
-          <span style={{ color: p.fill }}>{p.name}</span>
-          <span>{typeof p.value === "number" ? `${p.value.toFixed(2)} %` : p.value}</span>
+          <span style={{ color: p.stroke || p.fill }}>{p.name}</span>
+          <span>{fmt(p.value)}</span>
         </div>
       ))}
     </div>
   );
 }
 
-const RENDEMENT_REFS = [
-  { name: "Livret A (1,5%)", v: 1.5, color: "#94a3b8" },
-  { name: "SCPI (5%)",     v: 5, color: "#06b6d4" },
-  { name: "Excellent (7%)", v: 7, color: "#059669" },
-];
+function Pills({ value, options, onChange, format }) {
+  return (
+    <div className="fv2-revenus-pills">
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          className={`fv2-revenus-pill${value === o ? " active" : ""}`}
+          onClick={() => onChange(o)}
+        >
+          {format ? format(o) : o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function mortgage(p, r, y) {
+  if (p <= 0 || y <= 0) return 0;
+  const mr = r / 100 / 12;
+  if (mr === 0) return p / (y * 12);
+  return (p * mr) / (1 - Math.pow(1 + mr, -(y * 12)));
+}
+
+function calcRenta(v) {
+  const fraisNotaire = v.prix * 0.08;
+  const coutTotal = v.prix + fraisNotaire;
+  const loyerAnnuel = v.loyer * 12;
+  const chargesAnnuelles = v.taxeFonciere + v.chargesCopro + v.assurancePNO + v.entretien;
+
+  const rentaBrute = coutTotal > 0 ? (loyerAnnuel / coutTotal) * 100 : 0;
+  const loyerNet = loyerAnnuel - chargesAnnuelles;
+  const rentaNette = coutTotal > 0 ? (loyerNet / coutTotal) * 100 : 0;
+
+  // Net-net: after 30% flat tax on rental income
+  const impot = loyerNet > 0 ? loyerNet * 0.3 : 0;
+  const loyerNetNet = loyerNet - impot;
+  const rentaNetNette = coutTotal > 0 ? (loyerNetNet / coutTotal) * 100 : 0;
+
+  // Cashflow
+  let mensualiteCredit = 0;
+  if (v.financement === "credit") {
+    const capital = Math.max(0, v.prix - v.apport);
+    mensualiteCredit = mortgage(capital, v.taux, v.duree);
+  }
+  const cashflowMensuel = v.loyer - chargesAnnuelles / 12 - mensualiteCredit;
+
+  // 20-year evolution
+  const chartData = [];
+  for (let yr = 1; yr <= 20; yr++) {
+    const loyerYr = v.loyer * Math.pow(1.015, yr);
+    const chYr = chargesAnnuelles * Math.pow(1.02, yr);
+    const mensCredit = yr <= v.duree ? mensualiteCredit : 0;
+    const cashflow = loyerYr - chYr / 12 - mensCredit;
+    chartData.push({ annee: `An ${yr}`, cashflow: Math.round(cashflow) });
+  }
+
+  return {
+    rentaBrute, rentaNette, rentaNetNette,
+    cashflowMensuel, loyerNet, loyerNetNet,
+    chargesAnnuelles, mensualiteCredit,
+    fraisNotaire, coutTotal, chartData, impot,
+  };
+}
 
 export default function SimRentabiliteLocative() {
   const [v, setV] = useState({
-    prixAchat: 180000,
-    fraisNotairePct: 8,
-    travaux: 10000,
-    loyerMensuel: 850,
-    chargesMensuelles: 80,
-    tauxOccupation: 92,
-    assurancePNO: 300,
-    taxeFonciere: 1200,
-    regimeFiscal: "micro-foncier",
-    tmi: 30,
+    prix: 150000,
+    loyer: 700,
+    taxeFonciere: 900,
+    chargesCopro: 1500,
+    assurancePNO: 250,
+    entretien: 500,
+    financement: "credit",
+    apport: 30000,
+    taux: 3.5,
+    duree: 20,
   });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+
   const res = useMemo(() => calcRenta(v), [v]);
 
-  const rendColor = res.rendementNet >= 7 ? "green" : res.rendementNet >= 4 ? "amber" : "red";
+  const rentaBruteColor = res.rentaBrute > 5 ? "#059669" : res.rentaBrute >= 3 ? "#d97706" : "#dc2626";
+  const rentaNetteColor = res.rentaNette > 5 ? "#059669" : res.rentaNette >= 3 ? "#d97706" : "#dc2626";
+  const rentaNetNetteColor = res.rentaNetNette > 4 ? "#059669" : res.rentaNetNette >= 2 ? "#d97706" : "#dc2626";
 
-  const verdicts = {
-    green: { icon: "🏆", title: "Excellent investissement",  msg: `Rendement net de ${res.rendementNet.toFixed(2)} % — au-dessus de la moyenne nationale (5 %). Ce bien génère un cashflow positif de ${fmtCur(res.cashflowMensuel)}/mois.` },
-    amber: { icon: "📊", title: "Rendement dans la moyenne", msg: `Rendement net de ${res.rendementNet.toFixed(2)} % — comparable à une SCPI (4–6 %). Vérifiez la tension locative locale et le potentiel de revalorisation.` },
-    red:   { icon: "⚠️", title: "Rendement insuffisant",     msg: `Rendement net de ${res.rendementNet.toFixed(2)} % — insuffisant pour justifier les risques locatifs. Négociez le prix d'achat, augmentez le loyer ou réduisez les charges.` },
-  };
+  const loyerAnnuel = v.loyer * 12;
+  const rentaBruteInstant = v.prix > 0 ? (loyerAnnuel / v.prix) * 100 : 0;
 
-  const barData = [
-    { name: "Brut",     value: parseFloat(res.rendementBrut.toFixed(2)), fill: "#2563eb" },
-    { name: "Net",      value: parseFloat(Math.max(0, res.rendementNet).toFixed(2)), fill: rendColor === "green" ? "#059669" : rendColor === "amber" ? "#d97706" : "#dc2626" },
-    { name: "Livret A", value: 1.5, fill: "#5e6e88" },
-    { name: "SCPI",     value: 5,   fill: "#06b6d4" },
-  ];
+  const apportPct = v.prix > 0 ? Math.min(100, (v.apport / v.prix) * 100) : 0;
+  const tauxPct = Math.min(100, ((v.taux - 0.5) / (7 - 0.5)) * 100);
 
-  const donutSegments = [
-    { value: Math.max(0, res.loyerAnnuelNet),  color: "#059669", label: "Revenu net/an" },
-    { value: Math.max(0, res.chargesAnnuelles), color: "#ec4899", label: "Charges/an" },
-  ].filter((s) => s.value > 0);
+  const loanAmount = Math.max(0, v.prix - v.apport);
 
   return (
     <SimLayout
       icon="🏘️"
-      title="Simulateur de rentabilité locative"
-      description="Calculez le rendement brut, net et votre cashflow mensuel pour un investissement locatif."
-      simTime="3 min"
-      suggestions={["/simulateurs/plus-value", "/simulateurs/frais-notaire", "/simulateurs/impact-dpe"]}
+      title="Calculez la rentabilité de votre investissement locatif"
+      description="Rendement brut, net et net-net avec cashflow mensuel"
+      suggestions={[
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/comparateur-villes",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Le bien immobilier",
-            icon: "🏘️",
-            content: (
-              <div className="step-fields">
-                <Field label="Prix d'achat" value={v.prixAchat} onChange={set("prixAchat")} suffix="€"
-                  hint="Prix net vendeur — hors frais de notaire et travaux" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-                <Field label="Frais de notaire" value={v.fraisNotairePct} onChange={set("fraisNotairePct")} suffix="%"
-                  hint="≈ 7–8 % dans l'ancien / 2–3 % dans le neuf" />
-                <div className="field-full">
-                  <Field label="Budget travaux & ameublement" value={v.travaux} onChange={set("travaux")} suffix="€"
-                    hint="Intégré à l'investissement total — améliore le loyer obtenu" tooltip="Travaux de rénovation + ameublement si location meublée. Intégrés dans le calcul du prix de revient total." />
+      <div className="sv2-container">
+        {/* ── Inputs ── */}
+        <div className="fv2-card">
+          <p className="fv2-card-kicker">Paramètres</p>
+          <h2 className="fv2-card-title">Votre investissement locatif</h2>
+
+          {/* 1 – Prix d'achat */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Prix d'achat</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.prix || ""}
+                min={0} max={2000000} step={5000}
+                onChange={(e) =>
+                  set("prix")(Math.max(0, Math.min(2000000, Number(e.target.value) || 0)))
+                }
+              />
+              <span className="fv2-revenus-unit">€</span>
+            </div>
+            <Pills
+              value={v.prix}
+              options={[100000, 150000, 200000, 250000, 300000]}
+              onChange={set("prix")}
+              format={(o) => `${o / 1000}k €`}
+            />
+            <p className="fv2-hint">
+              Frais de notaire inclus (~8 %) : <strong>{fmt(v.prix * 0.08)}</strong> — Coût total : <strong>{fmt(v.prix * 1.08)}</strong>
+            </p>
+          </div>
+
+          {/* 2 – Loyer mensuel */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Loyer mensuel attendu</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.loyer || ""}
+                min={0} max={10000} step={50}
+                onChange={(e) =>
+                  set("loyer")(Math.max(0, Math.min(10000, Number(e.target.value) || 0)))
+                }
+              />
+              <span className="fv2-revenus-unit">€/mois</span>
+            </div>
+            <Pills
+              value={v.loyer}
+              options={[500, 700, 900, 1100, 1500]}
+              onChange={set("loyer")}
+              format={(o) => `${o} €`}
+            />
+            {v.prix > 0 && v.loyer > 0 && (
+              <p className="fv2-hint">
+                Rendement brut immédiat :{" "}
+                <strong style={{ color: rentaBruteInstant > 5 ? "#059669" : rentaBruteInstant >= 3 ? "#d97706" : "#dc2626" }}>
+                  {rentaBruteInstant.toFixed(2)} %
+                </strong>
+              </p>
+            )}
+          </div>
+
+          {/* 3 – Charges annuelles */}
+          <div style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Charges annuelles</p>
+            <div className="sv2-charges-grid" style={{ marginTop: 8 }}>
+              {[
+                { key: "taxeFonciere",  label: "Taxe foncière" },
+                { key: "chargesCopro", label: "Charges copro" },
+                { key: "assurancePNO", label: "Assurance PNO" },
+                { key: "entretien",    label: "Entretien" },
+              ].map(({ key, label }) => (
+                <div key={key} className="sv2-charge-item">
+                  <label className="sv2-charge-item-label">{label}</label>
+                  <div className="fv2-revenus-input-row" style={{ marginTop: 4 }}>
+                    <input
+                      type="number"
+                      className="fv2-revenus-input"
+                      value={v[key] || ""}
+                      min={0} max={20000} step={50}
+                      onChange={(e) =>
+                        set(key)(Math.max(0, Math.min(20000, Number(e.target.value) || 0)))
+                      }
+                    />
+                    <span className="fv2-revenus-unit">€/an</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="fv2-hint">
+              Total charges : <strong>{fmt(v.taxeFonciere + v.chargesCopro + v.assurancePNO + v.entretien)}/an</strong>
+              {" "}— soit <strong>{fmt((v.taxeFonciere + v.chargesCopro + v.assurancePNO + v.entretien) / 12)}/mois</strong>
+            </p>
+          </div>
+
+          {/* 4 – Financement */}
+          <div style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Mode de financement</p>
+            <div className="fv2-choices-row" style={{ marginTop: 8 }}>
+              {[
+                { id: "credit",  label: "À crédit" },
+                { id: "comptant", label: "Comptant" },
+              ].map((f) => (
+                <button
+                  key={f.id}
+                  type="button"
+                  className={`fv2-choice${v.financement === f.id ? " fv2-choice-active" : ""}`}
+                  onClick={() => set("financement")(f.id)}
+                >
+                  {f.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {v.financement === "credit" && (
+            <>
+              {/* Apport slider */}
+              <div className="fv2-apport-wrap" style={{ marginTop: 16 }}>
+                <div className="fv2-apport-header">
+                  <span className="fv2-apport-label">Apport personnel</span>
+                  <span className="fv2-apport-bigval">{fmt(v.apport)}</span>
+                </div>
+                <span className={`fv2-apport-badge ${apportPct >= 20 ? "fv2-apport-badge-good" : "fv2-apport-badge-warn"}`}>
+                  {apportPct.toFixed(0)} % du prix
+                </span>
+                <div
+                  className="fv2-slider-track-wrap"
+                  style={{ "--pct": `${Math.min(100, (v.apport / v.prix) * 100)}%` }}
+                >
+                  <input
+                    type="range"
+                    className="fv2-slider"
+                    min={0}
+                    max={Math.min(v.prix, 500000)}
+                    step={5000}
+                    value={v.apport}
+                    onChange={(e) => set("apport")(Number(e.target.value))}
+                  />
+                  <div className="fv2-slider-fill" />
+                </div>
+                <div className="fv2-slider-minmax">
+                  <span>0 €</span>
+                  <span>{fmt(Math.min(v.prix, 500000))}</span>
+                </div>
+                <p className="fv2-hint">Capital à emprunter : <strong>{fmt(loanAmount)}</strong></p>
+              </div>
+
+              {/* Taux slider */}
+              <div style={{ marginTop: 16 }}>
+                <div className="fv2-slider-header">
+                  <span className="fv2-slider-label">Taux d'intérêt</span>
+                  <span className="fv2-slider-val">{v.taux.toFixed(1)} %</span>
+                </div>
+                <div className="fv2-slider-track-wrap" style={{ "--pct": `${tauxPct}%` }}>
+                  <input
+                    type="range"
+                    className="fv2-slider"
+                    min={0.5} max={7} step={0.1}
+                    value={v.taux}
+                    onChange={(e) => set("taux")(Number(e.target.value))}
+                  />
+                  <div className="fv2-slider-fill" />
+                </div>
+                <div className="fv2-slider-minmax">
+                  <span>0,5 %</span>
+                  <span>7 %</span>
                 </div>
               </div>
-            ),
-          },
-          {
-            title: "Revenus et charges",
-            icon: "💰",
-            content: (
-              <>
-                <div className="step-fields">
-                  <Field label="Loyer mensuel HC" value={v.loyerMensuel} onChange={set("loyerMensuel")} suffix="€"
-                    hint="Loyer hors charges récupérables. Vérifiez les annonces similaires dans le secteur." tooltip="Loyer hors charges, hors provisions pour charges récupérables. Vérifiez les annonces similaires dans votre secteur (Le Bon Coin, SeLoger)." />
-                  <Field label="Charges non récupérables" value={v.chargesMensuelles} onChange={set("chargesMensuelles")} suffix="€/mois"
-                    hint="Charges de copropriété à votre charge, entretien courant non refacturé" />
-                  <Field label="Assurance PNO" value={v.assurancePNO} onChange={set("assurancePNO")} suffix="€/an"
-                    hint="Propriétaire Non Occupant — obligatoire en copropriété (150–400 €/an)" />
-                  <Field label="Taxe foncière" value={v.taxeFonciere} onChange={set("taxeFonciere")} suffix="€/an"
-                    hint="Toujours à la charge du propriétaire — renseignez-vous avant l'achat" />
-                </div>
 
-                <div style={{ marginTop: 16 }}>
-                  <label className="field-label">Taux d'occupation prévisionnel</label>
-                  <div className="horizon-box" style={{ marginTop: 6 }}>
-                    <div className="horizon-row">
-                      <p className="horizon-explain">Part de l'année où le bien est occupé et loué</p>
-                      <strong className="horizon-value">{v.tauxOccupation} %</strong>
-                    </div>
-                    <input type="range" min="50" max="100" step="1" value={v.tauxOccupation}
-                      onChange={(e) => set("tauxOccupation")(Number(e.target.value))}
-                      style={{ "--range-pct": `${((v.tauxOccupation - 50) / (100 - 50)) * 100}%` }}
-                      aria-label={`Taux d'occupation : ${v.tauxOccupation}%`} />
-                    <div className="horizon-ticks"><span>50 %</span><span>Typique 92 %</span><span>100 %</span></div>
-                  </div>
+              {/* Durée pills */}
+              <div style={{ marginTop: 16 }}>
+                <p className="fv2-field-label">Durée du crédit</p>
+                <div className="fv2-revenus-pills" style={{ marginTop: 8 }}>
+                  {[15, 20, 25].map((d) => (
+                    <button
+                      key={d}
+                      type="button"
+                      className={`fv2-revenus-pill${v.duree === d ? " active" : ""}`}
+                      onClick={() => set("duree")(d)}
+                    >
+                      {d} ans
+                    </button>
+                  ))}
                 </div>
-
-                <p className="sim-card-legend" style={{ marginTop: 20 }}>Fiscalité</p>
-                <div style={{ marginBottom: 12 }}>
-                  <label className="field-label">Régime fiscal</label>
-                  <div className="loan-type-grid" style={{ marginTop: 8 }}>
-                    <button type="button" className={`loan-type-btn${v.regimeFiscal === "micro-foncier" ? " loan-type-active" : ""}`}
-                      onClick={() => set("regimeFiscal")("micro-foncier")}>
-                      <span>📄</span><span>Micro-foncier<br/><small style={{fontWeight:400,fontSize:11}}>Abattement 30%</small></span>
-                    </button>
-                    <button type="button" className={`loan-type-btn${v.regimeFiscal === "reel" ? " loan-type-active" : ""}`}
-                      onClick={() => set("regimeFiscal")("reel")}>
-                      <span>📊</span><span>Régime réel<br/><small style={{fontWeight:400,fontSize:11}}>Charges déductibles</small></span>
-                    </button>
-                  </div>
-                  <p className="field-hint" style={{ marginTop: 6 }}>
-                    {v.regimeFiscal === "micro-foncier"
-                      ? "Loyers bruts < 15 000 €/an. Abattement forfaitaire de 30 %. Plus simple mais moins avantageux si charges réelles > 30 %."
-                      : "Déduisez les charges réelles (intérêts, travaux, charges copro, assurance, taxe foncière). Optimal si charges > 30 % des loyers."}
+                {loanAmount > 0 && (
+                  <p className="fv2-hint">
+                    Mensualité crédit : <strong>{fmt(mortgage(loanAmount, v.taux, v.duree))}/mois</strong>
                   </p>
-                </div>
-                <div>
-                  <label className="field-label">Tranche marginale d'imposition (TMI)</label>
-                  <div className="tmi-grid" style={{ marginTop: 8, display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 6 }}>
-                    {[0, 11, 30, 41, 45].map((t) => (
-                      <button key={t} type="button"
-                        className={`loan-type-btn${v.tmi === t ? " loan-type-active" : ""}`}
-                        style={{ padding: "8px 4px", flexDirection: "column", gap: 2 }}
-                        onClick={() => set("tmi")(t)}>
-                        <span style={{ fontWeight: 700, fontSize: 14 }}>{t}%</span>
-                        <span style={{ fontSize: 10, color: "var(--muted)" }}>
-                          {t === 0 ? "Non imp." : t === 11 ? "<27k" : t === 30 ? "27–73k" : t === 41 ? "73–158k" : ">158k"}
-                        </span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            <div className={`sim-stat-hero sim-hero-${rendColor}`}>
-              <span className="sim-stat-label">Rendement net</span>
-              <span className="sim-stat-value">
-                {res.rendementNet.toFixed(2)}<span className="sim-stat-unit"> %/an</span>
-              </span>
-              <p className="sim-stat-hero-summary">
-                {verdicts[rendColor].msg}
+                )}
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* ── Results ── */}
+        {v.prix > 0 && v.loyer > 0 && (
+          <div className="fv2-card" style={{ marginTop: 16 }}>
+            {/* Rendement cards */}
+            <div className="sv2-rendement-cards" style={{ marginTop: 4 }}>
+              <div className="sv2-rendement-card">
+                <span className="sv2-rendement-card-label">Brut</span>
+                <span className="sv2-rendement-card-value" style={{ color: rentaBruteColor }}>
+                  {fmtPct(res.rentaBrute)}
+                </span>
+                <span className="sv2-rendement-card-sub">Avant charges</span>
+              </div>
+              <div className="sv2-rendement-card">
+                <span className="sv2-rendement-card-label">Net</span>
+                <span className="sv2-rendement-card-value" style={{ color: rentaNetteColor }}>
+                  {fmtPct(res.rentaNette)}
+                </span>
+                <span className="sv2-rendement-card-sub">Après charges</span>
+              </div>
+              <div className="sv2-rendement-card">
+                <span className="sv2-rendement-card-label">Net-net</span>
+                <span className="sv2-rendement-card-value" style={{ color: rentaNetNetteColor }}>
+                  {fmtPct(res.rentaNetNette)}
+                </span>
+                <span className="sv2-rendement-card-sub">Après impôts (30 %)</span>
+              </div>
+            </div>
+
+            {/* Cashflow card */}
+            <div
+              style={{
+                marginTop: 16,
+                padding: "14px 16px",
+                borderRadius: 12,
+                background: res.cashflowMensuel >= 0 ? "rgba(5,150,105,.08)" : "rgba(220,38,38,.08)",
+                border: `1px solid ${res.cashflowMensuel >= 0 ? "rgba(5,150,105,.2)" : "rgba(220,38,38,.2)"}`,
+              }}
+            >
+              <p className="fv2-field-label">Cashflow mensuel</p>
+              <p style={{ fontSize: 28, fontWeight: 800, color: res.cashflowMensuel >= 0 ? "#059669" : "#dc2626", marginTop: 4 }}>
+                {res.cashflowMensuel >= 0 ? "+" : ""}{fmt(res.cashflowMensuel)}/mois
+              </p>
+              <p className="fv2-hint" style={{ marginTop: 4 }}>
+                Loyer {fmt(v.loyer)} − charges {fmt(res.chargesAnnuelles / 12)}/mois
+                {v.financement === "credit" ? ` − mensualité crédit ${fmt(res.mensualiteCredit)}/mois` : ""}
               </p>
             </div>
 
-            <div className="sim-stats-grid">
-              <div className="sim-stat-card sim-stat-card-blue">
-                <span className="sim-stat-card-label">Investissement total</span>
-                <span className="sim-stat-card-value">{formatCurrency(res.investissementTotal)}</span>
+            {/* Cashflow evolution chart */}
+            <div style={{ marginTop: 24 }}>
+              <div className="fv2-slider-header">
+                <span className="fv2-slider-label">Évolution du cashflow sur 20 ans</span>
               </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Rendement brut</span>
-                <span className="sim-stat-card-value">{res.rendementBrut.toFixed(2)} %</span>
-              </div>
-              <div className={`sim-stat-card ${res.cashflowMensuel >= 0 ? "sim-stat-card-green" : "sim-stat-card-red"}`}>
-                <span className="sim-stat-card-label">Cashflow mensuel</span>
-                <span className="sim-stat-card-value">{formatCurrency(res.cashflowMensuel)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Récupération capital</span>
-                <span className="sim-stat-card-value">{res.dureeRecup ? `${Math.round(res.dureeRecup)} ans` : "—"}</span>
-              </div>
-              {v.tmi > 0 && (
-                <>
-                  <div className="sim-stat-card">
-                    <span className="sim-stat-card-label">Impôts sur loyers/an</span>
-                    <span className="sim-stat-card-value sim-stat-card-red-text">{fmtCur(res.impotTotal)}</span>
-                  </div>
-                  <div className={`sim-stat-card ${res.rendementNetNet >= 4 ? "sim-stat-card-green" : res.rendementNetNet >= 2 ? "" : "sim-stat-card-red"}`}>
-                    <span className="sim-stat-card-label">Rendement net-net (impôts)</span>
-                    <span className="sim-stat-card-value">{res.rendementNetNet.toFixed(2)} %</span>
-                  </div>
-                </>
-              )}
-            </div>
-
-            <div className="sim-chart-wrap">
-              <p className="sim-chart-title">Votre rendement vs. les placements alternatifs</p>
-              <ResponsiveContainer width="100%" height={130}>
-                <BarChart data={barData} layout="vertical" margin={{ top: 2, right: 32, bottom: 2, left: 0 }}>
-                  <XAxis type="number" tickFormatter={(v) => `${v}%`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} domain={[0, "auto"]}/>
-                  <YAxis type="category" dataKey="name" tick={{ fontSize: 11, fill: "#64748b" }} axisLine={false} tickLine={false} width={52}/>
-                  <Tooltip content={<ChartTooltip />} cursor={{ fill: "rgba(0,0,0,.04)" }}/>
-                  <Bar dataKey="value" radius={[0, 8, 8, 0]} barSize={22}>
-                    {barData.map((e, i) => <Cell key={i} fill={e.fill}/>)}
+              <ResponsiveContainer width="100%" height={200}>
+                <BarChart data={res.chartData} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
+                  <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false} />
+                  <XAxis
+                    dataKey="annee"
+                    tick={{ fontSize: 10, fill: "#5e6e88" }}
+                    axisLine={false}
+                    tickLine={false}
+                    interval={3}
+                  />
+                  <YAxis
+                    tickFormatter={fmtK}
+                    tick={{ fontSize: 10, fill: "#5e6e88" }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={52}
+                  />
+                  <Tooltip content={<ChartTip />} cursor={{ fill: "rgba(0,0,0,.04)" }} />
+                  <ReferenceLine y={0} stroke="#94a3b8" strokeDasharray="4 2" />
+                  <Bar dataKey="cashflow" name="Cashflow" radius={[4, 4, 0, 0]} barSize={14}>
+                    {res.chartData.map((entry, i) => (
+                      <Cell key={i} fill={entry.cashflow >= 0 ? "#10b981" : "#ef4444"} />
+                    ))}
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             </div>
 
-            {donutSegments.length > 0 && (
-              <div className="sim-donut-section">
-                <DonutChart
-                  segments={donutSegments}
-                  size={130}
-                  thickness={22}
-                  label={fmtCur(res.loyerAnnuelBrut)}
-                  subLabel="loyers bruts/an"
-                />
-                <div className="sim-donut-legend">
-                  <p className="sim-bar-label" style={{ marginBottom: 8 }}>Revenus locatifs annuels</p>
-                  {donutSegments.map((seg) => (
-                    <div key={seg.label} className="sim-donut-legend-item">
-                      <span className="sim-donut-dot" style={{ background: seg.color }} />
-                      <span className="sim-donut-legend-label">{seg.label}</span>
-                      <span className="sim-donut-legend-value">{formatCurrency(seg.value)}/an</span>
-                    </div>
-                  ))}
-                  <div className="sim-donut-legend-item" style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid var(--line)" }}>
-                    <span className="sim-donut-dot" style={{ background: "var(--blue)" }} />
-                    <span className="sim-donut-legend-label">Frais de notaire</span>
-                    <span className="sim-donut-legend-value">{formatCurrency(res.fraisNotaire)}</span>
-                  </div>
-                </div>
+            {/* Comparison table */}
+            <div style={{ marginTop: 24 }}>
+              <div className="fv2-slider-header">
+                <span className="fv2-slider-label">Comparaison avec d'autres placements</span>
               </div>
-            )}
+              <table className="sv2-compare-table" style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>Investissement</th>
+                    <th>Rendement</th>
+                    <th>Gain annuel</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="emphasis">
+                    <td>Locatif (net-net)</td>
+                    <td>{fmtPct(res.rentaNetNette)}</td>
+                    <td className={res.loyerNetNet > 0 ? "good" : ""}>{fmt(res.loyerNetNet)}</td>
+                  </tr>
+                  <tr>
+                    <td>Livret A</td>
+                    <td>1,50 %</td>
+                    <td>{fmt(res.coutTotal * 0.015)}</td>
+                  </tr>
+                  <tr>
+                    <td>ETF monde</td>
+                    <td>7,00 %</td>
+                    <td className="good">{fmt(res.coutTotal * 0.07)}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-            {v.tmi > 0 ? (
-              <div className="sim-info-box">
-                <p className="sim-info-title">📊 Détail fiscal ({v.regimeFiscal === "micro-foncier" ? "Micro-foncier" : "Régime réel"})</p>
-                <p className="sim-info-body">
-                  Revenus imposables : {fmtCur(res.revenuImposable)}/an
-                  {" · "}IR ({v.tmi}%) : {fmtCur(res.impotIR)}
-                  {" · "}PS (17,2%) : {fmtCur(res.prelevementsSociaux)}
-                  <br/>Cashflow net après impôts : <strong>{fmtCur(res.loyerAnnuelNetNet / 12)}/mois</strong>
-                </p>
-              </div>
-            ) : (
-              <div className="sim-info-box">
-                <p className="sim-info-title">⚠️ Attention : la fiscalité change tout</p>
-                <p className="sim-info-body">Ce calcul n'intègre pas encore la fiscalité. Renseignez votre TMI ci-dessus pour voir le rendement net-net après IR (19 % → 45 %) et prélèvements sociaux (17,2 %).</p>
-              </div>
-            )}
+            {/* Insight */}
+            <div className="sv2-insight" style={{ marginTop: 20 }}>
+              Cet investissement vous rapporte{" "}
+              <strong>{fmt(res.loyerNetNet)}</strong> nets par an après charges et impôts, soit un
+              rendement net-net de <strong>{fmtPct(res.rentaNetNette)}</strong>.
+              {res.cashflowMensuel < 0 && (
+                <span>
+                  {" "}Attention : le cashflow est négatif ({fmt(res.cashflowMensuel)}/mois) — vous devrez compléter de votre poche.
+                </span>
+              )}
+            </div>
           </div>
-        }
-      />
+        )}
+
+        <SimCrossSell
+          show={v.prix > 0}
+          loan={loanAmount}
+          taux={v.taux}
+          dureeCredit={v.duree}
+        />
+      </div>
     </SimLayout>
   );
 }

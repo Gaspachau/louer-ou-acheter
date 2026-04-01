@@ -1,231 +1,319 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import Field from "../Field";
+import SimCrossSell from "./SimCrossSell";
+import { VILLES } from "../../data/villes";
 
-const fmtCur = (v) =>
+const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
 
-function calcMaxBudget(revenus, chargesExist, apport, taux, duree) {
-  const capacite = Math.max(0, revenus * 0.35 - chargesExist);
+function mortgage(p, r, y) {
+  if (p <= 0 || y <= 0) return 0;
+  const mr = r / 100 / 12;
+  if (mr === 0) return p / (y * 12);
+  return (p * mr) / (1 - Math.pow(1 + mr, -(y * 12)));
+}
+
+function Pills({ value, options, onChange, format }) {
+  return (
+    <div className="fv2-revenus-pills">
+      {options.map((o) => (
+        <button
+          key={o}
+          type="button"
+          className={`fv2-revenus-pill${value === o ? " active" : ""}`}
+          onClick={() => onChange(o)}
+        >
+          {format ? format(o) : o}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function capaciteEmprunt(revTotal, taux, duree) {
   const r = taux / 100 / 12;
   const n = duree * 12;
-  if (capacite <= 0 || n <= 0) return 0;
-  const capitalEmpruntable = r === 0 ? capacite * n : capacite * (1 - Math.pow(1 + r, -n)) / r;
-  return capitalEmpruntable + apport - capitalEmpruntable * 0.08; // deduit les frais notaire du budget total
+  const mensMax = revTotal * 0.35;
+  return r === 0 ? mensMax * n : mensMax * (1 - Math.pow(1 + r, -n)) / r;
 }
 
-function calcMaxPrice(revenus, chargesExist, apport, taux, duree) {
-  // Prix max = (capital empruntable + apport) / 1.08
-  const capacite = Math.max(0, revenus * 0.35 - chargesExist);
-  const r = taux / 100 / 12;
-  const n = duree * 12;
-  if (capacite <= 0 || n <= 0) return apport / 1.08;
-  const capitalEmpruntable = r === 0 ? capacite * n : capacite * (1 - Math.pow(1 + r, -n)) / r;
-  return (capitalEmpruntable + apport) / 1.08;
-}
+const CITY_NAMES = ["Paris", "Lyon", "Marseille", "Bordeaux", "Toulouse", "Nantes", "Rennes", "Lille", "Strasbourg", "Nice"];
 
-function calcMensualite(capital, taux, dureeAns) {
-  const r = taux / 100 / 12;
-  const n = dureeAns * 12;
-  if (capital <= 0 || n <= 0) return 0;
-  return r === 0 ? capital / n : (capital * r) / (1 - Math.pow(1 + r, -n));
-}
-
-// 12 villes avec prix m² moyen T2 et superficie typique
-const VILLES = [
-  { nom: "Paris",        flag: "🗼", m2: 9800,  surface: { T1: 24, T2: 38, T3: 60 } },
-  { nom: "Lyon",         flag: "🦁", m2: 4700,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Bordeaux",     flag: "🍷", m2: 4200,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Nice",         flag: "☀️", m2: 5500,  surface: { T1: 24, T2: 38, T3: 58 } },
-  { nom: "Nantes",       flag: "🏰", m2: 4100,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Toulouse",     flag: "🌸", m2: 3800,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Montpellier",  flag: "🎭", m2: 3600,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Rennes",       flag: "⚓", m2: 4200,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Lille",        flag: "🍺", m2: 3400,  surface: { T1: 24, T2: 38, T3: 58 } },
-  { nom: "Strasbourg",   flag: "🎄", m2: 3500,  surface: { T1: 24, T2: 38, T3: 58 } },
-  { nom: "Grenoble",     flag: "⛷️", m2: 2800,  surface: { T1: 25, T2: 40, T3: 62 } },
-  { nom: "Marseille",    flag: "⚓", m2: 3300,  surface: { T1: 25, T2: 40, T3: 62 } },
-];
-
-const DUREES = [15, 20, 25];
+const SELECTED_CITIES = VILLES.filter((v) => CITY_NAMES.includes(v.nom));
 
 export default function SimBudgetMax() {
   const [v, setV] = useState({
-    revenus: 3800,
-    chargesExist: 0,
+    revenus: 3000,
     apport: 40000,
+    achat: "seul",
+    revenus_co: 0,
     taux: 3.5,
   });
   const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
 
+  const revTotal = v.achat === "couple" ? v.revenus + v.revenus_co : v.revenus;
+
   const res = useMemo(() => {
-    if (!v.revenus || v.revenus <= 0) return null;
+    if (!revTotal || revTotal <= 0) return null;
 
-    const budgets = DUREES.map((duree) => ({
-      duree,
-      maxPrice: Math.round(calcMaxPrice(v.revenus, v.chargesExist, v.apport, v.taux, duree)),
-      mensualite: Math.round(calcMensualite(
-        Math.max(0, calcMaxPrice(v.revenus, v.chargesExist, v.apport, v.taux, duree) * 1.08 - v.apport),
-        v.taux, duree
-      )),
-    }));
-
-    const maxPrice20 = budgets.find((b) => b.duree === 20)?.maxPrice ?? 0;
-    const maxPrice25 = budgets.find((b) => b.duree === 25)?.maxPrice ?? 0;
-
-    // City grid: can buy T1/T2/T3 at max budget 25y?
-    const villes = VILLES.map((ville) => {
-      const prixT1 = ville.m2 * ville.surface.T1;
-      const prixT2 = ville.m2 * ville.surface.T2;
-      const prixT3 = ville.m2 * ville.surface.T3;
-      const canT3 = maxPrice25 >= prixT3;
-      const canT2 = maxPrice25 >= prixT2;
-      const canT1 = maxPrice25 >= prixT1;
-      return {
-        ...ville, prixT1, prixT2, prixT3,
-        canT1, canT2, canT3,
-        bestType: canT3 ? "T3" : canT2 ? "T2" : canT1 ? "T1" : null,
-      };
-    }).sort((a, b) => {
-      const order = { T3: 3, T2: 2, T1: 1, null: 0 };
-      return (order[b.bestType] || 0) - (order[a.bestType] || 0);
+    const durees = [15, 20, 25];
+    const scenarios = durees.map((d) => {
+      const cap = capaciteEmprunt(revTotal, v.taux, d);
+      const budget = cap + v.apport;
+      const budgetNet = budget / 1.08;
+      const mens = mortgage(cap, v.taux, d);
+      return { duree: d, cap: Math.round(cap), budget: Math.round(budget), budgetNet: Math.round(budgetNet), mens: Math.round(mens) };
     });
 
-    const nbVilles = villes.filter((v) => v.bestType).length;
-    const capaciteRestante = Math.max(0, v.revenus * 0.35 - v.chargesExist);
+    const s20 = scenarios.find((s) => s.duree === 20);
+    const budgetNet20 = s20 ? s20.budgetNet : 0;
 
-    return { budgets, villes, nbVilles, capaciteRestante, maxPrice25, maxPrice20 };
-  }, [v]);
+    const cities = SELECTED_CITIES.map((city) => {
+      const m2 = Math.round(budgetNet20 / city.prix_m2);
+      const access = m2 >= 40 ? "confortable" : m2 >= 25 ? "possible" : "difficile";
+      return { ...city, m2, access };
+    });
+
+    const nbConfortables = cities.filter((c) => c.access === "confortable").length;
+    const paris = cities.find((c) => c.nom === "Paris");
+
+    return { scenarios, budgetNet20, cities, nbConfortables, paris, cap20: s20?.cap ?? 0 };
+  }, [revTotal, v.apport, v.taux]);
+
+  const cap20ForCross = res?.cap20 ?? capaciteEmprunt(revTotal, v.taux, 20);
 
   return (
     <SimLayout
-      icon="🏆"
-      title="Budget maximum d'achat"
-      description="Calculez précisément jusqu'où vous pouvez aller — et découvrez dans quelles villes vous pouvez acheter."
-      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/frais-notaire"]}
+      icon="💸"
+      title="Jusqu'où pouvez-vous aller ?"
+      description="Budget maximum par ville et par durée selon votre profil"
+      simTime="2 min"
+      suggestions={[
+        "/simulateurs/endettement",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/ptz",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre situation financière",
-            icon: "👤",
-            content: (
-              <>
-                <div className="step-fields">
-                  <div className="field-full">
-                    <Field label="Revenus nets mensuels" value={v.revenus} onChange={set("revenus")} suffix="€/mois"
-                      hint="Tous les revenus réguliers du foyer" tooltip="Revenus nets après impôts de tout le foyer. Les banques appliquent la règle des 35 % de taux d'endettement maximum." />
-                  </div>
-                  <div className="field-full">
-                    <Field label="Charges mensuelles de crédit" value={v.chargesExist} onChange={set("chargesExist")} suffix="€/mois"
-                      hint="Mensualités de crédits en cours (auto, conso…)" tooltip="Mensualités de tous vos crédits en cours (auto, conso, autre immobilier). Règle HCSF : total des crédits ≤ 35 % de vos revenus." />
-                  </div>
-                </div>
-                {res && (
-                  <div className="sim-info-box" style={{ marginTop: 16 }}>
-                    <p className="sim-info-title">📊 Votre capacité mensuelle</p>
-                    <p className="sim-info-body">
-                      Au taux d'endettement HCSF de 35 %, votre mensualité maximale est de <strong>{fmtCur(res.capaciteRestante)}/mois</strong>.
-                      {v.chargesExist > 0 && ` (Après déduction de ${fmtCur(v.chargesExist)}/mois de crédits existants.)`}
-                    </p>
-                  </div>
-                )}
-              </>
-            ),
-          },
-          {
-            title: "Votre projet immobilier",
-            icon: "🏠",
-            content: (
-              <div className="step-fields">
-                <div className="field-full">
-                  <Field label="Apport personnel disponible" value={v.apport} onChange={set("apport")} suffix="€"
-                    hint="Épargne mobilisable pour l'achat" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-                </div>
-                <div className="field-full">
-                  <Field label="Taux du crédit envisagé" value={v.taux} onChange={set("taux")} suffix="%" step="0.1"
-                    hint="Mars 2026 : entre 3,3 % et 4,0 %" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-                </div>
-              </div>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            {!res ? (
-              <p className="sim-empty">Renseignez vos revenus pour voir votre budget maximum.</p>
-            ) : (
-              <>
-                {/* Hero */}
-                <div className="sim-stat-hero sim-hero-blue" style={{ marginBottom: 20 }}>
-                  <span className="sim-stat-label">Budget maximum d'achat (20 ans)</span>
-                  <span className="sim-stat-value">{fmtCur(res.maxPrice20)}</span>
-                  <p className="sim-stat-hero-summary">
-                    Mensualité de {fmtCur(res.budgets.find(b => b.duree === 20)?.mensualite ?? 0)}/mois · apport {fmtCur(v.apport)} · {res.nbVilles} ville{res.nbVilles > 1 ? "s" : ""} accessibles sur 25 ans.
-                  </p>
-                </div>
+      <div className="sv2-container">
+        {/* ── Inputs ── */}
+        <div className="fv2-card">
+          <p className="fv2-card-kicker">Paramètres</p>
+          <h2 className="fv2-card-title">Votre situation financière</h2>
 
-                {/* Budget par durée */}
-                <p className="sim-card-legend" style={{ marginBottom: 10 }}>Budget maximum selon la durée</p>
-                <div className="budget-duree-grid">
-                  {res.budgets.map(({ duree, maxPrice, mensualite }) => (
-                    <div key={duree} className={`budget-duree-card${duree === 20 ? " budget-duree-featured" : ""}`}>
-                      <p className="budget-duree-label">{duree} ans</p>
-                      <p className="budget-duree-price">{fmtCur(maxPrice)}</p>
-                      <p className="budget-duree-mens">{fmtCur(mensualite)}/mois</p>
-                      {duree === 20 && <span className="budget-duree-badge">Recommandé</span>}
-                    </div>
-                  ))}
-                </div>
-
-                {/* Cities grid */}
-                <div style={{ marginTop: 24 }}>
-                  <p className="sim-card-legend" style={{ marginBottom: 10 }}>
-                    Ce que vous pouvez acheter dans 12 villes
-                    <span style={{ fontWeight: 400, fontSize: 11, marginLeft: 6, color: "var(--muted)" }}>
-                      — sur 25 ans, {res.nbVilles}/12 villes accessibles
-                    </span>
-                  </p>
-                  <div className="budget-cities-grid">
-                    {res.villes.map((ville) => (
-                      <div
-                        key={ville.nom}
-                        className={`budget-city-card ${!ville.bestType ? "budget-city-out" : ville.canT3 ? "budget-city-t3" : ville.canT2 ? "budget-city-t2" : "budget-city-t1"}`}
-                      >
-                        <div className="budget-city-header">
-                          <span className="budget-city-flag">{ville.flag}</span>
-                          <span className="budget-city-nom">{ville.nom}</span>
-                          <span className={`budget-city-badge ${!ville.bestType ? "badge-out" : ville.canT3 ? "badge-t3" : ville.canT2 ? "badge-t2" : "badge-t1"}`}>
-                            {!ville.bestType ? "Hors budget" : ville.canT3 ? "T3 accessible" : ville.canT2 ? "T2 accessible" : "T1 accessible"}
-                          </span>
-                        </div>
-                        <div className="budget-city-rows">
-                          {[
-                            { type: "T1", prix: ville.prixT1, can: ville.canT1 },
-                            { type: "T2", prix: ville.prixT2, can: ville.canT2 },
-                            { type: "T3", prix: ville.prixT3, can: ville.canT3 },
-                          ].map(({ type, prix, can }) => (
-                            <div key={type} className="budget-city-row">
-                              <span className={`budget-type-label ${can ? "budget-type-yes" : "budget-type-no"}`}>
-                                {can ? "✓" : "✗"} {type}
-                              </span>
-                              <span style={{ color: "var(--muted)", fontSize: 12 }}>{fmtCur(prix)}</span>
-                            </div>
-                          ))}
-                          <div className="budget-city-m2">
-                            {fmtCur(ville.m2)}/m² · {ville.m2 > 4000 ? "Marché tendu" : "Marché accessible"}
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </>
-            )}
+          {/* 1 – Revenus */}
+          <div className="fv2-revenus-wrap" style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Revenus nets mensuels</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number"
+                className="fv2-revenus-input"
+                value={v.revenus || ""}
+                min={0} max={50000} step={100}
+                onChange={(e) => set("revenus")(Math.max(0, Math.min(50000, Number(e.target.value) || 0)))}
+              />
+              <span className="fv2-revenus-unit">€/mois</span>
+            </div>
+            <Pills
+              value={v.revenus}
+              options={[1500, 2000, 2500, 3000, 3500, 4000, 5000]}
+              onChange={set("revenus")}
+              format={(o) => `${o.toLocaleString("fr-FR")} €`}
+            />
           </div>
-        }
-      />
+
+          {/* 2 – Apport */}
+          <div style={{ marginTop: 20 }}>
+            <div className="fv2-slider-header">
+              <span className="fv2-slider-label">Apport disponible</span>
+              <span className="fv2-slider-val">{fmt(v.apport)}</span>
+            </div>
+            <div
+              className="fv2-slider-track-wrap"
+              style={{ "--pct": `${(v.apport / 200000) * 100}%` }}
+            >
+              <input
+                type="range"
+                className="fv2-slider"
+                min={0} max={200000} step={5000}
+                value={v.apport}
+                onChange={(e) => set("apport")(Number(e.target.value))}
+              />
+              <div className="fv2-slider-fill" />
+            </div>
+            <div className="fv2-slider-minmax"><span>0 €</span><span>200 000 €</span></div>
+          </div>
+
+          {/* 3 – Seul ou en couple */}
+          <div style={{ marginTop: 20 }}>
+            <p className="fv2-field-label">Situation</p>
+            <div className="fv2-choices-row" style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className={`fv2-choice${v.achat === "seul" ? " fv2-choice-active" : ""}`}
+                onClick={() => set("achat")("seul")}
+              >
+                Seul(e)
+              </button>
+              <button
+                type="button"
+                className={`fv2-choice${v.achat === "couple" ? " fv2-choice-active" : ""}`}
+                onClick={() => set("achat")("couple")}
+              >
+                En couple
+              </button>
+            </div>
+          </div>
+
+          {v.achat === "couple" && (
+            <div className="fv2-revenus-wrap" style={{ marginTop: 16 }}>
+              <p className="fv2-field-label">Revenus nets du co-emprunteur</p>
+              <div className="fv2-revenus-input-row">
+                <input
+                  type="number"
+                  className="fv2-revenus-input"
+                  value={v.revenus_co || ""}
+                  min={0} max={50000} step={100}
+                  onChange={(e) => set("revenus_co")(Math.max(0, Math.min(50000, Number(e.target.value) || 0)))}
+                />
+                <span className="fv2-revenus-unit">€/mois</span>
+              </div>
+              <Pills
+                value={v.revenus_co}
+                options={[1000, 1500, 2000, 2500, 3000, 3500]}
+                onChange={set("revenus_co")}
+                format={(o) => `${o.toLocaleString("fr-FR")} €`}
+              />
+            </div>
+          )}
+
+          {/* 4 – Taux */}
+          <div style={{ marginTop: 20 }}>
+            <div className="fv2-slider-header">
+              <span className="fv2-slider-label">Taux du crédit</span>
+              <span className="fv2-slider-val">
+                {v.taux.toFixed(1)} %
+                <span style={{ marginLeft: 6, fontSize: 11, fontWeight: 600, background: "#eff6ff", color: "#1a56db", borderRadius: 6, padding: "2px 7px" }}>
+                  Moyenne 2026 : 3,5 %
+                </span>
+              </span>
+            </div>
+            <div
+              className="fv2-slider-track-wrap"
+              style={{ "--pct": `${((v.taux - 0.5) / (7 - 0.5)) * 100}%` }}
+            >
+              <input
+                type="range"
+                className="fv2-slider"
+                min={0.5} max={7} step={0.1}
+                value={v.taux}
+                onChange={(e) => set("taux")(Number(e.target.value))}
+              />
+              <div className="fv2-slider-fill" />
+            </div>
+            <div className="fv2-slider-minmax"><span>0,5 %</span><span>7 %</span></div>
+          </div>
+        </div>
+
+        {/* ── Results ── */}
+        {res && revTotal > 0 && (
+          <div className="fv2-card" style={{ marginTop: 16 }}>
+            {/* Verdict */}
+            <div className="sv2-verdict sv2-verdict-blue">
+              <p className="sv2-verdict-label">Votre budget maximum est de</p>
+              <p className="sv2-verdict-amount">
+                {fmt(res.scenarios.find((s) => s.duree === 20)?.budget ?? 0)}
+              </p>
+              <p className="sv2-verdict-sub">
+                Dont {fmt(v.apport)} d'apport et{" "}
+                {fmt(res.scenarios.find((s) => s.duree === 20)?.cap ?? 0)} d'emprunt
+              </p>
+            </div>
+
+            {/* 3 scenario cards */}
+            <div className="sv2-scenarios" style={{ marginTop: 20 }}>
+              {res.scenarios.map((s) => (
+                <div key={s.duree} className={`sv2-scenario-card${s.duree === 20 ? " highlight" : ""}`}>
+                  <p className="sv2-scenario-dur">{s.duree} ans</p>
+                  <p className="sv2-scenario-amt">{fmt(s.budget)}</p>
+                  <p className="sv2-scenario-badge">{fmt(s.mens)}/mois</p>
+                  {s.duree === 20 && (
+                    <span style={{ fontSize: 10, fontWeight: 700, color: "#1a56db", marginTop: 4, display: "block" }}>
+                      Recommandé
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+
+            {/* City table */}
+            <div style={{ marginTop: 24 }}>
+              <p className="fv2-field-label" style={{ marginBottom: 10 }}>
+                Budget en m² dans les 10 grandes villes
+                <span style={{ fontWeight: 400, fontSize: 11, marginLeft: 6, color: "#64748b" }}>
+                  — sur 20 ans
+                </span>
+              </p>
+              <table className="sv2-budget-city-table">
+                <thead>
+                  <tr>
+                    <th>Ville</th>
+                    <th>Prix m²</th>
+                    <th>Surface achetable</th>
+                    <th>Accessibilité</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {res.cities.map((city) => (
+                    <tr key={city.nom}>
+                      <td className="sv2-budget-city-name">{city.nom}</td>
+                      <td className="sv2-budget-city-m2">
+                        {city.prix_m2.toLocaleString("fr-FR")} €/m²
+                      </td>
+                      <td style={{ fontWeight: 700, color: "#0c1a35" }}>
+                        {city.m2} m²
+                      </td>
+                      <td>
+                        {city.access === "confortable" ? (
+                          <span className="sv2-accessibility-badge sv2-accessibility-green">
+                            ● Confortable
+                          </span>
+                        ) : city.access === "possible" ? (
+                          <span className="sv2-accessibility-badge sv2-accessibility-amber">
+                            ● Possible
+                          </span>
+                        ) : (
+                          <span className="sv2-accessibility-badge sv2-accessibility-red">
+                            ● Difficile
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Insight */}
+            <div className="sv2-insight">
+              Avec votre budget de{" "}
+              <strong>{fmt(res.scenarios.find((s) => s.duree === 20)?.budget ?? 0)}</strong>,
+              vous pouvez acheter confortablement dans{" "}
+              <strong>{res.nbConfortables} ville{res.nbConfortables > 1 ? "s" : ""}</strong> sur les 10
+              principales de France.
+              {res.paris && (
+                <> À Paris, cela représente <strong>{res.paris.m2} m²</strong>.</>
+              )}
+            </div>
+          </div>
+        )}
+
+        <SimCrossSell
+          show={revTotal > 0}
+          loan={cap20ForCross}
+          taux={v.taux}
+          dureeCredit={20}
+        />
+      </div>
     </SimLayout>
   );
 }

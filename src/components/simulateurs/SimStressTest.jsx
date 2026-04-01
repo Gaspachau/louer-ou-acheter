@@ -1,302 +1,314 @@
-import { useMemo, useState } from "react";
+import { useState, useMemo } from "react";
+import {
+  LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
+  CartesianGrid, ReferenceLine,
+} from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import Field from "../Field";
+import SimCrossSell from "./SimCrossSell";
 
-const fmtCur = (v) =>
+const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k €` : `${v} €`);
 
-function calcMensualite(capital, taux, dureeAns) {
-  if (capital <= 0 || dureeAns <= 0) return 0;
-  const r = taux / 100 / 12;
-  const n = dureeAns * 12;
-  return r === 0 ? capital / n : (capital * r) / (1 - Math.pow(1 + r, -n));
+const REVENUS_PILLS = [2500, 3000, 4000, 5000, 7000];
+const PRIX_PILLS    = [150000, 200000, 250000, 300000, 400000];
+const APPORT_PILLS  = [10000, 20000, 30000, 50000];
+const DUREE_OPTIONS = [15, 20, 25, 30];
+const TAUX_TESTS    = [3.5, 4.0, 4.5, 5.0, 5.5, 6.0];
+
+function mortgage(principal, rate, years) {
+  if (principal <= 0 || years <= 0) return 0;
+  const r = rate / 100 / 12;
+  if (r === 0) return principal / (years * 12);
+  return (principal * r) / (1 - Math.pow(1 + r, -(years * 12)));
 }
 
-function ScenarioCard({ emoji, title, subtitle, baseMens, newMens, impact, severity, detail, children }) {
-  const colors = {
-    safe: { bg: "#d1fae5", border: "#6ee7b7", accent: "#059669", label: "Résistant" },
-    warning: { bg: "#fef3c7", border: "#fcd34d", accent: "#d97706", label: "Fragile" },
-    danger: { bg: "#fee2e2", border: "#fca5a5", accent: "#dc2626", label: "Critique" },
-  };
-  const c = colors[severity] || colors.safe;
-
+function Pills({ values, current, onSelect, format }) {
   return (
-    <div className="stress-card" style={{ borderColor: c.border, background: c.bg }}>
-      <div className="stress-card-header">
-        <span className="stress-card-emoji">{emoji}</span>
-        <div>
-          <p className="stress-card-title">{title}</p>
-          <p className="stress-card-subtitle">{subtitle}</p>
-        </div>
-        <span className="stress-badge" style={{ color: c.accent, borderColor: c.accent }}>
-          {c.label}
-        </span>
-      </div>
-      {children}
-      <div className="stress-impact">
-        <div className="stress-impact-row">
-          <span>Mensualité actuelle</span>
-          <strong>{fmtCur(baseMens)}/mois</strong>
-        </div>
-        <div className="stress-impact-row">
-          <span>Mensualité sous stress</span>
-          <strong style={{ color: c.accent }}>{fmtCur(newMens)}/mois</strong>
-        </div>
-        <div className="stress-impact-row stress-impact-delta">
-          <span>Surcoût mensuel</span>
-          <strong style={{ color: c.accent }}>+{fmtCur(impact)}/mois</strong>
-        </div>
-      </div>
-      <p className="stress-detail">{detail}</p>
+    <div className="fv2-revenus-pills">
+      {values.map((v) => (
+        <button key={v} type="button"
+          className={`fv2-revenus-pill${current === v ? " active" : ""}`}
+          onClick={() => onSelect(v)}>
+          {format ? format(v) : v}
+        </button>
+      ))}
     </div>
   );
 }
 
-function ScoreMeter({ score }) {
-  const level = score >= 70 ? { label: "Résilient", color: "#059669" }
-    : score >= 40 ? { label: "Fragile", color: "#d97706" }
-    : { label: "Vulnérable", color: "#dc2626" };
-
+function ChartTip({ active, payload, label }) {
+  if (!active || !payload?.length) return null;
   return (
-    <div className="stress-score-wrap">
-      <p className="stress-score-label">Score de résilience financière</p>
-      <div className="stress-score-number" style={{ color: level.color }}>
-        {score}<span>/100</span>
+    <div className="chart-tooltip">
+      <div className="chart-tooltip-label" style={{ fontWeight: 700, marginBottom: 4 }}>
+        Taux {label} %
       </div>
-      <div className="stress-score-bar-track">
-        <div className="stress-score-bar-fill" style={{ width: `${score}%`, background: level.color }} />
-        <div className="stress-score-bar-fill-glow" style={{ left: `${score}%`, background: level.color }} />
-      </div>
-      <p className="stress-score-verdict" style={{ color: level.color }}>{level.label}</p>
+      {payload.map((p) => (
+        <div key={p.dataKey} className="chart-tooltip-row">
+          <span style={{ color: p.stroke }}>{p.name} :</span>
+          <span>&nbsp;{p.dataKey === "taux_endet" ? `${p.value.toFixed(1)} %` : fmt(p.value)}</span>
+        </div>
+      ))}
     </div>
   );
 }
 
 export default function SimStressTest() {
-  const [v, setV] = useState({
-    prixBien: 250000,
-    apport: 35000,
-    taux: 3.5,
-    duree: 20,
-    revenus: 3500,
-    epargneReserve: 12000,
-  });
+  const [revenus, setRevenus]   = useState(4000);
+  const [prix, setPrix]         = useState(250000);
+  const [apport, setApport]     = useState(30000);
+  const [duree, setDuree]       = useState(20);
 
-  // Stress sliders
-  const [hausseT, setHausseT] = useState(1.5); // +taux en points
-  const [baisseMarche, setBaisseMarche] = useState(15); // % de baisse
-  const [baisseRevenu, setBaisseRevenu] = useState(25); // % de perte revenus
-
-  const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+  const apportSliderPct = Math.min(100, (apport / 100000) * 100);
 
   const res = useMemo(() => {
-    const { prixBien, apport, taux, duree, revenus, epargneReserve } = v;
-    const capital = Math.max(0, prixBien * 1.08 - apport);
-    const mensBase = calcMensualite(capital, taux, duree);
+    const emprunt = Math.max(0, prix - apport);
 
-    // Scenario A: Taux monte
-    const mensHausse = calcMensualite(capital, taux + hausseT, duree);
-    const impactTaux = mensHausse - mensBase;
-    const endetmentApresHausse = revenus > 0 ? (mensHausse / revenus) * 100 : 0;
-    const sevA = endetmentApresHausse > 40 ? "danger" : endetmentApresHausse > 35 ? "warning" : "safe";
-    const scoreA = Math.max(0, Math.min(100, 100 - (endetmentApresHausse - 20) * 3));
+    const scenarios = TAUX_TESTS.map((taux) => {
+      const mensualite   = mortgage(emprunt, taux, duree);
+      const tauxEndet    = revenus > 0 ? (mensualite / revenus) * 100 : 0;
+      const financable   = tauxEndet <= 35;
+      return { taux, mensualite: Math.round(mensualite), tauxEndet, financable };
+    });
 
-    // Scenario B: Marché baisse
-    const valeurApres = prixBien * (1 - baisseMarche / 100);
-    const capitalRestantDu = capital; // conservatif: début de crédit
-    const equite = valeurApres - capitalRestantDu;
-    const equiteNegative = equite < 0;
-    const sevB = equiteNegative ? "danger" : equite < prixBien * 0.05 ? "warning" : "safe";
-    const scoreB = Math.max(0, Math.min(100, equite / prixBien * 100 + 50));
+    const tauxMax = scenarios.filter((s) => s.financable).pop()?.taux ?? 0;
+    const mensBase = scenarios[0]?.mensualite ?? 0;
 
-    // Scenario C: Perte de revenus
-    const nouveauxRevenus = revenus * (1 - baisseRevenu / 100);
-    const mensurCrise = mensBase;
-    const endetCrise = nouveauxRevenus > 0 ? (mensurCrise / nouveauxRevenus) * 100 : 100;
-    const moisCouvert = epargneReserve / mensBase;
-    const sevC = endetCrise > 50 ? "danger" : endetCrise > 40 ? "warning" : "safe";
-    const scoreC = Math.min(100, Math.max(0, moisCouvert / 6 * 100));
+    return { emprunt, scenarios, tauxMax, mensBase };
+  }, [revenus, prix, apport, duree]);
 
-    const score = Math.round((scoreA * 0.4 + scoreB * 0.3 + scoreC * 0.3));
+  const verdictClass =
+    res.tauxMax >= 5.0 ? "sv2-verdict-green"
+    : res.tauxMax >= 4.0 ? "sv2-verdict-amber"
+    : res.tauxMax >= 3.5 ? "sv2-verdict-amber"
+    : "sv2-verdict-red";
 
-    return {
-      mensBase, mensHausse, impactTaux, endetmentApresHausse, sevA,
-      valeurApres, equite, equiteNegative, sevB,
-      nouveauxRevenus, endetCrise, moisCouvert, sevC,
-      score,
-    };
-  }, [v, hausseT, baisseMarche, baisseRevenu]);
+  // Threshold line: mensualité corresponding to 35% endettement
+  const seuilMensualite = revenus * 0.35;
 
   return (
     <SimLayout
-      icon="🛡️"
-      title="Test de résistance financière"
-      description="Votre projet immobilier résiste-t-il à l'adversité ? Simulez 3 scénarios de crise et mesurez votre résilience."
-      suggestions={["/simulateurs/endettement", "/simulateurs/pret-immobilier", "/simulateurs/niveau-de-vie"]}
+      icon="🔥"
+      title="Votre projet résiste-t-il à la hausse des taux ?"
+      description="Simulez l'impact de différents taux sur votre mensualité et votre taux d'endettement"
+      simTime="2 min"
+      suggestions={[
+        "/simulateurs/endettement",
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/budget-maximum",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/score-acheteur",
+        "/simulateurs/assurance-pret",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre prêt",
-            icon: "🏦",
-            content: (
-              <div className="step-fields">
-                <Field label="Prix du bien" value={v.prixBien} onChange={set("prixBien")} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-                <Field label="Apport personnel" value={v.apport} onChange={set("apport")} suffix="€" tooltip="Épargne mobilisée directement, sans emprunt. Minimum recommandé : 10 % du prix pour couvrir les frais de notaire." />
-                <Field label="Taux actuel" value={v.taux} onChange={set("taux")} suffix="%" step="0.1" tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-                <Field label="Durée du prêt" value={v.duree} onChange={set("duree")} suffix="ans" tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-                <Field label="Revenus mensuels nets" value={v.revenus} onChange={set("revenus")} suffix="€" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
-                <Field label="Réserve d'épargne" value={v.epargneReserve} onChange={set("epargneReserve")} suffix="€"
-                  hint="Capital disponible après achat" tooltip="Capital liquide disponible après achat (livret, épargne de précaution). À ne pas confondre avec l'apport investi dans le bien." />
-              </div>
-            ),
-          },
-          {
-            title: "Les scénarios",
-            icon: "🛡️",
-            content: (
-              <div className="stress-slider-section">
-                <div className="horizon-box" style={{ background: "#fff7ed", borderColor: "#fed7aa" }}>
-                  <div className="horizon-row">
-                    <div>
-                      <p className="horizon-label">📈 Hausse des taux</p>
-                      <p className="horizon-explain">Le taux de votre crédit monte de {hausseT.toFixed(1)} point{hausseT >= 2 ? "s" : ""}</p>
-                    </div>
-                    <strong className="horizon-value" style={{ color: "#d97706" }}>+{hausseT.toFixed(1)} %</strong>
-                  </div>
-                  <input type="range" min="0.5" max="4" step="0.5" value={hausseT}
-                    onChange={(e) => setHausseT(Number(e.target.value))}
-                    style={{ "--range-pct": `${((hausseT - 0.5) / 3.5) * 100}%` }}
-                    aria-label={`Hausse taux : +${hausseT}%`} />
-                  <div className="horizon-ticks"><span>+0,5 %</span><span>+2 %</span><span>+4 %</span></div>
-                </div>
+      <div className="sv2-container">
 
-                <div className="horizon-box" style={{ background: "#fef2f2", borderColor: "#fecaca", marginTop: 10 }}>
-                  <div className="horizon-row">
-                    <div>
-                      <p className="horizon-label">📉 Chute du marché immo</p>
-                      <p className="horizon-explain">La valeur du bien baisse de {baisseMarche} %</p>
-                    </div>
-                    <strong className="horizon-value" style={{ color: "#dc2626" }}>-{baisseMarche} %</strong>
-                  </div>
-                  <input type="range" min="5" max="40" step="5" value={baisseMarche}
-                    onChange={(e) => setBaisseMarche(Number(e.target.value))}
-                    style={{ "--range-pct": `${((baisseMarche - 5) / 35) * 100}%` }}
-                    aria-label={`Chute marché : -${baisseMarche}%`} />
-                  <div className="horizon-ticks"><span>-5 %</span><span>-20 %</span><span>-40 %</span></div>
-                </div>
+        {/* ── Inputs card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+          <p className="fv2-card-kicker">Stress test taux</p>
+          <p className="fv2-card-title">Renseignez votre projet</p>
 
-                <div className="horizon-box" style={{ background: "#f5f3ff", borderColor: "#ddd6fe", marginTop: 10 }}>
-                  <div className="horizon-row">
-                    <div>
-                      <p className="horizon-label">💼 Perte de revenus</p>
-                      <p className="horizon-explain">Vos revenus baissent de {baisseRevenu} % (chômage partiel, accident...)</p>
-                    </div>
-                    <strong className="horizon-value" style={{ color: "#7c3aed" }}>-{baisseRevenu} %</strong>
-                  </div>
-                  <input type="range" min="10" max="60" step="5" value={baisseRevenu}
-                    onChange={(e) => setBaisseRevenu(Number(e.target.value))}
-                    style={{ "--range-pct": `${((baisseRevenu - 10) / 50) * 100}%` }}
-                    aria-label={`Perte revenus : -${baisseRevenu}%`} />
-                  <div className="horizon-ticks"><span>-10 %</span><span>-35 %</span><span>-60 %</span></div>
-                </div>
-              </div>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            {!res ? null : (
-              <>
-                <ScoreMeter score={res.score} />
+          {/* Revenu net mensuel */}
+          <div style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Revenu net mensuel</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={revenus || ""} min={0} max={50000} step={100}
+                placeholder="4 000"
+                onChange={(e) => setRevenus(Math.max(0, Number(e.target.value) || 0))}
+              />
+              <span className="fv2-revenus-unit">€ / mois</span>
+            </div>
+            <Pills values={REVENUS_PILLS} current={revenus} onSelect={setRevenus}
+              format={(v) => `${v.toLocaleString("fr-FR")} €`} />
+          </div>
 
-                <div style={{ display: "flex", flexDirection: "column", gap: 12, marginTop: 20 }}>
-                  {/* Hausse taux */}
-                  <ScenarioCard
-                    emoji="📈"
-                    title={`Hausse de taux +${hausseT.toFixed(1)}%`}
-                    subtitle={`Taux de ${v.taux}% → ${(v.taux + hausseT).toFixed(1)}%`}
-                    baseMens={res.mensBase}
-                    newMens={res.mensHausse}
-                    impact={res.impactTaux}
-                    severity={res.sevA}
-                    detail={`Taux d'endettement après hausse : ${res.endetmentApresHausse.toFixed(1)}%. ${res.endetmentApresHausse > 35 ? "Dépasse le seuil HCSF de 35% — refinancement difficile." : "Reste sous le seuil HCSF."}`}
-                  >
-                    <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
-                      Hausse de {hausseT.toFixed(1)} point{hausseT >= 2 ? "s" : ""} de taux
-                    </p>
-                  </ScenarioCard>
+          {/* Prix du bien */}
+          <div style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Prix du bien</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={prix || ""} min={50000} max={2000000} step={5000}
+                placeholder="250 000"
+                onChange={(e) => setPrix(Math.max(0, Number(e.target.value) || 0))}
+              />
+              <span className="fv2-revenus-unit">€</span>
+            </div>
+            <Pills values={PRIX_PILLS} current={prix} onSelect={setPrix}
+              format={(v) => fmtK(v)} />
+          </div>
 
-                  {/* Baisse marché */}
-                  <ScenarioCard
-                    emoji="📉"
-                    title={`Chute du marché -${baisseMarche}%`}
-                    subtitle={`Bien à ${fmtCur(v.prixBien)} → ${fmtCur(res.valeurApres)}`}
-                    baseMens={res.mensBase}
-                    newMens={res.mensBase}
-                    impact={0}
-                    severity={res.sevB}
-                    detail={res.equiteNegative
-                      ? `Équité négative : le bien vaut moins que ce que vous devez (${fmtCur(res.equite)}). Revendre signifierait une perte nette.`
-                      : `Équité résiduelle : ${fmtCur(res.equite)} — vous restez en territoire positif malgré la baisse.`}
-                  >
-                    <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
-                      Impact sur la valeur patrimoniale — la mensualité ne change pas
-                    </p>
-                  </ScenarioCard>
+          {/* Apport */}
+          <div style={{ marginBottom: 24 }}>
+            <div className="fv2-slider-header">
+              <span className="fv2-slider-label">Apport personnel</span>
+              <span className="fv2-slider-val">{fmt(apport)}</span>
+            </div>
+            <div className="fv2-slider-track-wrap" style={{ "--pct": `${apportSliderPct}%` }}>
+              <input type="range" className="fv2-slider"
+                min={0} max={100000} step={5000} value={apport}
+                onChange={(e) => setApport(Number(e.target.value))} />
+              <div className="fv2-slider-fill" style={{ width: `${apportSliderPct}%` }} />
+            </div>
+            <div className="fv2-slider-minmax"><span>0 €</span><span>100 000 €</span></div>
+            <div className="fv2-revenus-pills" style={{ marginTop: 8 }}>
+              {APPORT_PILLS.map((p) => (
+                <button key={p} type="button"
+                  className={`fv2-revenus-pill${apport === p ? " active" : ""}`}
+                  onClick={() => setApport(p)}>
+                  {fmtK(p)}
+                </button>
+              ))}
+            </div>
+          </div>
 
-                  {/* Perte revenus */}
-                  <ScenarioCard
-                    emoji="💼"
-                    title={`Perte de revenus -${baisseRevenu}%`}
-                    subtitle={`${fmtCur(v.revenus)} → ${fmtCur(res.nouveauxRevenus)}/mois`}
-                    baseMens={res.mensBase}
-                    newMens={res.mensBase}
-                    impact={0}
-                    severity={res.sevC}
-                    detail={`Taux d'endettement sur nouveaux revenus : ${res.endetCrise.toFixed(1)}%. Votre réserve couvre ${res.moisCouvert.toFixed(1)} mois de crédit. ${res.moisCouvert < 3 ? "Constituez au moins 3 mois de réserve avant d'acheter." : res.moisCouvert < 6 ? "Réserve acceptable — visez 6 mois idéalement." : "Excellente réserve d'urgence."}`}
-                  >
-                    <p style={{ fontSize: 12, color: "var(--muted)", margin: "4px 0 8px" }}>
-                      Impact sur le taux d'endettement et la durée de réserve
-                    </p>
-                  </ScenarioCard>
-                </div>
+          {/* Durée */}
+          <div style={{ marginBottom: 8 }}>
+            <p className="fv2-field-label">Durée du crédit</p>
+            <div className="fv2-revenus-pills">
+              {DUREE_OPTIONS.map((d) => (
+                <button key={d} type="button"
+                  className={`fv2-revenus-pill${duree === d ? " active" : ""}`}
+                  onClick={() => setDuree(d)}>
+                  {d} ans
+                </button>
+              ))}
+            </div>
+            <p className="fv2-hint">
+              Taux de référence 2026 : <strong>3,5 %</strong> · Emprunt : <strong>{fmt(res.emprunt)}</strong>
+            </p>
+          </div>
+        </div>
 
-                {/* Combined scenario */}
-                <div className="stress-combined-box">
-                  <p className="stress-combined-title">☠️ Scénario combiné — tout se passe mal en même temps</p>
-                  <div className="stress-combined-grid">
-                    <div className="stress-combined-item">
-                      <span>Mensualité après hausse taux</span>
-                      <strong style={{ color: "#dc2626" }}>{fmtCur(res.mensHausse)}/mois</strong>
-                    </div>
-                    <div className="stress-combined-item">
-                      <span>Revenus réduits ({baisseRevenu} %)</span>
-                      <strong style={{ color: "#7c3aed" }}>{fmtCur(res.nouveauxRevenus)}/mois</strong>
-                    </div>
-                    <div className="stress-combined-item">
-                      <span>Taux d'endettement</span>
-                      <strong style={{ color: res.nouveauxRevenus > 0 ? (res.mensHausse / res.nouveauxRevenus > 0.5 ? "#dc2626" : "#d97706") : "#dc2626" }}>
-                        {res.nouveauxRevenus > 0 ? ((res.mensHausse / res.nouveauxRevenus) * 100).toFixed(1) : "∞"} %
-                      </strong>
-                    </div>
-                    <div className="stress-combined-item">
-                      <span>Mois de réserve restants</span>
-                      <strong style={{ color: res.moisCouvert < 3 ? "#dc2626" : "#059669" }}>
-                        {res.moisCouvert.toFixed(1)} mois
-                      </strong>
-                    </div>
-                  </div>
-                  {res.nouveauxRevenus > 0 && res.mensHausse / res.nouveauxRevenus > 0.5 && (
-                    <p className="stress-combined-warn">⚠️ En combinant hausse des taux et perte de revenus, votre taux d'endettement dépasserait 50 % — situation critique. Une réserve d'urgence solide et une assurance perte d'emploi sont indispensables.</p>
-                  )}
-                </div>
-              </>
+        {/* ── Results card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Verdict */}
+          <div className={`sv2-verdict ${verdictClass}`} style={{ marginBottom: 20 }}>
+            <div className="sv2-verdict-label">Projet finançable jusqu'à</div>
+            <div className="sv2-verdict-amount">
+              {res.tauxMax > 0 ? `${res.tauxMax.toFixed(1)} %` : "Non finançable"}
+            </div>
+            <div className="sv2-verdict-sub">
+              {res.tauxMax >= 5.0
+                ? "Excellent — votre projet résiste très bien à la hausse des taux"
+                : res.tauxMax >= 4.0
+                ? "Correct — votre projet tient jusqu'à un taux de " + res.tauxMax.toFixed(1) + " %"
+                : res.tauxMax >= 3.5
+                ? "Limite — votre projet est juste finançable au taux actuel"
+                : "Attention — le taux d'endettement dépasse 35 % dès maintenant"}
+            </div>
+          </div>
+
+          {/* Table des scénarios */}
+          <div style={{ marginBottom: 20, overflowX: "auto" }}>
+            <table className="sv2-amort-table" style={{ width: "100%" }}>
+              <thead>
+                <tr>
+                  <th>Taux</th>
+                  <th>Mensualité</th>
+                  <th>Endettement</th>
+                  <th>Statut</th>
+                </tr>
+              </thead>
+              <tbody>
+                {res.scenarios.map(({ taux, mensualite, tauxEndet, financable }) => (
+                  <tr key={taux} style={{
+                    background: taux === 3.5 ? "#f0f7ff" : undefined,
+                    fontWeight: taux === 3.5 ? 700 : undefined,
+                  }}>
+                    <td>{taux.toFixed(1)} %{taux === 3.5 ? " ★" : ""}</td>
+                    <td>{fmt(mensualite)}</td>
+                    <td style={{ color: tauxEndet > 35 ? "#dc2626" : tauxEndet > 30 ? "#d97706" : "#059669" }}>
+                      {tauxEndet.toFixed(1)} %
+                    </td>
+                    <td>
+                      <span style={{
+                        display: "inline-block",
+                        padding: "2px 8px",
+                        borderRadius: 6,
+                        fontSize: 12,
+                        fontWeight: 700,
+                        background: financable ? "#dcfce7" : "#fee2e2",
+                        color: financable ? "#166534" : "#991b1b",
+                      }}>
+                        {financable ? "✓ OK" : "✗ Refus"}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Line chart : mensualité vs taux */}
+          <p style={{ fontSize: 13, fontWeight: 700, color: "#0c1a35", marginBottom: 8 }}>
+            Mensualité selon le taux
+          </p>
+          <div style={{ height: 220, marginBottom: 16 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={res.scenarios}
+                margin={{ top: 5, right: 10, left: 5, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                <XAxis dataKey="taux" tickFormatter={(v) => `${v} %`}
+                  tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} />
+                <YAxis tickFormatter={(v) => fmtK(v)}
+                  tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={56} />
+                <Tooltip content={<ChartTip />} />
+                <ReferenceLine
+                  y={seuilMensualite}
+                  stroke="#dc2626"
+                  strokeDasharray="6 3"
+                  label={{
+                    value: `35 % — ${fmt(Math.round(seuilMensualite))}/mois`,
+                    fontSize: 10, fill: "#dc2626", position: "insideTopRight",
+                  }}
+                />
+                <Line type="monotone" dataKey="mensualite" name="Mensualité"
+                  stroke="#1a56db" strokeWidth={2.5} dot={{ r: 5, fill: "#1a56db" }} activeDot={{ r: 7 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 16 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#64748b" }}>
+              <span style={{ width: 12, height: 12, background: "#1a56db", borderRadius: 3, display: "inline-block" }} />
+              Mensualité
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#dc2626" }}>
+              <span style={{ width: 12, height: 3, background: "#dc2626", display: "inline-block" }} />
+              Seuil 35 % HCSF
+            </span>
+          </div>
+
+          {/* Insight */}
+          <div className="sv2-insight">
+            À <strong>3,5 %</strong>, votre mensualité est de{" "}
+            <strong>{fmt(res.mensBase)}/mois</strong>{" "}
+            ({revenus > 0 ? ((res.mensBase / revenus) * 100).toFixed(1) : 0} % d'endettement).
+            {res.tauxMax > 3.5 ? (
+              <> Votre projet reste finançable jusqu'à <strong>{res.tauxMax.toFixed(1)} %</strong> — soit{" "}
+                <strong>{(res.tauxMax - 3.5).toFixed(1)} points</strong> de marge.</>
+            ) : res.tauxMax === 3.5 ? (
+              <> Votre projet est juste à la limite au taux actuel de 3,5 %.</>
+            ) : (
+              <> Votre taux d'endettement dépasse déjà 35 % — réduisez l'emprunt ou allongez la durée.</>
             )}
           </div>
-        }
-      />
+        </div>
+
+        <SimCrossSell
+          show={res.tauxMax >= 3.5}
+          loan={res.emprunt}
+          taux={3.5}
+          dureeCredit={duree}
+        />
+      </div>
     </SimLayout>
   );
 }
