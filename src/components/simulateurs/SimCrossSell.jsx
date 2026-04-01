@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { createPortal } from "react-dom";
 
 const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
@@ -26,14 +27,22 @@ export default function SimCrossSell({ show, loan = 0, taux = 3.5, dureeCredit =
     return Math.round((mHi - mLo) * dureeCredit * 12);
   }, [loan, taux, dureeCredit]);
 
-  // Lock body scroll when modal is open
+  // Lock body scroll when modal is open (iOS-safe)
   useEffect(() => {
     if (open) {
+      const scrollY = window.scrollY;
       document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
+      document.body.style.position = "fixed";
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.width = "100%";
+      return () => {
+        document.body.style.overflow = "";
+        document.body.style.position = "";
+        document.body.style.top = "";
+        document.body.style.width = "";
+        window.scrollTo(0, scrollY);
+      };
     }
-    return () => { document.body.style.overflow = ""; };
   }, [open]);
 
   const handleSubmit = async (e) => {
@@ -72,8 +81,8 @@ export default function SimCrossSell({ show, loan = 0, taux = 3.5, dureeCredit =
         <p className="cs-trigger-sub">Gratuit · Réponse en 24h · Sans impact sur votre crédit</p>
       </div>
 
-      {/* ── Modal ── */}
-      {open && (
+      {/* ── Modal (portal → bypasses ancestor transforms) ── */}
+      {open && createPortal(
         <div className="cs-backdrop" onPointerDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
           <div className="cs-modal" role="dialog" aria-modal="true" aria-labelledby="cs-sim-title">
 
@@ -175,7 +184,8 @@ export default function SimCrossSell({ show, loan = 0, taux = 3.5, dureeCredit =
               </div>
             )}
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </>
   );
