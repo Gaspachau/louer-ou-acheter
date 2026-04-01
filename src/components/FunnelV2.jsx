@@ -138,6 +138,91 @@ function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
   );
 }
 
+/* ─── RevenusInput ─────────────────────────────────────────── */
+const REVENUS_PILLS = [1500, 2000, 2500, 3000, 3500, 4000, 5000];
+
+function RevenusInput({ label, value, onChange, taux, dureeCredit }) {
+  const mensualiteMax = Math.round(value * 0.35);
+  const capacite = value > 0
+    ? Math.round(value * 0.35 * (1 - Math.pow(1 + taux / 100 / 12, -(dureeCredit * 12))) / (taux / 100 / 12))
+    : 0;
+  return (
+    <div className="fv2-revenus-wrap">
+      <p className="fv2-field-label">{label}</p>
+      <div className="fv2-revenus-input-row">
+        <input
+          type="number"
+          className="fv2-revenus-input"
+          value={value || ""}
+          min={0} max={50000} step={100}
+          placeholder="3 000"
+          onChange={(e) => onChange(Math.max(0, Math.min(50000, Number(e.target.value) || 0)))}
+        />
+        <span className="fv2-revenus-unit">€ / mois</span>
+      </div>
+      <div className="fv2-revenus-pills">
+        {REVENUS_PILLS.map((p) => (
+          <button
+            key={p} type="button"
+            className={`fv2-revenus-pill${value === p ? " active" : ""}`}
+            onClick={() => onChange(p)}
+          >
+            {p.toLocaleString("fr-FR")} €
+          </button>
+        ))}
+      </div>
+      {value > 0 && (
+        <div className="fv2-revenus-estimate">
+          <div className="fv2-revenus-est-item">
+            <span className="fv2-revenus-est-lbl">Capacité d'emprunt estimée</span>
+            <strong className="fv2-revenus-est-val">{fmt(capacite)}</strong>
+          </div>
+          <div className="fv2-revenus-est-item">
+            <span className="fv2-revenus-est-lbl">Mensualité maximale</span>
+            <strong className="fv2-revenus-est-val">{fmt(mensualiteMax)} / mois</strong>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* ─── ApportSlider ──────────────────────────────────────────── */
+function ApportSlider({ value, onChange, prixBien }) {
+  const maxApport = Math.max(5000, Math.min(prixBien || 300000, 200000));
+  const trackPct = Math.max(0, Math.min(100, (value / maxApport) * 100));
+  const pct = prixBien > 0 ? Math.round((value / prixBien) * 100) : 0;
+  const isGood = pct >= 10;
+  return (
+    <div className="fv2-apport-wrap">
+      <div className="fv2-apport-header">
+        <span className="fv2-apport-label">Apport personnel</span>
+        <span className="fv2-apport-bigval">{fmt(value)}</span>
+      </div>
+      <div className="fv2-slider-track-wrap" style={{ "--pct": `${trackPct}%` }}>
+        <input
+          type="range" className="fv2-slider"
+          min={0} max={maxApport} step={5000} value={value}
+          onChange={(e) => onChange(Number(e.target.value))}
+        />
+        <div className="fv2-slider-fill" style={{ width: `${trackPct}%` }} />
+      </div>
+      <div className="fv2-slider-minmax">
+        <span>0 €</span><span>{fmt(maxApport)}</span>
+      </div>
+      {prixBien > 0 && (
+        <div className={`fv2-apport-badge ${isGood ? "fv2-apport-badge-good" : "fv2-apport-badge-warn"}`}>
+          {value === 0
+            ? "⚠️ Sans apport : financement difficile. Les banques demandent minimum 10 %"
+            : isGood
+            ? `✓ ${pct} % du prix du bien — Bon apport`
+            : `⚠️ ${pct} % du prix — Apport limité · les banques demandent minimum 10 %`}
+        </div>
+      )}
+    </div>
+  );
+}
+
 /* ─── ChoiceBtn ────────────────────────────────────────────── */
 function ChoiceBtn({ active, onClick, icon, label, sub }) {
   return (
@@ -413,11 +498,6 @@ function Step1({ v, set, applyVille, onNext }) {
    STEP 2 — FINANCES
    ════════════════════════════════════════════════════════════ */
 function Step2({ v, set, onNext }) {
-  const revenus_total = v.achat === "couple" ? v.revenus + (v.revenus_co || 0) : v.revenus;
-  const capacite = Math.round(
-    revenus_total * 0.35 * (1 - Math.pow(1 + v.taux / 100 / 12, -(v.duree_credit * 12))) / (v.taux / 100 / 12)
-  );
-
   return (
     <div className="fv2-card">
       <div className="fv2-card-kicker">ÉTAPE 2</div>
@@ -443,30 +523,23 @@ function Step2({ v, set, onNext }) {
       </div>
 
       {/* Revenus */}
-      <Slider
+      <RevenusInput
         label={v.achat === "couple" ? "Vos revenus nets (vous)" : "Revenus mensuels nets"}
         value={v.revenus}
         onChange={set("revenus")}
-        min={1000} max={12000} step={100}
-        format={(x) => `${x.toLocaleString("fr-FR")} €/mois`}
+        taux={v.taux}
+        dureeCredit={v.duree_credit}
       />
 
       {v.achat === "couple" && (
-        <Slider
+        <RevenusInput
           label="Revenus nets du co-emprunteur"
           value={v.revenus_co}
           onChange={set("revenus_co")}
-          min={0} max={10000} step={100}
-          format={(x) => `${x.toLocaleString("fr-FR")} €/mois`}
+          taux={v.taux}
+          dureeCredit={v.duree_credit}
         />
       )}
-
-      <div className="fv2-hint" style={{ marginTop: -4, marginBottom: 16 }}>
-        Capacité d'emprunt théorique : <strong>{fmt(capacite)}</strong>
-        {v.achat === "couple" && (
-          <span> (revenus combinés : {fmt(revenus_total)}/mois)</span>
-        )}
-      </div>
 
       {/* Situation pro */}
       <div style={{ marginBottom: 20 }}>
@@ -495,24 +568,10 @@ function Step2({ v, set, onNext }) {
       </div>
 
       {/* Apport */}
-      <Slider
-        label="Apport personnel"
+      <ApportSlider
         value={v.apport}
         onChange={set("apport")}
-        min={0} max={Math.min(v.prix_bien, 200000)} step={1000}
-        format={fmt}
-        hint={
-          v.prix_bien > 0
-            ? (() => {
-                const pct = Math.round((v.apport / v.prix_bien) * 100);
-                return pct >= 10
-                  ? `${pct} % du prix — bon dossier ✓`
-                  : pct > 0
-                  ? `${pct} % du prix — en dessous de 10 %, taux majoré ⚠️`
-                  : "Sans apport : financement difficile ⚠️";
-              })()
-            : null
-        }
+        prixBien={v.prix_bien}
       />
 
       <button className="btn-primary fv2-cta" onClick={onNext}>
