@@ -12469,3 +12469,178 @@ svg { display: inline-block; }  /* keep inline for icons */
   .adm-content { padding: 20px 14px 60px; }
   .adm-tab { padding: 10px 12px; font-size: 12px; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FUNNEL V2 — City search + city card (sf- prefix)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ─── CitySearch ─────────────────────────────────────────── */
+.sf-city-search {
+  position: relative;
+  margin-bottom: 12px;
+}
+.sf-city-search-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  padding: 0 14px;
+  transition: border-color .15s, box-shadow .15s;
+}
+.sf-city-search-wrap:focus-within {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+}
+.sf-city-search-icon {
+  color: var(--muted);
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-right: 8px;
+}
+.sf-city-search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  color: var(--text);
+  padding: 13px 0;
+  min-width: 0;
+}
+.sf-city-search-input::placeholder { color: var(--muted); }
+.sf-city-search-clear {
+  background: none;
+  border: none;
+  color: var(--muted);
+  font-size: 14px;
+  padding: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: color .1s;
+}
+.sf-city-search-clear:hover { color: var(--text); }
+
+.sf-city-suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: #fff;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  z-index: 200;
+}
+.sf-city-suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 11px 16px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+  transition: background .1s;
+}
+.sf-city-suggestion-item:last-child { border-bottom: none; }
+.sf-city-suggestion-item:hover { background: var(--blue-soft); }
+.sf-sug-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.sf-sug-meta { font-size: 12px; color: var(--muted); text-align: right; }
+
+/* ─── National average button ────────────────────────────── */
+.sf-national-btn {
+  display: block;
+  width: 100%;
+  background: none;
+  border: 1.5px dashed var(--line);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  color: var(--muted);
+  cursor: pointer;
+  text-align: center;
+  margin-bottom: 12px;
+  transition: border-color .15s, color .15s;
+}
+.sf-national-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+/* ─── CityCard ───────────────────────────────────────────── */
+.sf-city-card {
+  background: var(--blue-soft);
+  border: 1px solid rgba(26,86,219,.12);
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 4px;
+}
+.sf-city-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.sf-city-card-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+}
+.sf-city-tension {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 99px;
+  white-space: nowrap;
+}
+.sf-tension-tres-tendu { background: #fee2e2; color: #b91c1c; }
+.sf-tension-tendu      { background: #fef3c7; color: #b45309; }
+.sf-tension-accessible { background: #d1fae5; color: #047857; }
+.sf-tension-stable     { background: #f0fdf4; color: #15803d; }
+.sf-tension-variable   { background: #f0f9ff; color: #0369a1; }
+.sf-tension-dynamique  { background: #ede9fe; color: #6d28d9; }
+
+.sf-city-card-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin-bottom: 10px;
+}
+@media (max-width: 480px) {
+  .sf-city-card-stats { grid-template-columns: repeat(2, 1fr); }
+}
+.sf-city-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: #fff;
+  border-radius: 8px;
+  padding: 8px 4px;
+}
+.sf-city-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--blue);
+}
+.sf-city-stat-lbl {
+  font-size: 10px;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.sf-city-card-comment {
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--muted);
+  margin: 0;
+  font-style: italic;
+}
+
+/* ─── fv2-insight-warn (new variant) ─────────────────────── */
+.fv2-insight-warn {
+  border-left-color: var(--amber) !important;
+  background: var(--amber-soft) !important;
+}
