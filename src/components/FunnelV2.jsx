@@ -160,11 +160,21 @@ function ChoiceBtn({ active, onClick, icon, label, sub }) {
 }
 
 /* ─── CitySearch ───────────────────────────────────────────── */
+const PLACEHOLDER_CYCLE = ["Toulouse", "Lyon", "Paris", "Bordeaux", "Nantes", "Marseille", "Rennes"];
+
 function CitySearch({ ville, onSelect }) {
   const [query, setQuery] = useState(ville?.nom ?? "");
   const [open, setOpen] = useState(false);
+  const [phIdx, setPhIdx] = useState(0);
   const inputRef = useRef(null);
   const closeTimer = useRef(null);
+
+  // Cycle placeholder when field is empty
+  useEffect(() => {
+    if (query) return;
+    const id = setInterval(() => setPhIdx((i) => (i + 1) % PLACEHOLDER_CYCLE.length), 2200);
+    return () => clearInterval(id);
+  }, [query]);
 
   const suggestions = useMemo(() => {
     if (query.length < 1) return [];
@@ -206,17 +216,21 @@ function CitySearch({ ville, onSelect }) {
   return (
     <div className="sf-city-search">
       <div className="sf-city-search-wrap">
+        {/* Location pin icon */}
         <span className="sf-city-search-icon" aria-hidden="true">
-          <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
-            <circle cx="8.5" cy="8.5" r="5.75" stroke="currentColor" strokeWidth="1.75"/>
-            <path d="M13 13l4 4" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round"/>
+          <svg width="14" height="17" viewBox="0 0 14 17" fill="none">
+            <path d="M7 0C3.686 0 1 2.686 1 6c0 4.5 6 11 6 11s6-6.5 6-11c0-3.314-2.686-6-6-6z"
+              fill="currentColor" opacity=".2"/>
+            <path d="M7 1C3.686 1 1 3.686 1 7c0 4.5 6 10 6 10s6-5.5 6-10c0-3.314-2.686-6-6-6z"
+              stroke="currentColor" strokeWidth="1.5" fill="none"/>
+            <circle cx="7" cy="7" r="2.2" fill="currentColor"/>
           </svg>
         </span>
         <input
           ref={inputRef}
           type="text"
           className="sf-city-search-input"
-          placeholder="Rechercher une ville (ex: Lyon, Nantes…)"
+          placeholder={`Ex : ${PLACEHOLDER_CYCLE[phIdx]}…`}
           value={query}
           onChange={handleChange}
           onFocus={handleFocus}
@@ -237,7 +251,7 @@ function CitySearch({ ville, onSelect }) {
             <button key={c.id} type="button" className="sf-city-suggestion-item"
               onPointerDown={(e) => { e.preventDefault(); select(c); }}>
               <span className="sf-sug-name">{c.nom}</span>
-              <span className="sf-sug-meta">{c.prix_m2.toLocaleString("fr-FR")} €/m² · {c.tension}</span>
+              <span className="sf-sug-price">{c.prix_m2.toLocaleString("fr-FR")} €/m²</span>
             </button>
           ))}
         </div>

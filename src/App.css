@@ -9011,6 +9011,24 @@ input[type="radio"] {
   transition: background .15s, transform .1s, box-shadow .15s;
   font-family: inherit;
   white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+}
+.lph-btn-primary::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -70%;
+  width: 55%;
+  height: 100%;
+  background: linear-gradient(105deg, transparent 10%, rgba(255,255,255,.28) 50%, transparent 90%);
+  pointer-events: none;
+  animation: lph-btn-shine 3.8s ease-in-out infinite;
+}
+@keyframes lph-btn-shine {
+  0%, 60% { left: -70%; opacity: 0; }
+  61%      { opacity: 1; }
+  80%      { left: 120%; opacity: 0; }
+  100%     { left: 120%; opacity: 0; }
 }
 .lph-btn-primary:hover {
   background: #1d4ed8;
@@ -9045,15 +9063,32 @@ input[type="radio"] {
   overflow: hidden;
   padding: 120px 24px 100px;
 }
+@keyframes lph-glow-drift {
+  0%, 100% { transform: translate(-50%, -50%) scale(1); }
+  33%       { transform: translate(-44%, -56%) scale(1.06); }
+  66%       { transform: translate(-56%, -44%) scale(0.96); }
+}
+@keyframes lph-glow-drift2 {
+  0%, 100% { transform: translate(-50%, -50%) scale(1) rotate(0deg); }
+  50%       { transform: translate(-40%, -60%) scale(1.12) rotate(8deg); }
+}
 .lph-hero-glow {
   position: absolute;
-  top: 20%;
-  left: 50%;
+  top: 20%; left: 50%;
   transform: translate(-50%, -50%);
-  width: 900px;
-  height: 700px;
-  background: radial-gradient(ellipse, rgba(37,99,235,.35) 0%, rgba(6,182,212,.18) 45%, transparent 72%);
+  width: 900px; height: 700px;
+  background: radial-gradient(ellipse, rgba(37,99,235,.38) 0%, rgba(6,182,212,.2) 45%, transparent 72%);
   pointer-events: none;
+  animation: lph-glow-drift 14s ease-in-out infinite;
+}
+.lph-hero-glow2 {
+  position: absolute;
+  top: 72%; left: 78%;
+  transform: translate(-50%, -50%);
+  width: 600px; height: 500px;
+  background: radial-gradient(ellipse, rgba(6,182,212,.22) 0%, rgba(99,102,241,.14) 50%, transparent 72%);
+  pointer-events: none;
+  animation: lph-glow-drift2 18s ease-in-out infinite;
 }
 .lph-hero-inner {
   display: grid;
@@ -9098,12 +9133,19 @@ input[type="radio"] {
   color: white;
   margin: 0;
 }
+@keyframes lph-ou-flow {
+  0%   { background-position: 0% 50%; }
+  50%  { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
 .lph-ou {
-  background: linear-gradient(90deg, #06b6d4 0%, #818cf8 100%);
+  background: linear-gradient(90deg, #06b6d4, #38bdf8, #818cf8, #a78bfa, #06b6d4);
+  background-size: 300%;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
   display: inline-block;
+  animation: lph-ou-flow 5s linear infinite;
 }
 .lph-acheter { color: white; display: inline-block; }
 
@@ -9116,6 +9158,31 @@ input[type="radio"] {
 
 /* Buttons row */
 .lph-btns { display: flex; gap: 12px; flex-wrap: wrap; }
+
+/* Simulations counter */
+.lph-counter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.lph-counter-dot {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  flex-shrink: 0;
+  animation: lph-dot-pulse 1.8s ease-in-out infinite;
+}
+.lph-counter-num {
+  font-size: 17px;
+  font-weight: 800;
+  color: #60a5fa;
+  letter-spacing: -.02em;
+}
+.lph-counter-txt {
+  font-size: 13px;
+  color: rgba(255,255,255,.48);
+  font-weight: 500;
+}
 
 /* Check badges */
 .lph-check-badges { display: flex; gap: 16px; flex-wrap: wrap; }
@@ -9144,6 +9211,10 @@ input[type="radio"] {
 .lph-ms-sep  { width: 1px; height: 36px; background: rgba(255,255,255,.12); flex-shrink: 0; }
 
 /* ── Glassmorphism card ─────────────────────────────────── */
+@keyframes lph-card-float {
+  0%, 100% { transform: translateY(0px) rotate(.3deg); }
+  50%       { transform: translateY(-12px) rotate(-.3deg); }
+}
 .lph-card {
   background: rgba(255,255,255,.07);
   border: 1.5px solid rgba(96,165,250,.35);
@@ -9157,6 +9228,7 @@ input[type="radio"] {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  animation: lph-card-float 5s ease-in-out infinite;
 }
 .lph-card-top {
   display: flex;
@@ -12493,7 +12565,6 @@ svg { display: inline-block; }  /* keep inline for icons */
 .sf-city-search-wrap {
   display: flex;
   align-items: center;
-  gap: 0;
   background: #fff;
   border: 1.5px solid var(--line);
   border-radius: 12px;
@@ -12505,11 +12576,12 @@ svg { display: inline-block; }  /* keep inline for icons */
   box-shadow: 0 0 0 3px rgba(26,86,219,.1);
 }
 .sf-city-search-icon {
-  color: var(--muted);
+  color: var(--blue);
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  margin-right: 8px;
+  margin-right: 10px;
+  opacity: .7;
 }
 .sf-city-search-input {
   flex: 1;
@@ -12518,53 +12590,59 @@ svg { display: inline-block; }  /* keep inline for icons */
   background: transparent;
   font-size: 15px;
   color: var(--text);
-  padding: 13px 0;
+  padding: 14px 0;
   min-width: 0;
 }
-.sf-city-search-input::placeholder { color: var(--muted); }
+.sf-city-search-input::placeholder { color: #b0bac9; }
 .sf-city-search-clear {
   background: none;
   border: none;
   color: var(--muted);
-  font-size: 14px;
-  padding: 4px;
+  font-size: 13px;
+  padding: 6px;
   cursor: pointer;
   flex-shrink: 0;
   transition: color .1s;
+  border-radius: 50%;
+  width: 26px; height: 26px;
+  display: flex; align-items: center; justify-content: center;
 }
-.sf-city-search-clear:hover { color: var(--text); }
+.sf-city-search-clear:hover { color: var(--text); background: var(--line); }
 
+/* Dropdown */
 .sf-city-suggestions {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 6px);
   left: 0; right: 0;
   background: #fff;
-  border: 1.5px solid var(--line);
-  border-radius: 12px;
-  box-shadow: var(--shadow);
+  border: 1px solid rgba(0,0,0,.1);
+  border-radius: 14px;
+  box-shadow: 0 8px 40px rgba(10,20,50,.14), 0 2px 8px rgba(10,20,50,.08);
   overflow-y: auto;
   max-height: 60vh;
-  z-index: 200;
-  /* Prevent overflow outside viewport on mobile */
-  max-width: 100%;
+  z-index: 300;
 }
 .sf-city-suggestion-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 12px;
   width: 100%;
-  padding: 11px 16px;
+  padding: 13px 16px;
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid rgba(0,0,0,.06);
   transition: background .1s;
+  font-family: inherit;
 }
 .sf-city-suggestion-item:last-child { border-bottom: none; }
-.sf-city-suggestion-item:hover { background: var(--blue-soft); }
-.sf-sug-name { font-size: 14px; font-weight: 600; color: var(--text); }
-.sf-sug-meta { font-size: 12px; color: var(--muted); text-align: right; }
+.sf-city-suggestion-item:hover { background: #2563eb; }
+.sf-city-suggestion-item:hover .sf-sug-name  { color: #fff; }
+.sf-city-suggestion-item:hover .sf-sug-price { color: rgba(255,255,255,.7); }
+.sf-sug-name  { font-size: 14px; font-weight: 600; color: var(--text); flex: 1; }
+.sf-sug-price { font-size: 12px; color: var(--muted); white-space: nowrap; font-weight: 500; }
 
 /* ─── National average button ────────────────────────────── */
 .sf-national-btn {
@@ -12584,73 +12662,88 @@ svg { display: inline-block; }  /* keep inline for icons */
 .sf-national-btn:hover { border-color: var(--blue); color: var(--blue); }
 
 /* ─── CityCard ───────────────────────────────────────────── */
+@keyframes sf-card-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 .sf-city-card {
-  background: var(--blue-soft);
-  border: 1px solid rgba(26,86,219,.12);
-  border-radius: 14px;
-  padding: 16px;
-  margin-top: 4px;
+  background: #fff;
+  border: 1px solid rgba(26,86,219,.14);
+  border-radius: 16px;
+  overflow: hidden;
+  margin-top: 8px;
+  box-shadow: 0 4px 24px rgba(26,86,219,.09), 0 1px 3px rgba(0,0,0,.05);
+  animation: sf-card-in .22s ease;
 }
 .sf-city-card-header {
+  background: linear-gradient(135deg, #1e3a5f 0%, #1a56db 100%);
+  padding: 14px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
 }
 .sf-city-card-name {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text);
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -.02em;
 }
+/* Tension badge — always white-on-dark inside card header */
 .sf-city-tension {
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 9px;
+  padding: 3px 10px;
   border-radius: 99px;
   white-space: nowrap;
+  background: rgba(255,255,255,.18);
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.22);
 }
-.sf-tension-tres-tendu { background: #fee2e2; color: #b91c1c; }
-.sf-tension-tendu      { background: #fef3c7; color: #b45309; }
-.sf-tension-accessible { background: #d1fae5; color: #047857; }
-.sf-tension-stable     { background: #f0fdf4; color: #15803d; }
-.sf-tension-variable   { background: #f0f9ff; color: #0369a1; }
-.sf-tension-dynamique  { background: #ede9fe; color: #6d28d9; }
+/* Standalone tension badges (outside card) — keep colored */
+.sf-tension-tres-tendu:not(.sf-city-card .sf-city-tension) { background: #fee2e2; color: #b91c1c; }
+.sf-tension-tendu:not(.sf-city-card .sf-city-tension)      { background: #fef3c7; color: #b45309; }
+.sf-tension-accessible:not(.sf-city-card .sf-city-tension) { background: #d1fae5; color: #047857; }
+.sf-tension-stable:not(.sf-city-card .sf-city-tension)     { background: #f0fdf4; color: #15803d; }
+.sf-tension-variable:not(.sf-city-card .sf-city-tension)   { background: #f0f9ff; color: #0369a1; }
+.sf-tension-dynamique:not(.sf-city-card .sf-city-tension)  { background: #ede9fe; color: #6d28d9; }
 
 .sf-city-card-stats {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 8px;
-  margin-bottom: 10px;
-}
-@media (max-width: 480px) {
-  .sf-city-card-stats { grid-template-columns: repeat(2, 1fr); }
+  grid-template-columns: 1fr 1fr;
 }
 .sf-city-stat {
+  padding: 14px 16px;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
-  background: #fff;
-  border-radius: 8px;
-  padding: 8px 4px;
+  gap: 3px;
+}
+.sf-city-stat:nth-child(1), .sf-city-stat:nth-child(3) {
+  border-right: 1px solid rgba(0,0,0,.07);
+}
+.sf-city-stat:nth-child(1), .sf-city-stat:nth-child(2) {
+  border-bottom: 1px solid rgba(0,0,0,.07);
 }
 .sf-city-stat-val {
-  font-size: 13px;
-  font-weight: 700;
+  font-size: 16px;
+  font-weight: 800;
   color: var(--blue);
+  letter-spacing: -.02em;
 }
 .sf-city-stat-lbl {
-  font-size: 10px;
+  font-size: 11px;
   color: var(--muted);
-  margin-top: 2px;
+  font-weight: 500;
 }
 .sf-city-card-comment {
+  padding: 12px 16px;
   font-size: 12px;
-  line-height: 1.55;
+  line-height: 1.65;
   color: var(--muted);
-  margin: 0;
   font-style: italic;
+  margin: 0;
+  background: #f8fafc;
+  border-top: 1px solid rgba(0,0,0,.05);
 }
 
 /* ─── fv2-insight-warn (new variant) ─────────────────────── */

@@ -90,6 +90,14 @@ function HeroSection() {
   const animPctBuy     = useAnimatedValue(pctBuy);
   const animPctRent    = useAnimatedValue(pctRent);
 
+  /* Simulations counter — counts up from 0 on mount */
+  const [simCount, setSimCount] = useState(0);
+  const animSimCount = useAnimatedValue(simCount, 1800);
+  useEffect(() => {
+    const t = setTimeout(() => setSimCount(12847), 350);
+    return () => clearTimeout(t);
+  }, []);
+
   const launchCity = () => {
     try {
       sessionStorage.setItem("fv2_preset", JSON.stringify({
@@ -105,6 +113,7 @@ function HeroSection() {
   return (
     <section className="lph-hero">
       <div className="lph-hero-glow" aria-hidden="true" />
+      <div className="lph-hero-glow2" aria-hidden="true" />
       <div className="lph-container lph-hero-inner">
 
         {/* ── Texte gauche ── */}
@@ -134,6 +143,13 @@ function HeroSection() {
             <Link to="/simulateurs" className="lph-btn-ghost">
               Explorer les outils
             </Link>
+          </div>
+
+          {/* Simulations counter */}
+          <div className="lph-counter-bar">
+            <span className="lph-counter-dot" aria-hidden="true" />
+            <span className="lph-counter-num">{animSimCount.toLocaleString("fr-FR")}</span>
+            <span className="lph-counter-txt">simulations réalisées ce mois</span>
           </div>
 
           <div className="lph-check-badges">
