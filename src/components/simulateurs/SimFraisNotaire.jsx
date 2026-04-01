@@ -1,11 +1,15 @@
 import { useMemo, useState } from "react";
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts";
-import Field from "../Field";
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import { formatCurrency } from "../../utils/finance";
+import SimCrossSell from "./SimCrossSell";
 
-/** Calcul des émoluments proportionnels du notaire (barème 2026, hors TVA) */
+const fmt = (v) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k €` : `${v} €`);
+
+const PRIX_PILLS = [100000, 150000, 200000, 250000, 300000, 400000, 500000];
+const DONUT_COLORS = ["#1a56db", "#06b6d4", "#10b981", "#f59e0b"];
+
 function calcEmolumentsHT(prix) {
   const tranches = [
     { max: 6500,     rate: 0.03945 },
@@ -13,246 +17,245 @@ function calcEmolumentsHT(prix) {
     { max: 60000,    rate: 0.01085 },
     { max: Infinity, rate: 0.00814 },
   ];
-  let emol = 0;
-  let prev = 0;
+  let emol = 0, prev = 0;
   for (const t of tranches) {
-    const slice = Math.min(Math.max(0, prix - prev), t.max === Infinity ? prix - prev : t.max - prev);
+    const slice = Math.min(
+      Math.max(0, prix - prev),
+      t.max === Infinity ? prix - prev : t.max - prev
+    );
     emol += slice * t.rate;
     prev = t.max;
     if (prev >= prix) break;
   }
-  return Math.max(90, emol); // minimum légal 90 €
+  return Math.max(90, emol);
 }
 
-function calcFraisNotaire({ prix, type, region, deboursCustom }) {
+function calcFrais(prix, type) {
   const isNeuf = type === "neuf";
-
-  // Taux droits de mutation selon région
-  const taux_dmto_ancien = region === "idf_plein" ? 0.0591
-    : region === "reduit" ? 0.0380
-    : 0.0581; // standard
-  const droitsMutation = prix * (isNeuf ? 0.00715 : taux_dmto_ancien);
-
-  // Émoluments du notaire (TTC avec TVA 20%)
+  const taux_dmto = isNeuf ? 0.00715 : 0.0581;
+  const droitsMutation = prix * taux_dmto;
   const emolumentsHT = calcEmolumentsHT(prix);
   const emolumentsTTC = emolumentsHT * 1.2;
-
-  // Contribution de sécurité immobilière (CSI)
   const csi = Math.max(15, prix * 0.001);
-
-  // Débours et frais divers (relevés cadastraux, documents d'état civil, etc.)
-  const debours = deboursCustom ?? 1200;
-
+  const debours = 1200;
   const total = droitsMutation + emolumentsTTC + csi + debours;
   const pct = (total / prix) * 100;
-
-  return { droitsMutation, emolumentsHT, emolumentsTTC, csi, debours, total, pct, taux_dmto: isNeuf ? 0.00715 : taux_dmto_ancien };
-}
-
-const COULEURS = ["#2563eb", "#06b6d4", "#d97706", "#94a3b8"];
-
-function ChartTooltip({ active, payload }) {
-  if (!active || !payload?.length) return null;
-  const p = payload[0];
-  return (
-    <div className="chart-tooltip">
-      <div className="chart-tooltip-row">
-        <span style={{ color: p.payload.fill }}>{p.name}</span>
-        <span>{new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(p.value)}</span>
-      </div>
-    </div>
-  );
+  const fraisNeuf = prix * 0.00715 + emolumentsTTC + csi + debours;
+  return { droitsMutation, emolumentsTTC, csi, debours, total, pct, fraisNeuf };
 }
 
 export default function SimFraisNotaire() {
-  const [v, setV] = useState({ prix: 250000, type: "ancien", region: "standard", deboursCustom: 1200 });
-  const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+  const [prix, setPrix] = useState(250000);
+  const [type, setType] = useState("ancien");
+  const [primoAccedant, setPrimoAccedant] = useState(false);
 
-  const res = useMemo(() => calcFraisNotaire(v), [v]);
+  const frais = useMemo(() => calcFrais(prix, type), [prix, type]);
 
-  const pieData = [
-    { name: "Droits de mutation", value: Math.round(res.droitsMutation), fill: "#2563eb" },
-    { name: "Émoluments notaire (TTC)", value: Math.round(res.emolumentsTTC), fill: "#06b6d4" },
-    { name: "Déb. & frais divers", value: Math.round(res.debours), fill: "#d97706" },
-    { name: "C.S.I.", value: Math.round(res.csi), fill: "#94a3b8" },
+  const lineItems = [
+    { label: "Droits d'enregistrement", amount: frais.droitsMutation, color: DONUT_COLORS[0] },
+    { label: "Émoluments du notaire TTC", amount: frais.emolumentsTTC, color: DONUT_COLORS[1] },
+    { label: "Contribution sécurité immobilière", amount: frais.csi, color: DONUT_COLORS[2] },
+    { label: "Débours & frais divers", amount: frais.debours, color: DONUT_COLORS[3] },
   ];
 
-  const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
-  const fmtPct = (v) => `${v.toFixed(2)} %`;
+  const donutData = lineItems.map((item) => ({ name: item.label, value: Math.round(item.amount) }));
 
-  const details = [
-    {
-      label: "Droits de mutation (DMTO)",
-      value: res.droitsMutation,
-      pct: (res.droitsMutation / res.total) * 100,
-      color: "#2563eb",
-      explain: v.type === "ancien"
-        ? `${(res.taux_dmto * 100).toFixed(2)} % du prix — principal poste des frais. Perçu par le Département (4,50 %) et la Commune (1,20 % maximum).`
-        : "0,715 % seulement pour un bien neuf en VEFA — c'est l'un des avantages du neuf.",
-    },
-    {
-      label: "Émoluments du notaire (TTC)",
-      value: res.emolumentsTTC,
-      pct: (res.emolumentsTTC / res.total) * 100,
-      color: "#06b6d4",
-      explain: `Barème proportionnel légal (${fmtPct((res.emolumentsHT / v.prix) * 100)} HT) + TVA 20 %. Ce montant est identique quel que soit le notaire.`,
-    },
-    {
-      label: "Débours et frais divers",
-      value: res.debours,
-      pct: (res.debours / res.total) * 100,
-      color: "#d97706",
-      explain: "Frais avancés par le notaire : documents d'urbanisme, extrait cadastral, état civil, relevés hypothécaires… (environ 1 000–1 400 €).",
-    },
-    {
-      label: "Contribution sécurité immobilière",
-      value: res.csi,
-      pct: (res.csi / res.total) * 100,
-      color: "#94a3b8",
-      explain: "0,10 % du prix de vente (minimum 15 €) — publication du titre de propriété au Service de Publicité Foncière.",
-    },
-  ];
+  const fraisAncien = calcFrais(prix, "ancien");
+  const fraisNeufVal = calcFrais(prix, "neuf");
+  const economie = fraisAncien.total - fraisNeufVal.total;
 
   return (
     <SimLayout
       icon="📋"
-      title="Calculateur de frais de notaire"
-      description="Calculez les frais de notaire au centime près selon le barème légal 2026, pour un achat dans l'ancien ou le neuf."
-      simTime="1 min"
-      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
+      title="Calculez exactement vos frais de notaire"
+      description="Le vrai coût de votre achat, frais inclus"
+      suggestions={[
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/endettement",
+        "/simulateurs/ptz",
+        "/simulateurs/plus-value",
+        "/simulateurs/budget-maximum",
+        "/simulateurs/score-acheteur",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre achat",
-            icon: "📋",
-            content: (
-              <div className="step-fields">
-                <div className="field-full">
-                  <Field label="Prix d'achat net vendeur" value={v.prix} onChange={set("prix")} suffix="€"
-                    hint="Prix mentionné dans le compromis de vente, hors mobilier" tooltip="Prix mentionné dans le compromis de vente, hors frais de notaire et hors mobilier. Si vous achetez dans le neuf, choisissez le type 'Neuf' pour des frais réduits (~2–3 %)." />
-                </div>
+      <div className="sv2-container">
 
-                <div className="field-full" style={{ marginTop: 16 }}>
-                  <label className="field-label">Type de bien</label>
-                  <div className="loan-type-grid" style={{ marginTop: 8 }}>
-                    <button type="button" className={`loan-type-btn${v.type === "ancien" ? " loan-type-active" : ""}`} onClick={() => set("type")("ancien")}>
-                      <span>🏘️</span><span>Ancien</span>
-                    </button>
-                    <button type="button" className={`loan-type-btn${v.type === "neuf" ? " loan-type-active" : ""}`} onClick={() => set("type")("neuf")}>
-                      <span>🏗️</span><span>Neuf / VEFA</span>
-                    </button>
-                  </div>
-                  <p className="field-hint" style={{ marginTop: 8 }}>
-                    {v.type === "ancien"
-                      ? "Bien existant construit depuis + de 5 ans — droits de mutation élevés (5,81 %)"
-                      : "Construction neuve ou VEFA — droits de mutation réduits (0,715 %)"}
-                  </p>
-                </div>
+        {/* ── Inputs card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
 
-                {v.type === "ancien" && (
-                  <div className="field-full" style={{ marginTop: 16 }}>
-                    <label className="field-label">Taux de droits de mutation</label>
-                    <div className="loan-type-grid" style={{ marginTop: 8, gridTemplateColumns: "repeat(3, 1fr)" }}>
-                      <button type="button" className={`loan-type-btn${v.region === "standard" ? " loan-type-active" : ""}`}
-                        onClick={() => set("region")("standard")} style={{ flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontWeight: 700 }}>5,81 %</span>
-                        <span style={{ fontSize: 11 }}>Majorité</span>
-                      </button>
-                      <button type="button" className={`loan-type-btn${v.region === "idf_plein" ? " loan-type-active" : ""}`}
-                        onClick={() => set("region")("idf_plein")} style={{ flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontWeight: 700 }}>5,91 %</span>
-                        <span style={{ fontSize: 11 }}>Certaines villes</span>
-                      </button>
-                      <button type="button" className={`loan-type-btn${v.region === "reduit" ? " loan-type-active" : ""}`}
-                        onClick={() => set("region")("reduit")} style={{ flexDirection: "column", gap: 2 }}>
-                        <span style={{ fontWeight: 700 }}>3,80 %</span>
-                        <span style={{ fontSize: 11 }}>Indre (36)</span>
-                      </button>
-                    </div>
-                    <p className="field-hint" style={{ marginTop: 6 }}>
-                      {v.region === "standard" ? "Taux standard appliqué dans la grande majorité des départements français."
-                        : v.region === "idf_plein" ? "Certaines communes ont voté la majoration communale de 0,1 % (applicable surtout en Île-de-France)."
-                        : "L'Indre (36) et Mayotte maintiennent un taux réduit de 3,80 %."}
-                    </p>
-                  </div>
-                )}
-
-                <div className="field-full" style={{ marginTop: 16 }}>
-                  <Field label="Débours estimés" value={v.deboursCustom} onChange={set("deboursCustom")} suffix="€"
-                    hint="Frais avancés par le notaire (cadastre, état civil, docs). Généralement 800–1 400 €." tooltip="Les débours couvrent les frais que le notaire avance pour votre compte : extraits cadastraux, état civil, relevés hypothécaires, documents d'urbanisme. Varie entre 800 et 1 400 €." />
-                </div>
-
-                <div className="field-full">
-                  <div className="sim-info-box" style={{ marginTop: 20 }}>
-                    <p className="sim-info-title">💡 Astuce négociation</p>
-                    <p className="sim-info-body">Les frais de notaire se calculent sur le prix net vendeur. Séparer la valeur des meubles (cuisine équipée, garde-robe…) du prix du bien peut légalement réduire l'assiette de calcul.</p>
-                  </div>
-                </div>
-              </div>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            <div className="sim-stat-hero">
-              <span className="sim-stat-label">Total frais de notaire estimés</span>
-              <span className="sim-stat-value">
-                {formatCurrency(res.total)}
-              </span>
-              <span className="sim-stat-sub">{fmtPct(res.pct)} du prix d'achat</span>
+          {/* Prix du bien */}
+          <div className="fv2-revenus-wrap" style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Prix du bien</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={prix || ""} min={10000} max={5000000} step={5000}
+                placeholder="250 000"
+                onChange={(e) => setPrix(Math.max(0, Math.min(5000000, Number(e.target.value) || 0)))}
+              />
+              <span className="fv2-revenus-unit">€</span>
             </div>
-
-            <div className="sim-stats-grid">
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Prix d'achat</span>
-                <span className="sim-stat-card-value">{formatCurrency(v.prix)}</span>
-              </div>
-              <div className="sim-stat-card sim-stat-card-blue">
-                <span className="sim-stat-card-label">Frais de notaire</span>
-                <span className="sim-stat-card-value">{formatCurrency(res.total)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Budget total</span>
-                <span className="sim-stat-card-value">{formatCurrency(v.prix + res.total)}</span>
-              </div>
-              <div className="sim-stat-card">
-                <span className="sim-stat-card-label">Taux global</span>
-                <span className="sim-stat-card-value">{fmtPct(res.pct)}</span>
-              </div>
-            </div>
-
-            <div className="sim-chart-wrap">
-              <p className="sim-chart-title">Répartition des frais de notaire</p>
-              <ResponsiveContainer width="100%" height={180}>
-                <PieChart>
-                  <Pie data={pieData} cx="50%" cy="50%" innerRadius={45} outerRadius={72} paddingAngle={2} dataKey="value">
-                    {pieData.map((e, i) => <Cell key={i} fill={e.fill}/>)}
-                  </Pie>
-                  <Tooltip content={<ChartTooltip />}/>
-                  <Legend iconType="circle" iconSize={9} wrapperStyle={{ fontSize: 11, paddingTop: 8 }} formatter={(v) => <span style={{ color: "#64748b" }}>{v}</span>}/>
-                </PieChart>
-              </ResponsiveContainer>
-            </div>
-
-            <div className="notaire-details">
-              <p className="sim-bar-label" style={{ marginBottom: 12 }}>Détail par poste</p>
-              {details.map((d) => (
-                <div key={d.label} className="notaire-detail-row">
-                  <div className="notaire-detail-header">
-                    <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                      <span className="sim-donut-dot" style={{ background: d.color, flexShrink: 0 }} />
-                      <strong className="notaire-detail-label">{d.label}</strong>
-                    </div>
-                    <span className="notaire-detail-value">{fmtCur(d.value)}</span>
-                  </div>
-                  <p className="notaire-detail-explain">{d.explain}</p>
-                </div>
+            <div className="fv2-revenus-pills">
+              {PRIX_PILLS.map((p) => (
+                <button key={p} type="button" className={`fv2-revenus-pill${prix === p ? " active" : ""}`} onClick={() => setPrix(p)}>
+                  {fmtK(p)}
+                </button>
               ))}
             </div>
           </div>
-        }
-      />
+
+          {/* Type du bien */}
+          <p className="fv2-field-label" style={{ marginBottom: 10 }}>Type du bien</p>
+          <div className="fv2-choices-row" style={{ marginBottom: 8 }}>
+            <button
+              type="button"
+              className={`fv2-choice${type === "ancien" ? " fv2-choice-active" : ""}`}
+              onClick={() => setType("ancien")}
+            >
+              <span className="fv2-choice-body">
+                <span className="fv2-choice-label">🏚️ Dans l'ancien</span>
+                <span className="fv2-choice-sub">Frais 7-8 % du prix</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`fv2-choice${type === "neuf" ? " fv2-choice-active" : ""}`}
+              onClick={() => setType("neuf")}
+            >
+              <span className="fv2-choice-body">
+                <span className="fv2-choice-label">🏗️ Dans le neuf</span>
+                <span className="fv2-choice-sub">Frais réduits ~3 %</span>
+              </span>
+            </button>
+          </div>
+          <p className="fv2-hint" style={{ marginBottom: 20 }}>
+            {type === "ancien"
+              ? "Dans l'ancien, les droits de mutation sont élevés (~5,8 %). Ils financent les collectivités locales."
+              : "Dans le neuf (VEFA), les droits de mutation sont réduits à 0,715 % — soit environ 5 % d'économies."}
+          </p>
+
+          {/* Primo-accédant */}
+          <div
+            style={{ display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", background: "#f8fafc", borderRadius: 12, cursor: "pointer" }}
+            onClick={() => setPrimoAccedant(!primoAccedant)}
+          >
+            <div style={{
+              width: 22, height: 22, borderRadius: 6, border: `2px solid ${primoAccedant ? "#059669" : "#d1dae8"}`,
+              background: primoAccedant ? "#059669" : "#fff",
+              display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0
+            }}>
+              {primoAccedant && (
+                <svg width="13" height="13" viewBox="0 0 13 13" fill="none">
+                  <path d="M2 6.5L5 9.5l6-6" stroke="white" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              )}
+            </div>
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: "#334155" }}>Primo-accédant</div>
+              <div style={{ fontSize: 12, color: "#64748b" }}>Les primo-accédants bénéficient de certains avantages selon les communes</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── Results card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Big verdict */}
+          <div className="sv2-verdict sv2-verdict-amber" style={{ marginBottom: 20 }}>
+            <div className="sv2-verdict-label">En plus du prix affiché, prévoyez</div>
+            <div className="sv2-verdict-amount">{fmt(Math.round(frais.total))}</div>
+            <div className="sv2-verdict-sub">soit {frais.pct.toFixed(1)} % du prix — Prix total : {fmt(Math.round(prix + frais.total))}</div>
+          </div>
+
+          {/* Line-by-line breakdown */}
+          <div className="sv2-line-items">
+            {lineItems.map((item) => {
+              const pct = frais.total > 0 ? (item.amount / frais.total) * 100 : 0;
+              return (
+                <div key={item.label} className="sv2-line-item">
+                  <div className="sv2-line-item-row">
+                    <span className="sv2-line-item-label">{item.label}</span>
+                    <span className="sv2-line-item-amount">{fmt(Math.round(item.amount))}</span>
+                  </div>
+                  <div className="sv2-line-bar-track">
+                    <div className="sv2-line-bar-fill" style={{ width: `${pct}%`, background: item.color }}/>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Donut chart */}
+          <div style={{ height: 220, marginBottom: 20 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={donutData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={65}
+                  outerRadius={90}
+                  dataKey="value"
+                  paddingAngle={2}
+                >
+                  {donutData.map((entry, i) => (
+                    <Cell key={i} fill={DONUT_COLORS[i % DONUT_COLORS.length]}/>
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(v) => [fmt(v)]}
+                  contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,.1)", fontSize: 12 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Comparison table ancien vs neuf */}
+          <table className="sv2-compare-table">
+            <thead>
+              <tr>
+                <th></th>
+                <th>Ancien</th>
+                <th>Neuf</th>
+                <th>Économie</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Taux de frais</td>
+                <td className="emphasis">~{fraisAncien.pct.toFixed(1)} %</td>
+                <td className="emphasis">~{fraisNeufVal.pct.toFixed(1)} %</td>
+                <td className="good">~{(fraisAncien.pct - fraisNeufVal.pct).toFixed(1)} %</td>
+              </tr>
+              <tr>
+                <td>Sur votre prix</td>
+                <td>{fmt(Math.round(fraisAncien.total))}</td>
+                <td>{fmt(Math.round(fraisNeufVal.total))}</td>
+                <td className="good">{fmt(Math.round(economie))}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Insights */}
+          <div className="sv2-insight">
+            Pour un bien à <strong>{fmt(prix)}</strong> dans l'ancien, le prix réel tout compris est de{" "}
+            <strong>{fmt(Math.round(prix + fraisAncien.total))}</strong>.
+          </div>
+
+          {type === "ancien" && economie > 0 && (
+            <div className="sv2-insight" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", color: "#15803d" }}>
+              💡 Acheter dans le neuf vous ferait économiser <strong>{fmt(Math.round(economie))}</strong> de frais de notaire.
+            </div>
+          )}
+        </div>
+
+        <SimCrossSell
+          show={prix > 0}
+          loan={Math.max(0, prix - 40000)}
+          taux={3.5}
+          dureeCredit={20}
+        />
+      </div>
     </SimLayout>
   );
 }

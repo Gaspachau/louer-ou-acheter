@@ -1,238 +1,351 @@
 import { useMemo, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import Field from "../Field";
+import SimCrossSell from "./SimCrossSell";
 
-const fmtCur = (v) =>
+const fmt = (v) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k €` : `${v} €`);
 
-// PTZ 2026 — règles simplifiées
+function mortgage(p, r, y) {
+  if (p <= 0 || y <= 0) return 0;
+  const mr = r / 100 / 12;
+  if (mr === 0) return p / (y * 12);
+  return (p * mr) / (1 - Math.pow(1 + mr, -(y * 12)));
+}
+
 const ZONES = {
-  A: {
-    label: "Zone A / Abis (Paris, Côte d'Azur, Genève…)",
+  "A bis": {
+    plafonds: [37000, 51800, 62900, 74000, 85100],
+    ptzPct: 0.50,
+    ptzMax: [150000, 210000, 255000, 300000, 345000],
+    label: "Zone A bis", desc: "Paris, Côte d'Azur",
+  },
+  "A": {
     plafonds: [37000, 51800, 62900, 74000, 85100],
     ptzPct: 0.40,
     ptzMax: [150000, 210000, 255000, 300000, 345000],
+    label: "Zone A", desc: "Île-de-France, Lyon, Marseille…",
   },
-  B1: {
-    label: "Zone B1 (grandes agglomérations, Île-de-France hors A…)",
+  "B1": {
     plafonds: [30000, 42000, 51000, 60000, 69000],
     ptzPct: 0.40,
     ptzMax: [135000, 189000, 230000, 270000, 310500],
+    label: "Zone B1", desc: "Grandes agglomérations",
   },
-  B2: {
-    label: "Zone B2 / C (villes moyennes, zones rurales)",
+  "B2": {
     plafonds: [27000, 37800, 45900, 54000, 62100],
     ptzPct: 0.20,
     ptzMax: [110000, 154000, 187000, 220000, 253000],
+    label: "Zone B2", desc: "Villes moyennes",
+  },
+  "C": {
+    plafonds: [24000, 33600, 40800, 48000, 55200],
+    ptzPct: 0.20,
+    ptzMax: [100000, 140000, 170000, 200000, 230000],
+    label: "Zone C", desc: "Zones rurales",
   },
 };
 
-function calcMensualite(capital, taux, dureeAns) {
-  if (capital <= 0 || dureeAns <= 0) return 0;
-  const r = taux / 100 / 12;
-  const n = dureeAns * 12;
-  return r === 0 ? capital / n : (capital * r) / (1 - Math.pow(1 + r, -n));
-}
-
-const CONSEILS_PTZ = [
-  "Le PTZ ne peut financer que la résidence principale — pas un investissement locatif.",
-  "Dans le neuf, le PTZ peut couvrir jusqu'à 40 % du prix en zone A/B1.",
-  "Le PTZ est sans intérêt ET avec un différé de remboursement selon vos revenus.",
-  "Depuis 2024, le PTZ ancien est réservé aux zones B2/C pour des biens rénovés.",
-  "Combinez PTZ + prêt classique + apport pour optimiser votre plan de financement.",
+const FAMILLE_OPTIONS = [
+  { label: "Seul", nb: 1 },
+  { label: "En couple", nb: 2 },
+  { label: "Famille 1 enfant", nb: 3 },
+  { label: "Famille 2 enfants", nb: 4 },
+  { label: "Famille 3 enfants+", nb: 5 },
 ];
 
+const REVENUS_PILLS = [20000, 30000, 40000, 50000, 60000, 80000];
+const PRIX_PILLS = [150000, 200000, 250000, 300000, 400000];
+
 export default function SimPTZ() {
+  const [nbPersonnes, setNbPersonnes] = useState(1);
+  const [revenus, setRevenus] = useState(42000);
   const [zone, setZone] = useState("B1");
   const [typeBien, setTypeBien] = useState("neuf");
-  const [nbPersonnes, setNbPersonnes] = useState(2);
-  const [revenus, setRevenus] = useState(42000);
-  const [prixAchat, setPrixAchat] = useState(220000);
+  const [prix, setPrix] = useState(220000);
   const [tauxCredit, setTauxCredit] = useState(3.5);
   const [dureeCredit, setDureeCredit] = useState(20);
 
-  const res = useMemo(() => {
-    const z = ZONES[zone];
-    const nIdx = Math.min(nbPersonnes - 1, 4);
-    const plafond = z.plafonds[nIdx];
-    const eligible = revenus <= plafond && (typeBien === "neuf" || zone === "B2");
+  const tauxPct = Math.min(100, ((tauxCredit - 1) / 6) * 100);
 
-    if (!eligible) return { eligible: false, plafond };
+  const result = useMemo(() => {
+    const zoneData = ZONES[zone];
+    const idx = Math.min(nbPersonnes - 1, 4);
+    const plafond = zoneData.plafonds[idx];
+    const maxPTZ = zoneData.ptzMax[idx];
 
-    const montantPTZ = Math.min(prixAchat * z.ptzPct, z.ptzMax[nIdx]);
-    const capitalSansPTZ = Math.max(0, prixAchat * 1.08 - montantPTZ);
+    // Éligibilité
+    if (revenus > plafond) {
+      return {
+        eligible: false,
+        reason: `Vos revenus fiscaux (${fmt(revenus)}) dépassent le plafond ${zoneData.label} pour ${nbPersonnes} personne${nbPersonnes > 1 ? "s" : ""} (${fmt(plafond)}).`,
+        montantPTZ: 0,
+      };
+    }
 
-    // Durée PTZ dépend du ratio revenus/plafond
-    const ratio = revenus / plafond;
-    const dureePTZ = ratio <= 0.4 ? 20 : ratio <= 0.7 ? 22 : 25;
-    const differePTZ = ratio <= 0.4 ? 5 : ratio <= 0.7 ? 4 : 3;
+    if (typeBien === "ancien" && (zone !== "B2" && zone !== "C")) {
+      return {
+        eligible: false,
+        reason: "L'ancien avec travaux n'est éligible au PTZ qu'en zones B2 et C.",
+        montantPTZ: 0,
+      };
+    }
 
-    const mensSansPTZ = calcMensualite(prixAchat * 1.08, tauxCredit, dureeCredit);
-    const mensAvecPTZ = calcMensualite(capitalSansPTZ, tauxCredit, dureeCredit);
-    const economiesMensuelles = mensSansPTZ - mensAvecPTZ;
-    const economiesInterets = economiesMensuelles * dureeCredit * 12;
+    // Montant PTZ
+    const montantPTZ = Math.min(prix * zoneData.ptzPct, maxPTZ);
+
+    // Durée et différé PTZ (simplifiés 2026)
+    const dureePTZ = revenus <= plafond * 0.5 ? 25 : revenus <= plafond * 0.7 ? 22 : 20;
+    const differe = revenus <= plafond * 0.5 ? 15 : revenus <= plafond * 0.7 ? 10 : 5;
+    const dureePTZRemb = dureePTZ - differe;
+    const mensualitePTZ = montantPTZ / (dureePTZRemb * 12);
+
+    // Crédit classique sur le reste
+    const creditClassique = Math.max(0, prix - montantPTZ);
+    const mensualiteClassique = mortgage(creditClassique, tauxCredit, dureeCredit);
+    const mensualiteTotale = mensualitePTZ + mensualiteClassique;
+
+    // Coût total sans PTZ
+    const mensualiteSansPTZ = mortgage(prix, tauxCredit, dureeCredit);
+    const coutSansPTZ = mensualiteSansPTZ * dureeCredit * 12;
+    const coutAvecPTZ =
+      mensualiteClassique * dureeCredit * 12 +
+      mensualitePTZ * dureePTZRemb * 12;
+    const economie = coutSansPTZ - coutAvecPTZ;
 
     return {
       eligible: true,
-      plafond,
-      montantPTZ,
+      montantPTZ: Math.round(montantPTZ),
       dureePTZ,
-      differePTZ,
-      mensSansPTZ,
-      mensAvecPTZ,
-      economiesMensuelles,
-      economiesInterets,
-      ratioPTZ: (montantPTZ / prixAchat) * 100,
+      differe,
+      dureePTZRemb,
+      mensualitePTZ: Math.round(mensualitePTZ),
+      creditClassique: Math.round(creditClassique),
+      mensualiteClassique: Math.round(mensualiteClassique),
+      mensualiteTotale: Math.round(mensualiteTotale),
+      mensualiteSansPTZ: Math.round(mensualiteSansPTZ),
+      coutSansPTZ: Math.round(coutSansPTZ),
+      coutAvecPTZ: Math.round(coutAvecPTZ),
+      economie: Math.round(economie),
+      plafond,
     };
-  }, [zone, typeBien, nbPersonnes, revenus, prixAchat, tauxCredit, dureeCredit]);
+  }, [nbPersonnes, revenus, zone, typeBien, prix, tauxCredit, dureeCredit]);
+
+  const chartData = result.eligible ? [
+    { name: "Sans PTZ", cout: result.coutSansPTZ, fill: "#94a3b8" },
+    { name: "Avec PTZ", cout: result.coutAvecPTZ, fill: "#1a56db" },
+  ] : [];
 
   return (
     <SimLayout
-      icon="🏗️"
-      title="PTZ 2026 — Êtes-vous éligible ?"
-      description="Calculez votre droit au Prêt à Taux Zéro 2026, le montant obtenu et l'économie réalisée sur votre crédit."
-      conseils={CONSEILS_PTZ}
-      suggestions={["/simulateurs/pret-immobilier", "/simulateurs/endettement", "/simulateurs/budget-maximum"]}
+      icon="🏠"
+      title="Êtes-vous éligible au Prêt à Taux Zéro 2026 ?"
+      description="Vérifiez votre éligibilité et calculez le montant de votre aide"
+      suggestions={[
+        "/simulateurs/pret-immobilier",
+        "/simulateurs/endettement",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/score-acheteur",
+        "/simulateurs/budget-maximum",
+        "/simulateurs/stress-test",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre situation",
-            icon: "👤",
-            content: (
-              <>
-                <div className="field-wrap">
-                  <label className="field-label">Zone géographique</label>
-                  <select className="field-select" value={zone} onChange={(e) => setZone(e.target.value)}>
-                    {Object.entries(ZONES).map(([k, z]) => (
-                      <option key={k} value={k}>{z.label}</option>
-                    ))}
-                  </select>
+      <div className="sv2-container">
+
+        {/* ── Inputs card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Situation familiale */}
+          <p className="fv2-field-label" style={{ marginBottom: 10 }}>Situation familiale</p>
+          <div className="sv2-famille-pills" style={{ marginBottom: 24 }}>
+            {FAMILLE_OPTIONS.map((opt) => (
+              <button
+                key={opt.nb} type="button"
+                className={`sv2-famille-pill${nbPersonnes === opt.nb ? " active" : ""}`}
+                onClick={() => setNbPersonnes(opt.nb)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+
+          {/* Revenus fiscaux */}
+          <div className="fv2-revenus-wrap" style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Revenus fiscaux de référence (N-2)</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={revenus || ""} min={0} max={500000} step={1000}
+                placeholder="42 000"
+                onChange={(e) => setRevenus(Math.max(0, Math.min(500000, Number(e.target.value) || 0)))}
+              />
+              <span className="fv2-revenus-unit">€ / an</span>
+            </div>
+            <div className="fv2-revenus-pills">
+              {REVENUS_PILLS.map((p) => (
+                <button key={p} type="button" className={`fv2-revenus-pill${revenus === p ? " active" : ""}`} onClick={() => setRevenus(p)}>
+                  {fmtK(p)}
+                </button>
+              ))}
+            </div>
+            <p className="fv2-hint">Revenus fiscaux de référence (N-2) de votre foyer</p>
+          </div>
+
+          {/* Zone géographique */}
+          <p className="fv2-field-label" style={{ marginBottom: 10 }}>Zone géographique</p>
+          <div className="sv2-zone-pills" style={{ marginBottom: 24 }}>
+            {Object.entries(ZONES).map(([key, z]) => (
+              <button
+                key={key} type="button"
+                className={`sv2-zone-pill${zone === key ? " active" : ""}`}
+                onClick={() => setZone(key)}
+              >
+                <span className="sv2-zone-pill-name">{z.label}</span>
+                <span className="sv2-zone-pill-desc">{z.desc}</span>
+              </button>
+            ))}
+          </div>
+
+          {/* Type de bien */}
+          <p className="fv2-field-label" style={{ marginBottom: 10 }}>Type de bien</p>
+          <div className="fv2-choices-row" style={{ marginBottom: 24 }}>
+            <button
+              type="button"
+              className={`fv2-choice${typeBien === "neuf" ? " fv2-choice-active" : ""}`}
+              onClick={() => setTypeBien("neuf")}
+            >
+              <span className="fv2-choice-body">
+                <span className="fv2-choice-label">🏗️ Neuf</span>
+                <span className="fv2-choice-sub">Construction neuve, VEFA</span>
+              </span>
+            </button>
+            <button
+              type="button"
+              className={`fv2-choice${typeBien === "ancien" ? " fv2-choice-active" : ""}`}
+              onClick={() => setTypeBien("ancien")}
+            >
+              <span className="fv2-choice-body">
+                <span className="fv2-choice-label">🏚️ Ancien avec travaux</span>
+                <span className="fv2-choice-sub">Rénovation en zone B2/C uniquement</span>
+              </span>
+            </button>
+          </div>
+
+          {/* Prix du bien */}
+          <div className="fv2-revenus-wrap" style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Prix du bien</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={prix || ""} min={50000} max={2000000} step={5000}
+                placeholder="220 000"
+                onChange={(e) => setPrix(Math.max(0, Math.min(2000000, Number(e.target.value) || 0)))}
+              />
+              <span className="fv2-revenus-unit">€</span>
+            </div>
+            <div className="fv2-revenus-pills">
+              {PRIX_PILLS.map((p) => (
+                <button key={p} type="button" className={`fv2-revenus-pill${prix === p ? " active" : ""}`} onClick={() => setPrix(p)}>
+                  {fmtK(p)}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Taux crédit classique */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <p className="fv2-field-label" style={{ margin: 0 }}>Taux du crédit classique</p>
+              <span style={{ fontSize: 20, fontWeight: 900, color: "#0c1a35" }}>{tauxCredit.toFixed(1)} %</span>
+            </div>
+            <div className="fv2-slider-track-wrap" style={{ "--pct": `${tauxPct}%` }}>
+              <input type="range" className="fv2-slider" min={1} max={7} step={0.1} value={tauxCredit}
+                onChange={(e) => setTauxCredit(Number(e.target.value))}/>
+              <div className="fv2-slider-fill" style={{ width: `${tauxPct}%` }}/>
+            </div>
+            <div className="fv2-slider-minmax"><span>1 %</span><span>7 %</span></div>
+          </div>
+        </div>
+
+        {/* ── Results card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Verdict */}
+          {!result.eligible ? (
+            <div className="sv2-verdict sv2-verdict-amber" style={{ marginBottom: 20 }}>
+              <div className="sv2-verdict-label">⚠️ Non éligible au PTZ</div>
+              <div style={{ fontSize: 14, opacity: 0.85, marginTop: 8 }}>{result.reason}</div>
+            </div>
+          ) : (
+            <>
+              <div className="sv2-verdict sv2-verdict-green" style={{ marginBottom: 20 }}>
+                <div className="sv2-verdict-label">✓ Félicitations, vous êtes éligible au PTZ !</div>
+                <div className="sv2-verdict-amount">{fmt(result.montantPTZ)}</div>
+                <div className="sv2-verdict-sub">Montant du PTZ 2026</div>
+              </div>
+
+              {/* Key cards */}
+              <div className="sv2-scenarios" style={{ marginBottom: 20 }}>
+                <div className="sv2-scenario-card highlight">
+                  <div className="sv2-scenario-dur">Montant PTZ</div>
+                  <div className="sv2-scenario-amt" style={{ fontSize: 16 }}>{fmt(result.montantPTZ)}</div>
+                  <div className="sv2-scenario-badge">0 % d'intérêts</div>
                 </div>
-                <Field label="Revenus annuels nets du foyer" value={revenus} onChange={setRevenus} suffix="€" hint="Revenus fiscaux N-2 de tous les co-emprunteurs" tooltip="Revenus nets après impôts de tous les emprunteurs. Incluez salaires, pensions, revenus locatifs stables." />
-                <Field label="Personnes dans le foyer" value={nbPersonnes} onChange={setNbPersonnes} suffix="pers." step={1} min={1} max={6} hint="Emprunteur(s) + personnes à charge" tooltip="Nombre de personnes composant le foyer (emprunteurs + personnes à charge). Détermine le plafond de revenus PTZ applicable." />
-              </>
-            ),
-          },
-          {
-            title: "Le bien",
-            icon: "🏗️",
-            content: (
-              <>
-                <Field label="Prix d'achat" value={prixAchat} onChange={setPrixAchat} suffix="€" tooltip="Prix d'achat hors frais de notaire. Médiane France 2026 : ~250 000 € (source : Notaires de France)." />
-                <div className="field-wrap">
-                  <label className="field-label">Type de bien</label>
-                  <div className="ptz-type-btns">
-                    <button type="button" className={`ptz-type-btn${typeBien === "neuf" ? " active" : ""}`} onClick={() => setTypeBien("neuf")}>
-                      🏗️ Neuf
-                    </button>
-                    <button type="button" className={`ptz-type-btn${typeBien === "ancien" ? " active" : ""}`} onClick={() => setTypeBien("ancien")}>
-                      🏠 Ancien rénové (zone B2/C)
-                    </button>
-                  </div>
+                <div className="sv2-scenario-card">
+                  <div className="sv2-scenario-dur">Différé de paiement</div>
+                  <div className="sv2-scenario-amt" style={{ fontSize: 16 }}>{result.differe} ans</div>
+                  <div style={{ fontSize: 10, color: "#64748b", marginTop: 4 }}>Puis {result.dureePTZRemb} ans</div>
                 </div>
-                <Field label="Taux du crédit classique" value={tauxCredit} onChange={setTauxCredit} suffix="%" step={0.1} tooltip="Taux d'intérêt annuel de votre prêt. Moyenne France 2026 : 3,3–3,7 % sur 20 ans. Comparez les offres avec un courtier." />
-                <Field label="Durée du crédit classique" value={dureeCredit} onChange={setDureeCredit} suffix="ans" step={1} min={10} max={25} tooltip="Nombre d'années de remboursement. Plus c'est long → mensualité basse mais intérêts totaux élevés. Limite légale HCSF : 25 ans (27 ans dans le neuf)." />
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            {res.eligible === false ? (
-              <div className="ptz-ineligible">
-                <div className="ptz-ineligible-icon">❌</div>
-                <h2 className="ptz-ineligible-title">Non éligible au PTZ</h2>
-                <p className="ptz-ineligible-reason">
-                  {revenus > res.plafond
-                    ? `Vos revenus (${fmtCur(revenus)}/an) dépassent le plafond de la zone ${zone} pour ${nbPersonnes} personne(s) : ${fmtCur(res.plafond)}/an.`
-                    : "Le PTZ ancien n'est disponible qu'en zone B2/C pour des logements anciens rénovés. En zone A ou B1, le PTZ est réservé au neuf."}
-                </p>
-                <div className="ptz-tip-box">
-                  <strong>💡 Alternative :</strong> Renseignez-vous sur le prêt Action Logement (1 % patronal) ou le prêt d'accession sociale (PAS) selon votre situation.
+                <div className="sv2-scenario-card">
+                  <div className="sv2-scenario-dur">Mensualité totale</div>
+                  <div className="sv2-scenario-amt" style={{ fontSize: 16 }}>{fmt(result.mensualiteTotale)}/mois</div>
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="ptz-eligible-header">
-                  <span className="ptz-check">✓</span>
-                  <div>
-                    <p className="ptz-eligible-title">Éligible au PTZ 2026</p>
-                    <p className="ptz-eligible-sub">Vos revenus ({fmtCur(revenus)}/an) sont sous le plafond de {fmtCur(res.plafond)}/an</p>
-                  </div>
-                </div>
 
-                <div className="ptz-key-metrics">
-                  <div className="ptz-metric">
-                    <span className="ptz-metric-val" style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ)}</span>
-                    <span className="ptz-metric-label">Montant PTZ estimé</span>
-                    <span className="ptz-metric-sub">{res.ratioPTZ.toFixed(0)} % du prix d'achat</span>
-                  </div>
-                  <div className="ptz-metric">
-                    <span className="ptz-metric-val" style={{ color: "#059669" }}>{fmtCur(res.economiesMensuelles)}/mois</span>
-                    <span className="ptz-metric-label">Économie sur mensualité</span>
-                    <span className="ptz-metric-sub">vs crédit sans PTZ</span>
-                  </div>
-                  <div className="ptz-metric">
-                    <span className="ptz-metric-val" style={{ color: "#7c3aed" }}>{fmtCur(res.economiesInterets)}</span>
-                    <span className="ptz-metric-label">Économie totale</span>
-                    <span className="ptz-metric-sub">sur {dureeCredit} ans</span>
-                  </div>
-                </div>
+              {/* Bar chart comparing costs */}
+              <div style={{ height: 200, marginBottom: 16 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={chartData} barCategoryGap="40%">
+                    <XAxis dataKey="name" tick={{ fontSize: 13, fill: "#64748b" }} axisLine={false} tickLine={false}/>
+                    <YAxis hide/>
+                    <Tooltip
+                      formatter={(v) => [fmt(v), "Coût total"]}
+                      contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,.1)", fontSize: 13 }}
+                    />
+                    <Bar dataKey="cout" radius={[6, 6, 0, 0]}>
+                      {chartData.map((entry, i) => (
+                        <Cell key={i} fill={entry.fill}/>
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
 
-                <div className="ptz-compare-row">
-                  <div className="ptz-compare-item">
-                    <span className="ptz-compare-label">Sans PTZ</span>
-                    <span className="ptz-compare-mens" style={{ color: "var(--muted)" }}>{fmtCur(res.mensSansPTZ)}/mois</span>
-                  </div>
-                  <div className="ptz-compare-arrow">→</div>
-                  <div className="ptz-compare-item">
-                    <span className="ptz-compare-label">Avec PTZ</span>
-                    <span className="ptz-compare-mens" style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ)}/mois</span>
-                  </div>
-                </div>
+              {/* Insight */}
+              <div className="sv2-insight">
+                Grâce au PTZ, votre mensualité totale est de <strong>{fmt(result.mensualiteTotale)}</strong>, soit{" "}
+                <strong>{fmt(result.mensualiteSansPTZ - result.mensualiteTotale)} de moins</strong> par mois pendant{" "}
+                {dureeCredit} ans.
+              </div>
 
-                <div className="ptz-conditions">
-                  <p className="ptz-conditions-title">Conditions du PTZ</p>
-                  <div className="ptz-cond-row"><span>Durée</span><strong>{res.dureePTZ} ans</strong></div>
-                  <div className="ptz-cond-row"><span>Différé de remboursement</span><strong>{res.differePTZ} ans</strong></div>
-                  <div className="ptz-cond-row"><span>Taux</span><strong>0 % (sans intérêts)</strong></div>
-                  <div className="ptz-cond-row"><span>Résidence</span><strong>Principale uniquement</strong></div>
+              {result.economie > 0 && (
+                <div className="sv2-insight" style={{ background: "linear-gradient(135deg,#f0fdf4,#dcfce7)", color: "#15803d" }}>
+                  💰 Économie totale sur la durée du crédit :{" "}
+                  <strong>{fmt(result.economie)}</strong> grâce au PTZ.
                 </div>
+              )}
+            </>
+          )}
+        </div>
 
-                <div className="ptz-schedule-box">
-                  <p className="ptz-conditions-title">Remboursement estimé du PTZ</p>
-                  <div className="ptz-cond-row">
-                    <span>Capital PTZ</span>
-                    <strong>{fmtCur(res.montantPTZ)}</strong>
-                  </div>
-                  <div className="ptz-cond-row">
-                    <span>Différé (pas de remboursement)</span>
-                    <strong>{res.differePTZ} ans</strong>
-                  </div>
-                  <div className="ptz-cond-row">
-                    <span>Durée de remboursement effective</span>
-                    <strong>{res.dureePTZ - res.differePTZ} ans</strong>
-                  </div>
-                  <div className="ptz-cond-row">
-                    <span>Mensualité PTZ après différé</span>
-                    <strong style={{ color: "#2563eb" }}>{fmtCur(res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
-                  </div>
-                  <div className="ptz-cond-row" style={{ borderTop: "1px solid var(--line)", paddingTop: 8, marginTop: 4 }}>
-                    <span>Mensualité totale (crédit + PTZ)</span>
-                    <strong style={{ color: "#059669" }}>{fmtCur(res.mensAvecPTZ + res.montantPTZ / ((res.dureePTZ - res.differePTZ) * 12))}/mois</strong>
-                  </div>
-                </div>
-
-                <p className="sim-detail-note">
-                  Simulation indicative — les montants définitifs dépendent de l'établissement prêteur et de votre avis d'imposition. Consultez un courtier pour une offre ferme.
-                </p>
-              </>
-            )}
-          </div>
-        }
-      />
+        <SimCrossSell
+          show={true}
+          loan={Math.max(0, prix - result.montantPTZ)}
+          taux={tauxCredit}
+          dureeCredit={dureeCredit}
+        />
+      </div>
     </SimLayout>
   );
 }

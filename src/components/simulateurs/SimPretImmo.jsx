@@ -1,280 +1,345 @@
-import { useEffect, useMemo, useState } from "react";
-import { trackResultComputed, trackFieldChanged } from "../../utils/analytics";
+import { useMemo, useState } from "react";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
-import Field from "../Field";
 import SimLayout from "./SimLayout";
-import SimFunnel from "./SimFunnel";
-import DonutChart from "../DonutChart";
-import { formatCurrency } from "../../utils/finance";
+import SimCrossSell from "./SimCrossSell";
 
-function calcPret({ principal, annualRate, years }) {
-  if (!principal || principal <= 0 || years <= 0) return null;
-  const r = annualRate / 100 / 12;
-  const n = years * 12;
-  const monthly = r === 0 ? principal / n : principal * r / (1 - Math.pow(1 + r, -n));
-  const totalCost = monthly * n;
-  const totalInterest = totalCost - principal;
-  return { monthly, totalCost, totalInterest };
+const fmt = (v) =>
+  new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
+const fmtK = (v) => (v >= 1000 ? `${(v / 1000).toFixed(0)}k €` : `${v} €`);
+
+function mortgage(principal, rate, years) {
+  if (principal <= 0 || years <= 0) return 0;
+  const r = rate / 100 / 12;
+  if (r === 0) return principal / (years * 12);
+  return (principal * r) / (1 - Math.pow(1 + r, -(years * 12)));
 }
 
-function AmortRow({ month, payment, principal, interest, balance }) {
-  return (
-    <tr>
-      <td>{month}</td>
-      <td>{formatCurrency(payment)}</td>
-      <td>{formatCurrency(principal)}</td>
-      <td>{formatCurrency(interest)}</td>
-      <td>{formatCurrency(Math.max(0, balance))}</td>
-    </tr>
-  );
-}
-
-const fmtK = (v) => v >= 1000 ? `${Math.round(v / 1000)}k` : Math.round(v);
-const fmtCur = (v) => new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(v);
-
-function ChartTooltip({ active, payload, label }) {
-  if (!active || !payload?.length) return null;
-  return (
-    <div className="chart-tooltip">
-      <p className="chart-tooltip-label">Année {label}</p>
-      {payload.map((p) => (
-        <div key={p.dataKey} className="chart-tooltip-row">
-          <span style={{ color: p.stroke || p.fill }}>{p.name}</span>
-          <span>{fmtCur(p.value)}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
+const MONTANT_PILLS = [100000, 150000, 200000, 250000, 300000, 400000];
+const TAUX_PILLS = [2.5, 3.0, 3.5, 4.0, 4.5];
+const DUREE_OPTIONS = [10, 15, 20, 25];
 
 export default function SimPretImmo() {
-  const [v, setV] = useState({ principal: 200000, annualRate: 3.8, years: 20 });
-  const [showTable, setShowTable] = useState(false);
-  const set = (k) => (val) => setV((s) => ({ ...s, [k]: val }));
+  const [montant, setMontant] = useState(200000);
+  const [taux, setTaux] = useState(3.5);
+  const [duree, setDuree] = useState(20);
+  const [assurance, setAssurance] = useState(true);
+  const [tauxAssurance, setTauxAssurance] = useState(0.3);
+  const [showAmort, setShowAmort] = useState(false);
 
-  const res = useMemo(() => calcPret(v), [v]);
+  const tauxPct = Math.min(100, ((taux - 0.5) / 6.5) * 100);
+  const assurPct = Math.min(100, ((tauxAssurance - 0.1) / 0.9) * 100);
 
-  useEffect(() => {
-    if (!res) return;
-    const t = setTimeout(() => {
-      trackFieldChanged("Prêt immobilier", "capital", v.principal);
-      trackFieldChanged("Prêt immobilier", "taux", v.annualRate);
-      trackFieldChanged("Prêt immobilier", "duree", v.years);
-      trackResultComputed("Prêt immobilier", {
-        mensualite: res.monthly,
-        cout_total: res.totalCost,
-        total_interets: res.totalInterest,
-      });
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [v, res]);
+  const results = useMemo(() => {
+    const mensualite = mortgage(montant, taux, duree);
+    const mensualiteAssurance = assurance ? (montant * (tauxAssurance / 100)) / 12 : 0;
+    const mensualiteTotale = mensualite + mensualiteAssurance;
+    const totalInterets = mensualite * duree * 12 - montant;
+    const totalAssurance = assurance ? mensualiteAssurance * duree * 12 : 0;
 
-  const chartData = useMemo(() => {
-    if (!res) return [];
-    const r = v.annualRate / 100 / 12;
-    let bal = v.principal;
-    const data = [{ year: 0, "Capital restant": Math.round(bal), "Capital remboursé": 0 }];
-    let capPaid = 0;
-    for (let yr = 1; yr <= v.years; yr++) {
+    const chartData = [];
+    let totalCapital = 0;
+    let totalInteretsAccum = 0;
+    const r = taux / 100 / 12;
+    let balance = montant;
+    for (let yr = 1; yr <= duree; yr++) {
       for (let m = 0; m < 12; m++) {
-        const interest = bal * r;
-        const cap = res.monthly - interest;
-        capPaid += cap;
-        bal -= cap;
+        const interet = balance * r;
+        const capM = mensualite - interet;
+        balance = Math.max(0, balance - capM);
+        totalCapital += capM;
+        totalInteretsAccum += interet;
       }
-      data.push({
+      chartData.push({
         year: yr,
-        "Capital restant": Math.round(Math.max(0, bal)),
-        "Capital remboursé": Math.round(capPaid),
+        capital: Math.round(Math.min(totalCapital, montant)),
+        interets: Math.round(totalInteretsAccum),
       });
     }
-    return data;
-  }, [v, res]);
 
-  const amortTable = useMemo(() => {
-    if (!res || !showTable) return [];
-    const r = v.annualRate / 100 / 12;
+    // Amortization table rows
     const rows = [];
-    let balance = v.principal;
-    for (let m = 1; m <= v.years * 12; m++) {
-      const interest = balance * r;
-      const principal = res.monthly - interest;
-      balance -= principal;
-      if (m % 12 === 0) rows.push({ month: m / 12, payment: res.monthly, principal, interest, balance });
+    let bal = montant;
+    for (let yr = 1; yr <= duree; yr++) {
+      let yrInterets = 0;
+      let yrCapital = 0;
+      for (let m = 0; m < 12; m++) {
+        const intM = bal * r;
+        const capM = mensualite - intM;
+        bal = Math.max(0, bal - capM);
+        yrInterets += intM;
+        yrCapital += capM;
+      }
+      rows.push({
+        yr,
+        mensualite: Math.round(mensualite),
+        capital: Math.round(yrCapital),
+        interets: Math.round(yrInterets),
+        reste: Math.round(Math.max(0, bal)),
+      });
     }
-    return rows;
-  }, [res, showTable, v]);
 
-  const donutSegments = res
-    ? [
-        { value: v.principal, color: "#2563eb", label: "Capital" },
-        { value: Math.max(0, res.totalInterest), color: "#ec4899", label: "Intérêts" },
-      ]
-    : [];
+    const firstRows = rows.slice(0, Math.min(5, duree));
+    const mid = Math.floor(duree / 2);
+    const midRows = rows.slice(Math.max(firstRows.length, mid - 2), Math.min(rows.length - 5, mid + 3));
+    const lastRows = rows.slice(Math.max(0, duree - 5));
+
+    return {
+      mensualite, mensualiteAssurance, mensualiteTotale,
+      totalInterets, totalAssurance,
+      chartData, rows, firstRows, midRows, lastRows,
+    };
+  }, [montant, taux, duree, assurance, tauxAssurance]);
+
+  const pctInterets = montant > 0 ? ((results.totalInterets / montant) * 100).toFixed(0) : 0;
 
   return (
     <SimLayout
       icon="🏦"
-      title="Simulateur de prêt immobilier"
-      description="Calculez votre mensualité, le coût total et consultez le tableau d'amortissement."
-      suggestions={["/simulateurs/endettement", "/simulateurs/frais-notaire", "/simulateurs/assurance-pret"]}
+      title="Calculez votre mensualité et le coût réel de votre crédit"
+      description="La vraie vérité sur ce que vous allez payer"
+      suggestions={[
+        "/simulateurs/endettement",
+        "/simulateurs/frais-notaire",
+        "/simulateurs/ptz",
+        "/simulateurs/assurance-pret",
+        "/simulateurs/remboursement-anticipe",
+        "/simulateurs/stress-test",
+      ]}
     >
-      <SimFunnel
-        steps={[
-          {
-            title: "Votre crédit",
-            icon: "🏦",
-            content: (
-              <>
-                <div className="step-fields">
-                  <div className="field-full">
-                    <Field label="Montant emprunté" value={v.principal} onChange={set("principal")} suffix="€" hint="Capital à financer hors apport" />
-                  </div>
-                  <Field label="Taux annuel" value={v.annualRate} onChange={set("annualRate")} suffix="%" hint="Mars 2026 : ~3,5–4,0 %" />
-                  <Field label="Durée" value={v.years} onChange={set("years")} suffix="ans" hint="15, 20 ou 25 ans" />
-                </div>
-                {v.years > 25 && (
-                  <div className="sim-info-box" style={{ marginTop: 12, background: "#fef3c7", borderColor: "#fcd34d" }}>
-                    <p className="sim-info-title">⚠️ Limite légale HCSF</p>
-                    <p className="sim-info-body">La loi HCSF plafonne les prêts immobiliers à <strong>25 ans</strong> (27 ans pour le neuf ou avec travaux). Au-delà, les banques ne peuvent généralement pas accorder le prêt.</p>
-                  </div>
-                )}
-              </>
-            ),
-          },
-        ]}
-        result={
-          <div className="sim-results-panel">
-            {!res ? (
-              <p className="sim-empty">Renseignez les paramètres pour voir les résultats.</p>
-            ) : (
-              <>
-                <div className="sim-stat-hero">
-                  <span className="sim-stat-label">Mensualité</span>
-                  <span className="sim-stat-value">
-                    {formatCurrency(res.monthly)}<span className="sim-stat-unit">/mois</span>
-                  </span>
-                  <p className="sim-stat-hero-summary">
-                    Pour {fmtCur(v.principal)} emprunté sur {v.years} ans à {v.annualRate} %, vous rembourserez{" "}
-                    {fmtCur(res.totalCost)} au total, dont {fmtCur(res.totalInterest)} d'intérêts
-                    ({((res.totalInterest / v.principal) * 100).toFixed(0)} % du capital).
-                  </p>
-                </div>
+      <div className="sv2-container">
 
-                <div style={{ marginBottom: 16 }}>
-                  <p className="sim-bar-label" style={{ marginBottom: 10 }}>Comparaison 15 / 20 / 25 ans à {v.annualRate} %</p>
-                  <div className="pret-compare-grid">
-                    {[15, 20, 25].map((yr) => {
-                      const r2 = v.annualRate / 100 / 12;
-                      const n2 = yr * 12;
-                      const m2 = r2 === 0 ? v.principal / n2 : v.principal * r2 / (1 - Math.pow(1 + r2, -n2));
-                      const totalInt2 = m2 * n2 - v.principal;
-                      const isActive = v.years === yr;
-                      return (
-                        <div key={yr} className={`pret-compare-card${isActive ? " pret-compare-active" : ""}`}>
-                          <span className="pret-compare-label">{yr} ans</span>
-                          <span className="pret-compare-mens">{fmtCur(m2)}<span style={{ fontSize: 11 }}>/mois</span></span>
-                          <span className="pret-compare-int" style={{ color: "var(--muted)", fontSize: 11 }}>{fmtCur(totalInt2)} intérêts</span>
-                          {isActive && <span className="pret-compare-badge">Votre choix</span>}
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
+        {/* ── Inputs card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
 
-                <div className="sim-stats-grid">
-                  <div className="sim-stat-card">
-                    <span className="sim-stat-card-label">Capital emprunté</span>
-                    <span className="sim-stat-card-value">{formatCurrency(v.principal)}</span>
-                  </div>
-                  <div className="sim-stat-card sim-stat-card-red">
-                    <span className="sim-stat-card-label">Coût total des intérêts</span>
-                    <span className="sim-stat-card-value">{formatCurrency(res.totalInterest)}</span>
-                  </div>
-                  <div className="sim-stat-card sim-stat-card-blue">
-                    <span className="sim-stat-card-label">Total remboursé</span>
-                    <span className="sim-stat-card-value">{formatCurrency(res.totalCost)}</span>
-                  </div>
-                  <div className="sim-stat-card">
-                    <span className="sim-stat-card-label">Durée</span>
-                    <span className="sim-stat-card-value">{v.years} ans</span>
-                  </div>
-                </div>
-
-                {chartData.length > 1 && (
-                  <div className="sim-chart-wrap">
-                    <p className="sim-chart-title">Évolution du capital sur {v.years} ans</p>
-                    <ResponsiveContainer width="100%" height={160}>
-                      <AreaChart data={chartData} margin={{ top: 6, right: 4, bottom: 0, left: 0 }}>
-                        <defs>
-                          <linearGradient id="gradImmoRemaining" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#ec4899" stopOpacity={0.2}/>
-                            <stop offset="95%" stopColor="#ec4899" stopOpacity={0.02}/>
-                          </linearGradient>
-                          <linearGradient id="gradImmoPaid" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#2563eb" stopOpacity={0.22}/>
-                            <stop offset="95%" stopColor="#2563eb" stopOpacity={0.02}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f2" vertical={false}/>
-                        <XAxis dataKey="year" tickFormatter={(y) => y === 0 ? "Dép." : `${y}a`} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} interval="preserveStartEnd"/>
-                        <YAxis tickFormatter={fmtK} tick={{ fontSize: 10, fill: "#5e6e88" }} axisLine={false} tickLine={false} width={38}/>
-                        <Tooltip content={<ChartTooltip />}/>
-                        <Area type="monotone" dataKey="Capital remboursé" stroke="#2563eb" strokeWidth={1.5} fill="url(#gradImmoPaid)" dot={false} activeDot={{ r: 4 }}/>
-                        <Area type="monotone" dataKey="Capital restant" stroke="#ec4899" strokeWidth={2} fill="url(#gradImmoRemaining)" dot={false} activeDot={{ r: 4 }}/>
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
-                )}
-
-                <div className="sim-donut-section">
-                  <DonutChart
-                    segments={donutSegments}
-                    size={130}
-                    thickness={22}
-                    label={formatCurrency(res.totalCost)}
-                    subLabel="total remboursé"
-                  />
-                  <div className="sim-donut-legend">
-                    <p className="sim-bar-label" style={{ marginBottom: 8 }}>Répartition du coût total</p>
-                    {donutSegments.map((seg) => (
-                      <div key={seg.label} className="sim-donut-legend-item">
-                        <span className="sim-donut-dot" style={{ background: seg.color }} />
-                        <span className="sim-donut-legend-label">{seg.label}</span>
-                        <span className="sim-donut-legend-value">{formatCurrency(seg.value)}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <button
-                  className="details-toggle"
-                  onClick={() => setShowTable(!showTable)}
-                  aria-expanded={showTable}
-                  type="button"
-                >
-                  {showTable ? "▲ Masquer" : "▼ Voir"} le tableau d'amortissement annuel
+          {/* Montant emprunté */}
+          <div className="fv2-revenus-wrap" style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Montant emprunté</p>
+            <div className="fv2-revenus-input-row">
+              <input
+                type="number" className="fv2-revenus-input"
+                value={montant || ""} min={10000} max={2000000} step={5000}
+                placeholder="200 000"
+                onChange={(e) => setMontant(Math.max(0, Math.min(2000000, Number(e.target.value) || 0)))}
+              />
+              <span className="fv2-revenus-unit">€</span>
+            </div>
+            <div className="fv2-revenus-pills">
+              {MONTANT_PILLS.map((p) => (
+                <button key={p} type="button" className={`fv2-revenus-pill${montant === p ? " active" : ""}`} onClick={() => setMontant(p)}>
+                  {fmtK(p)}
                 </button>
+              ))}
+            </div>
+          </div>
 
-                {showTable && amortTable.length > 0 && (
-                  <div className="amort-table-wrap">
-                    <table className="amort-table">
-                      <thead>
-                        <tr><th>Année</th><th>Mensualité</th><th>Capital</th><th>Intérêts</th><th>Restant</th></tr>
-                      </thead>
-                      <tbody>
-                        {amortTable.map((row) => (
-                          <AmortRow key={row.month} {...row} />
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                )}
+          {/* Taux d'intérêt */}
+          <div style={{ marginBottom: 24 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <p className="fv2-field-label" style={{ margin: 0 }}>Taux d'intérêt</p>
+              <span style={{ fontSize: 22, fontWeight: 900, color: "#0c1a35" }}>{taux.toFixed(1)} %</span>
+            </div>
+            <div className="fv2-slider-track-wrap" style={{ "--pct": `${tauxPct}%` }}>
+              <input type="range" className="fv2-slider" min={0.5} max={7} step={0.1} value={taux}
+                onChange={(e) => setTaux(Number(e.target.value))}/>
+              <div className="fv2-slider-fill" style={{ width: `${tauxPct}%` }}/>
+            </div>
+            <div className="fv2-slider-minmax"><span>0,5 %</span><span>7 %</span></div>
+            <div className="fv2-revenus-pills" style={{ marginTop: 8 }}>
+              {TAUX_PILLS.map((p) => (
+                <button key={p} type="button" className={`fv2-revenus-pill${taux === p ? " active" : ""}`} onClick={() => setTaux(p)}>
+                  {p.toFixed(1).replace(".", ",")} %
+                </button>
+              ))}
+            </div>
+            <p className="fv2-hint">Moyenne 2026 : 3,5 %</p>
+          </div>
+
+          {/* Durée */}
+          <div style={{ marginBottom: 24 }}>
+            <p className="fv2-field-label">Durée du crédit</p>
+            <div className="fv2-revenus-pills">
+              {DUREE_OPTIONS.map((d) => (
+                <button key={d} type="button" className={`fv2-revenus-pill${duree === d ? " active" : ""}`} onClick={() => setDuree(d)}>
+                  {d} ans
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Assurance emprunteur */}
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 12 }}>
+              <p className="fv2-field-label" style={{ margin: 0 }}>Assurance emprunteur</p>
+              <button
+                type="button"
+                onClick={() => setAssurance(!assurance)}
+                style={{
+                  width: 44, height: 24, borderRadius: 12, border: "none", cursor: "pointer",
+                  background: assurance ? "#1a56db" : "#cbd5e1",
+                  position: "relative", transition: "background .2s",
+                }}
+                aria-label={assurance ? "Désactiver l'assurance" : "Activer l'assurance"}
+              >
+                <span style={{
+                  position: "absolute", top: 3, left: assurance ? 23 : 3,
+                  width: 18, height: 18, borderRadius: "50%", background: "#fff",
+                  transition: "left .2s", boxShadow: "0 1px 4px rgba(0,0,0,.2)"
+                }}/>
+              </button>
+            </div>
+            {assurance && (
+              <>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <span className="fv2-field-label" style={{ margin: 0, fontSize: 13 }}>Taux d'assurance annuel</span>
+                  <span style={{ fontWeight: 700, color: "#0c1a35" }}>{tauxAssurance.toFixed(2)} %</span>
+                </div>
+                <div className="fv2-slider-track-wrap" style={{ "--pct": `${assurPct}%` }}>
+                  <input type="range" className="fv2-slider" min={0.1} max={1} step={0.05} value={tauxAssurance}
+                    onChange={(e) => setTauxAssurance(Number(e.target.value))}/>
+                  <div className="fv2-slider-fill" style={{ width: `${assurPct}%` }}/>
+                </div>
+                <div className="fv2-slider-minmax"><span>0,10 %</span><span>1 %</span></div>
+                <p className="fv2-hint">Taux moyen marché : 0,3 %</p>
               </>
             )}
           </div>
-        }
-      />
+        </div>
+
+        {/* ── Results card ── */}
+        <div className="fv2-card" style={{ marginBottom: 20 }}>
+
+          {/* Big verdict */}
+          <div className="sv2-verdict sv2-verdict-blue" style={{ marginBottom: 20 }}>
+            <div className="sv2-verdict-label">Votre mensualité est de</div>
+            <div className="sv2-verdict-amount">{fmt(Math.round(results.mensualiteTotale))} /mois</div>
+            {assurance && (
+              <div className="sv2-verdict-sub">dont {fmt(Math.round(results.mensualiteAssurance))} d'assurance</div>
+            )}
+          </div>
+
+          {/* Stat cards */}
+          <div className={`sv2-scenarios`} style={{ gridTemplateColumns: assurance ? "repeat(3,1fr)" : "repeat(2,1fr)", marginBottom: 20 }}>
+            <div className="sv2-scenario-card">
+              <div className="sv2-scenario-dur">Mensualité totale</div>
+              <div className="sv2-scenario-amt" style={{ fontSize: 15 }}>{fmt(Math.round(results.mensualiteTotale))}/mois</div>
+            </div>
+            <div className="sv2-scenario-card highlight">
+              <div className="sv2-scenario-dur">Coût des intérêts</div>
+              <div className="sv2-scenario-amt" style={{ fontSize: 14 }}>{fmtK(Math.round(results.totalInterets))}</div>
+            </div>
+            {assurance && (
+              <div className="sv2-scenario-card">
+                <div className="sv2-scenario-dur">Coût assurance</div>
+                <div className="sv2-scenario-amt" style={{ fontSize: 14 }}>{fmtK(Math.round(results.totalAssurance))}</div>
+              </div>
+            )}
+          </div>
+
+          {/* Area Chart */}
+          <div style={{ height: 220, marginBottom: 16 }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={results.chartData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
+                <defs>
+                  <linearGradient id="capGradPI" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1a56db" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#1a56db" stopOpacity={0.04}/>
+                  </linearGradient>
+                  <linearGradient id="intGradPI" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#06b6d4" stopOpacity={0.25}/>
+                    <stop offset="95%" stopColor="#06b6d4" stopOpacity={0.04}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9"/>
+                <XAxis dataKey="year" tickFormatter={(v) => `An ${v}`} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false}/>
+                <YAxis tickFormatter={(v) => fmtK(v)} tick={{ fontSize: 11, fill: "#94a3b8" }} axisLine={false} tickLine={false} width={60}/>
+                <Tooltip
+                  formatter={(v, name) => [fmt(v), name === "capital" ? "Capital remboursé" : "Intérêts payés"]}
+                  contentStyle={{ borderRadius: 10, border: "none", boxShadow: "0 4px 20px rgba(0,0,0,.1)", fontSize: 12 }}
+                />
+                <Area type="monotone" dataKey="capital" stroke="#1a56db" fill="url(#capGradPI)" strokeWidth={2} name="capital"/>
+                <Area type="monotone" dataKey="interets" stroke="#06b6d4" fill="url(#intGradPI)" strokeWidth={2} name="interets"/>
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+
+          {/* Legend */}
+          <div style={{ display: "flex", gap: 16, justifyContent: "center", marginBottom: 16 }}>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#64748b" }}>
+              <span style={{ width: 12, height: 12, background: "#1a56db", borderRadius: 3, display: "inline-block" }}/> Capital remboursé
+            </span>
+            <span style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "#64748b" }}>
+              <span style={{ width: 12, height: 12, background: "#06b6d4", borderRadius: 3, display: "inline-block" }}/> Intérêts payés
+            </span>
+          </div>
+
+          {/* Insight */}
+          <div className="sv2-insight">
+            Sur <strong>{duree} ans</strong>, vous remboursez <strong>{fmt(montant)}</strong> de capital et{" "}
+            <strong>{fmt(Math.round(results.totalInterets))}</strong> d'intérêts, soit{" "}
+            <strong>{pctInterets} %</strong> du montant emprunté.
+          </div>
+
+          {/* Amortization table */}
+          <button className="sv2-amort-btn" onClick={() => setShowAmort(!showAmort)}>
+            {showAmort ? "▲ Masquer le tableau d'amortissement" : "▼ Voir le tableau d'amortissement simplifié"}
+          </button>
+
+          {showAmort && (
+            <div className="sv2-amort-table-wrap">
+              <table className="sv2-amort-table">
+                <thead>
+                  <tr>
+                    <th>Année</th>
+                    <th>Mensualité</th>
+                    <th>Capital</th>
+                    <th>Intérêts</th>
+                    <th>Restant dû</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {results.firstRows.map((row) => (
+                    <tr key={`f-${row.yr}`}>
+                      <td>{row.yr}</td>
+                      <td>{fmt(row.mensualite)}</td>
+                      <td>{fmt(row.capital)}</td>
+                      <td>{fmt(row.interets)}</td>
+                      <td>{fmt(row.reste)}</td>
+                    </tr>
+                  ))}
+                  {results.midRows.length > 0 && (
+                    <tr className="separator"><td colSpan={5}>…</td></tr>
+                  )}
+                  {results.midRows.map((row) => (
+                    <tr key={`m-${row.yr}`}>
+                      <td>{row.yr}</td>
+                      <td>{fmt(row.mensualite)}</td>
+                      <td>{fmt(row.capital)}</td>
+                      <td>{fmt(row.interets)}</td>
+                      <td>{fmt(row.reste)}</td>
+                    </tr>
+                  ))}
+                  {results.lastRows.filter((r) => !results.firstRows.some((f) => f.yr === r.yr) && !results.midRows.some((m) => m.yr === r.yr)).length > 0 && (
+                    <tr className="separator"><td colSpan={5}>…</td></tr>
+                  )}
+                  {results.lastRows
+                    .filter((r) => !results.firstRows.some((f) => f.yr === r.yr) && !results.midRows.some((m) => m.yr === r.yr))
+                    .map((row) => (
+                    <tr key={`l-${row.yr}`}>
+                      <td>{row.yr}</td>
+                      <td>{fmt(row.mensualite)}</td>
+                      <td>{fmt(row.capital)}</td>
+                      <td>{fmt(row.interets)}</td>
+                      <td>{fmt(row.reste)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <SimCrossSell show={montant > 0} loan={montant} taux={taux} dureeCredit={duree} />
+      </div>
     </SimLayout>
   );
 }
