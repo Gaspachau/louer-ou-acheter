@@ -778,62 +778,131 @@ function Step4({ v, set, onNext }) {
 /* ════════════════════════════════════════════════════════════
    RESULT PAGE
    ════════════════════════════════════════════════════════════ */
-/* ─── CrossSellBox ─────────────────────────────────────────── */
-function CrossSellBox({ simId }) {
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [sent, setSent] = useState(false);
+/* ─── CrossSell ─────────────────────────────────────────────── */
+function CrossSell({ simId }) {
+  const [open, setOpen]       = useState(false);
+  const [email, setEmail]     = useState("");
+  const [phone, setPhone]     = useState("");
   const [sending, setSending] = useState(false);
+  const [sent, setSent]       = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email.includes("@")) return;
+    if (!email.includes("@") || !phone) return;
     setSending(true);
-    await saveLead(email.trim().toLowerCase(), "cross-sell-result", simId ?? null);
+    await saveLead(email.trim().toLowerCase(), "cross-sell-funnel", simId ?? null, phone.trim());
     setSending(false);
     setSent(true);
+    setTimeout(() => setOpen(false), 3000);
   };
 
-  if (sent) {
-    return (
-      <div className="sf-crosssell sf-crosssell-sent">
-        <span className="sf-crosssell-check">✅</span>
-        <p>Votre analyse personnalisée vous a été envoyée sur <strong>{email}</strong>.</p>
-      </div>
-    );
-  }
+  const closeModal = () => { if (!sending) setOpen(false); };
 
   return (
-    <div className="sf-crosssell">
-      <div className="sf-crosssell-badge">Projet finançable</div>
-      <h3 className="sf-crosssell-title">Obtenez les meilleurs taux du marché</h3>
-      <p className="sf-crosssell-desc">
-        Économisez sur votre crédit grâce à une analyse personnalisée et une mise en concurrence des banques.
-      </p>
-      <form onSubmit={handleSubmit} className="sf-crosssell-form">
-        <input
-          type="email"
-          required
-          placeholder="Votre adresse email *"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="sf-crosssell-input"
-        />
-        <input
-          type="tel"
-          placeholder="Téléphone (optionnel)"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          className="sf-crosssell-input"
-        />
-        <button type="submit" className="sf-crosssell-btn" disabled={sending}>
-          {sending ? "Envoi…" : "Recevoir mon analyse et comparer les taux →"}
+    <>
+      {/* ── Trigger button ── */}
+      <div className="cs-trigger-wrap">
+        <button type="button" className="cs-trigger-btn" onClick={() => setOpen(true)}>
+          <span className="cs-trigger-icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+              <path d="M2 7l3.5 3.5L12 3" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </span>
+          Votre dossier semble éligible à un financement
         </button>
-      </form>
-      <p className="sf-crosssell-privacy">
-        🔒 Aucun démarchage — nous vous envoyons uniquement votre analyse personnalisée.
-      </p>
-    </div>
+        <div className="cs-trigger-reassure">
+          <svg width="13" height="14" viewBox="0 0 13 14" fill="none" aria-hidden="true">
+            <path d="M6.5 1L1 3.5v4C1 10.5 3.5 13 6.5 13S12 10.5 12 7.5v-4L6.5 1z"
+              stroke="#64748b" strokeWidth="1.3" fill="none" strokeLinejoin="round"/>
+            <path d="M4.5 7l1.5 1.5L8.5 5.5" stroke="#64748b" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+          Analyse gratuite · sans engagement
+        </div>
+      </div>
+
+      {/* ── Modal ── */}
+      {open && (
+        <div className="cs-backdrop" onPointerDown={(e) => { if (e.target === e.currentTarget) closeModal(); }}>
+          <div className="cs-modal" role="dialog" aria-modal="true">
+            <button type="button" className="cs-close" onClick={closeModal} aria-label="Fermer">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"/>
+              </svg>
+            </button>
+
+            {!sent ? (
+              <>
+                <div className="cs-modal-head">
+                  <div className="cs-modal-check" aria-hidden="true">
+                    <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+                      <path d="M5 13l5.5 5.5L21 7" stroke="#059669" strokeWidth="2.8" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  </div>
+                  <h2 className="cs-modal-title">Votre projet immobilier peut être financé</h2>
+                  <p className="cs-modal-sub">
+                    Nos partenaires courtiers analysent votre dossier gratuitement et vous proposent le meilleur taux personnalisé.
+                  </p>
+                </div>
+
+                <div className="cs-features">
+                  <div className="cs-feature">
+                    <span className="cs-feature-icon" aria-hidden="true">⏱</span>
+                    <span>Réponse en moins de 24h</span>
+                  </div>
+                  <div className="cs-feature">
+                    <span className="cs-feature-icon" aria-hidden="true">🏦</span>
+                    <span>Comparaison de plus de 20 banques</span>
+                  </div>
+                  <div className="cs-feature">
+                    <span className="cs-feature-icon" aria-hidden="true">🛡</span>
+                    <span>Sans impact sur votre crédit score</span>
+                  </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="cs-form">
+                  <input
+                    type="email" required
+                    placeholder="Email *"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="cs-input"
+                    autoComplete="email"
+                  />
+                  <input
+                    type="tel" required
+                    placeholder="Téléphone *"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="cs-input"
+                    autoComplete="tel"
+                    inputMode="tel"
+                  />
+                  <button type="submit" className="cs-submit-btn" disabled={sending}>
+                    {sending ? "Envoi en cours…" : "Recevoir mon analyse de taux gratuite"}
+                  </button>
+                </form>
+                <p className="cs-legal">
+                  En soumettant vous acceptez d'être contacté par nos partenaires courtiers de confiance.
+                </p>
+              </>
+            ) : (
+              <div className="cs-sent">
+                <div className="cs-sent-check" aria-hidden="true">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                    <path d="M6 16l7 7 13-14" stroke="#059669" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <h3 className="cs-sent-title">Parfait !</h3>
+                <p className="cs-sent-msg">
+                  Votre dossier a bien été transmis à nos partenaires.<br/>
+                  Un courtier vous contactera dans les 24h.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -1044,7 +1113,7 @@ function ResultPage({ v, result, onRestart }) {
 
       {/* ── Cross-sell (finançable uniquement) ── */}
       {taux_endettement > 0 && taux_endettement <= 35 && (
-        <CrossSellBox simId={simId} />
+        <CrossSell simId={simId} />
       )}
 
       {/* ── CTAs ── */}

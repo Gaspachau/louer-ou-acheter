@@ -62,17 +62,16 @@ export async function saveNewsletter(email) {
 }
 
 /* ── saveLead ────────────────────────────────────────────── */
-export async function saveLead(email, source, simulationId = null) {
+export async function saveLead(email, source, simulationId = null, phone = null) {
   if (!isConfigured || !supabase) {
     console.warn('[Supabase] saveLead ignorée — client non initialisé');
     return;
   }
 
-  const { error } = await supabase.from('leads').insert([{
-    email: email.trim().toLowerCase(),
-    source,
-    simulation_id: simulationId,
-  }]);
+  const row = { email: email.trim().toLowerCase(), source, simulation_id: simulationId };
+  if (phone) row.phone = phone.trim();
+
+  const { error } = await supabase.from('leads').insert([row]);
 
   if (error) {
     console.error('[Supabase] Erreur saveLead :', error.message);

@@ -12870,103 +12870,195 @@ svg { display: inline-block; }  /* keep inline for icons */
   background: var(--amber-soft) !important;
 }
 
-/* ─── CrossSellBox ───────────────────────────────────────── */
-.sf-crosssell {
-  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
-  border: 1.5px solid rgba(26,86,219,.18);
-  border-radius: 16px;
-  padding: 24px 20px;
-  margin: 20px 0;
-  position: relative;
-  overflow: hidden;
-}
-.sf-crosssell::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(26,86,219,.04), rgba(5,150,105,.04));
-  pointer-events: none;
-}
-.sf-crosssell-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  background: #dcfce7;
-  color: #15803d;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-  padding: 4px 10px;
-  border-radius: 99px;
-  margin-bottom: 12px;
-}
-.sf-crosssell-badge::before { content: "✓ "; }
-.sf-crosssell-title {
-  font-size: 18px;
-  font-weight: 800;
-  color: var(--text);
-  margin: 0 0 8px;
-  letter-spacing: -.02em;
-}
-.sf-crosssell-desc {
-  font-size: 14px;
-  color: var(--muted);
-  margin: 0 0 16px;
-  line-height: 1.5;
-}
-.sf-crosssell-form {
+/* ─── CrossSell — Trigger Button ─────────────────────────── */
+.cs-trigger-wrap {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  align-items: center;
+  gap: 8px;
+  margin: 20px 0;
 }
-.sf-crosssell-input {
+@keyframes cs-pulse {
+  0%, 100% { box-shadow: 0 4px 20px rgba(5,150,105,.35); }
+  50%       { box-shadow: 0 4px 28px rgba(5,150,105,.6), 0 0 0 7px rgba(5,150,105,.1); }
+}
+.cs-trigger-btn {
   width: 100%;
-  padding: 12px 14px;
-  font-size: 15px;
-  border: 1.5px solid var(--line);
-  border-radius: 10px;
-  background: #fff;
-  color: var(--text);
-  font-family: inherit;
-  outline: none;
-  transition: border-color .15s, box-shadow .15s;
-  box-sizing: border-box;
-}
-.sf-crosssell-input:focus {
-  border-color: var(--blue);
-  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
-}
-.sf-crosssell-input::placeholder { color: var(--muted); }
-.sf-crosssell-btn {
-  width: 100%;
-  padding: 14px 18px;
-  background: linear-gradient(135deg, #1a56db, #0ea5e9);
-  color: #fff;
-  font-size: 15px;
-  font-weight: 700;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  transition: opacity .15s, transform .1s;
-  font-family: inherit;
-}
-.sf-crosssell-btn:hover { opacity: .92; transform: translateY(-1px); }
-.sf-crosssell-btn:active { transform: translateY(0); }
-.sf-crosssell-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
-.sf-crosssell-privacy {
-  font-size: 11px;
-  color: var(--muted);
-  margin: 10px 0 0;
-  text-align: center;
-  line-height: 1.5;
-}
-.sf-crosssell-sent {
   display: flex;
   align-items: center;
-  gap: 12px;
-  background: #f0fdf4;
-  border-color: rgba(5,150,105,.25);
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  padding: 16px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  animation: cs-pulse 2.6s ease-in-out infinite;
+  transition: transform .15s, box-shadow .15s, opacity .15s;
+  line-height: 1.3;
+  text-align: center;
 }
-.sf-crosssell-check { font-size: 28px; }
-.sf-crosssell-sent p { margin: 0; font-size: 14px; color: var(--text); line-height: 1.5; }
+.cs-trigger-btn:hover {
+  opacity: .94;
+  transform: translateY(-2px);
+}
+.cs-trigger-icon {
+  flex-shrink: 0;
+  width: 22px; height: 22px;
+  background: rgba(255,255,255,.25);
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+}
+.cs-trigger-reassure {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #64748b;
+}
+
+/* ─── CrossSell — Backdrop ───────────────────────────────── */
+@keyframes cs-fade-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes cs-slide-up {
+  from { opacity: 0; transform: translateY(28px) scale(.97); }
+  to   { opacity: 1; transform: translateY(0)    scale(1);   }
+}
+.cs-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(10,20,50,.55);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  animation: cs-fade-in .2s ease;
+}
+
+/* ─── CrossSell — Modal ──────────────────────────────────── */
+.cs-modal {
+  background: #fff;
+  border-radius: 22px;
+  padding: 32px 28px 28px;
+  max-width: 440px;
+  width: 100%;
+  position: relative;
+  animation: cs-slide-up .24s cubic-bezier(.22,1,.36,1);
+  max-height: 92vh;
+  overflow-y: auto;
+  box-shadow: 0 24px 60px rgba(10,20,50,.22);
+}
+.cs-close {
+  position: absolute;
+  top: 14px; right: 14px;
+  background: #f1f5f9;
+  border: none;
+  border-radius: 50%;
+  width: 32px; height: 32px;
+  display: flex; align-items: center; justify-content: center;
+  color: #64748b;
+  cursor: pointer;
+  transition: background .12s, color .12s;
+  flex-shrink: 0;
+}
+.cs-close:hover { background: #e2e8f0; color: #0c1a35; }
+.cs-modal-head { text-align: center; margin-bottom: 20px; }
+.cs-modal-check {
+  width: 56px; height: 56px;
+  background: #d1fae5;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 14px;
+}
+.cs-modal-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #0c1a35;
+  margin: 0 0 8px;
+  line-height: 1.25;
+  letter-spacing: -.02em;
+}
+.cs-modal-sub {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
+  line-height: 1.55;
+}
+.cs-features {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f8fafc;
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+}
+.cs-feature {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #334155;
+}
+.cs-feature-icon { font-size: 15px; flex-shrink: 0; }
+.cs-form { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.cs-input {
+  width: 100%;
+  border: 1.5px solid #d1dae8;
+  border-radius: 10px;
+  padding: 13px 14px;
+  font-size: 15px;
+  font-family: inherit;
+  color: #0c1a35;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  background: #fff;
+}
+.cs-input:focus {
+  border-color: #1a56db;
+  box-shadow: 0 0 0 3px rgba(26,86,219,.12);
+}
+.cs-input::placeholder { color: #a0aec0; }
+.cs-submit-btn {
+  width: 100%;
+  background: linear-gradient(135deg, #1a56db 0%, #2563eb 100%);
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 15px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity .15s, transform .15s;
+  box-shadow: 0 4px 16px rgba(26,86,219,.35);
+  line-height: 1;
+}
+.cs-submit-btn:hover:not(:disabled) { opacity: .92; transform: translateY(-1px); }
+.cs-submit-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.cs-legal {
+  font-size: 11px;
+  color: #94a3b8;
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+}
+
+/* ─── CrossSell — Confirmation ───────────────────────────── */
+.cs-sent { text-align: center; padding: 20px 0 8px; }
+.cs-sent-check {
+  width: 68px; height: 68px;
+  background: #d1fae5;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px;
+}
+.cs-sent-title { font-size: 24px; font-weight: 800; color: #0c1a35; margin: 0 0 10px; }
+.cs-sent-msg { font-size: 15px; color: #64748b; line-height: 1.6; margin: 0; }
