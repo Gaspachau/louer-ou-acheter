@@ -7384,12 +7384,41 @@ input[type="radio"] {
 }
 .fv2-slider-track-wrap {
   position: relative;
+  /* 44px touch target, visual track centered */
+  height: 44px;
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+  cursor: pointer;
+}
+/* Visual background track */
+.fv2-slider-track-wrap::before {
+  content: "";
+  position: absolute;
+  left: 0; right: 0;
   height: 6px;
-  background: rgba(0,0,0,.08);
+  background: rgba(0,0,0,.1);
   border-radius: 6px;
-  margin-bottom: 6px;
+}
+/* Thumb — uses --pct from parent div */
+.fv2-slider-track-wrap::after {
+  content: "";
+  position: absolute;
+  width: 22px; height: 22px;
+  background: white;
+  border: 2.5px solid #1a56db;
+  border-radius: 50%;
+  top: 50%; transform: translateY(-50%);
+  left: calc(var(--pct, 50%) - 11px);
+  pointer-events: none;
+  box-shadow: 0 2px 8px rgba(26,86,219,.28);
+  z-index: 1;
+}
+.fv2-slider-track-wrap:focus-within::after {
+  box-shadow: 0 0 0 4px rgba(26,86,219,.14), 0 2px 8px rgba(26,86,219,.3);
 }
 .fv2-slider {
+  /* Full 44px touch target, invisible */
   position: absolute;
   width: 100%;
   height: 100%;
@@ -7398,28 +7427,17 @@ input[type="radio"] {
   z-index: 2;
   margin: 0;
   -webkit-appearance: none;
+  appearance: none;
+  touch-action: pan-y;
 }
 .fv2-slider-fill {
   position: absolute;
-  left: 0; top: 0; bottom: 0;
+  left: 0;
+  height: 6px;
+  top: 50%; transform: translateY(-50%);
   background: linear-gradient(90deg, #1a56db, #06b6d4);
   border-radius: 6px;
   pointer-events: none;
-  transition: width .08s;
-}
-.fv2-slider-track-wrap::after {
-  content: "";
-  position: absolute;
-  width: 20px; height: 20px;
-  background: white;
-  border: 2.5px solid #1a56db;
-  border-radius: 50%;
-  top: 50%; transform: translateY(-50%);
-  left: calc(var(--pct, 50%) - 10px);
-  pointer-events: none;
-  box-shadow: 0 2px 8px rgba(26,86,219,.25);
-  transition: left .08s;
-  z-index: 1;
 }
 .fv2-slider-minmax {
   display: flex;
@@ -8939,10 +8957,7 @@ input[type="radio"] {
   }
 }
 
-/* ─── Slider mobile touch target fix ─────────────────────── */
-input[type="range"].fv2-slider {
-  min-height: 44px;
-}/* ═══════════════════════════════════════════════════════════
+/* ═══════════════════════════════════════════════════════════
    LANDING PAGE v2 — lph- prefix (Blue #2563eb / Cyan #06b6d4)
    ═══════════════════════════════════════════════════════════ */
 
@@ -9560,10 +9575,6 @@ input[type="range"].fv2-slider {
   .lph-nl-title  { font-size: 26px; }
 }
 
-/* ─── Slider mobile touch target fix ─────────────────────── */
-input[type="range"].fv2-slider {
-  min-height: 44px;
-}
 
 
 /* ══════════════════════════════════════════════════════════
@@ -12531,8 +12542,11 @@ svg { display: inline-block; }  /* keep inline for icons */
   border: 1.5px solid var(--line);
   border-radius: 12px;
   box-shadow: var(--shadow);
-  overflow: hidden;
+  overflow-y: auto;
+  max-height: 60vh;
   z-index: 200;
+  /* Prevent overflow outside viewport on mobile */
+  max-width: 100%;
 }
 .sf-city-suggestion-item {
   display: flex;
@@ -12644,3 +12658,104 @@ svg { display: inline-block; }  /* keep inline for icons */
   border-left-color: var(--amber) !important;
   background: var(--amber-soft) !important;
 }
+
+/* ─── CrossSellBox ───────────────────────────────────────── */
+.sf-crosssell {
+  background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+  border: 1.5px solid rgba(26,86,219,.18);
+  border-radius: 16px;
+  padding: 24px 20px;
+  margin: 20px 0;
+  position: relative;
+  overflow: hidden;
+}
+.sf-crosssell::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(26,86,219,.04), rgba(5,150,105,.04));
+  pointer-events: none;
+}
+.sf-crosssell-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: 99px;
+  margin-bottom: 12px;
+}
+.sf-crosssell-badge::before { content: "✓ "; }
+.sf-crosssell-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text);
+  margin: 0 0 8px;
+  letter-spacing: -.02em;
+}
+.sf-crosssell-desc {
+  font-size: 14px;
+  color: var(--muted);
+  margin: 0 0 16px;
+  line-height: 1.5;
+}
+.sf-crosssell-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sf-crosssell-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 15px;
+  border: 1.5px solid var(--line);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-family: inherit;
+  outline: none;
+  transition: border-color .15s, box-shadow .15s;
+  box-sizing: border-box;
+}
+.sf-crosssell-input:focus {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 3px rgba(26,86,219,.1);
+}
+.sf-crosssell-input::placeholder { color: var(--muted); }
+.sf-crosssell-btn {
+  width: 100%;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #1a56db, #0ea5e9);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 700;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: opacity .15s, transform .1s;
+  font-family: inherit;
+}
+.sf-crosssell-btn:hover { opacity: .92; transform: translateY(-1px); }
+.sf-crosssell-btn:active { transform: translateY(0); }
+.sf-crosssell-btn:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+.sf-crosssell-privacy {
+  font-size: 11px;
+  color: var(--muted);
+  margin: 10px 0 0;
+  text-align: center;
+  line-height: 1.5;
+}
+.sf-crosssell-sent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f0fdf4;
+  border-color: rgba(5,150,105,.25);
+}
+.sf-crosssell-check { font-size: 28px; }
+.sf-crosssell-sent p { margin: 0; font-size: 14px; color: var(--text); line-height: 1.5; }

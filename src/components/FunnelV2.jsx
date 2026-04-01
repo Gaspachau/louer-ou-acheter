@@ -5,7 +5,7 @@ import {
   ReferenceLine, CartesianGrid,
 } from "recharts";
 import { VILLES, MOYENNE_NATIONALE } from "../data/villes";
-import { saveSimulation } from "../lib/supabase";
+import { saveSimulation, saveLead } from "../lib/supabase";
 
 /* ─── Helpers ─────────────────────────────────────────────── */
 const fmt = (v) =>
@@ -120,12 +120,12 @@ function Slider({ label, value, onChange, min, max, step = 1, format, hint }) {
         <span className="fv2-slider-label">{label}</span>
         <span className="fv2-slider-val">{format ? format(value) : value}</span>
       </div>
-      <div className="fv2-slider-track-wrap">
+      {/* --pct on the PARENT so ::after pseudo can read it */}
+      <div className="fv2-slider-track-wrap" style={{ "--pct": `${pct}%` }}>
         <input
           type="range" min={min} max={max} step={step} value={value}
           onChange={(e) => onChange(Number(e.target.value))}
           className="fv2-slider"
-          style={{ "--pct": `${pct}%` }}
         />
         <div className="fv2-slider-fill" style={{ width: `${pct}%` }} />
       </div>
@@ -164,27 +164,41 @@ function CitySearch({ ville, onSelect }) {
   const [query, setQuery] = useState(ville?.nom ?? "");
   const [open, setOpen] = useState(false);
   const inputRef = useRef(null);
+  const closeTimer = useRef(null);
 
   const suggestions = useMemo(() => {
-    if (query.length < 2) return [];
+    if (query.length < 1) return [];
     const norm = normalizeStr(query);
     return VILLES.filter((c) => normalizeStr(c.nom).includes(norm)).slice(0, 8);
   }, [query]);
 
   const select = (c) => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
     setQuery(c.nom);
     setOpen(false);
     onSelect(c);
   };
 
   const handleChange = (e) => {
-    setQuery(e.target.value);
-    setOpen(true);
-    if (e.target.value === "") onSelect(null);
+    const val = e.target.value;
+    setQuery(val);
+    setOpen(val.length >= 1);
+    if (val === "") onSelect(null);
+  };
+
+  const handleFocus = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
+    if (query.length >= 1) setOpen(true);
+  };
+
+  const handleBlur = () => {
+    closeTimer.current = setTimeout(() => setOpen(false), 250);
   };
 
   const clear = () => {
+    if (closeTimer.current) clearTimeout(closeTimer.current);
     setQuery("");
+    setOpen(false);
     onSelect(null);
     inputRef.current?.focus();
   };
@@ -205,9 +219,11 @@ function CitySearch({ ville, onSelect }) {
           placeholder="Rechercher une ville (ex: Lyon, Nantes…)"
           value={query}
           onChange={handleChange}
-          onFocus={() => query.length >= 2 && setOpen(true)}
-          onBlur={() => setTimeout(() => setOpen(false), 150)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           autoComplete="off"
+          autoCorrect="off"
+          spellCheck={false}
         />
         {query && (
           <button type="button" className="sf-city-search-clear" onClick={clear} aria-label="Effacer">
@@ -219,7 +235,7 @@ function CitySearch({ ville, onSelect }) {
         <div className="sf-city-suggestions">
           {suggestions.map((c) => (
             <button key={c.id} type="button" className="sf-city-suggestion-item"
-              onMouseDown={() => select(c)}>
+              onPointerDown={(e) => { e.preventDefault(); select(c); }}>
               <span className="sf-sug-name">{c.nom}</span>
               <span className="sf-sug-meta">{c.prix_m2.toLocaleString("fr-FR")} €/m² · {c.tension}</span>
             </button>
@@ -689,8 +705,68 @@ function Step4({ v, set, onNext }) {
 /* ════════════════════════════════════════════════════════════
    RESULT PAGE
    ════════════════════════════════════════════════════════════ */
+/* ─── CrossSellBox ─────────────────────────────────────────── */
+function CrossSellBox({ simId }) {
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!email.includes("@")) return;
+    setSending(true);
+    await saveLead(email.trim().toLowerCase(), "cross-sell-result", simId ?? null);
+    setSending(false);
+    setSent(true);
+  };
+
+  if (sent) {
+    return (
+      <div className="sf-crosssell sf-crosssell-sent">
+        <span className="sf-crosssell-check">✅</span>
+        <p>Votre analyse personnalisée vous a été envoyée sur <strong>{email}</strong>.</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="sf-crosssell">
+      <div className="sf-crosssell-badge">Projet finançable</div>
+      <h3 className="sf-crosssell-title">Obtenez les meilleurs taux du marché</h3>
+      <p className="sf-crosssell-desc">
+        Économisez sur votre crédit grâce à une analyse personnalisée et une mise en concurrence des banques.
+      </p>
+      <form onSubmit={handleSubmit} className="sf-crosssell-form">
+        <input
+          type="email"
+          required
+          placeholder="Votre adresse email *"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="sf-crosssell-input"
+        />
+        <input
+          type="tel"
+          placeholder="Téléphone (optionnel)"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="sf-crosssell-input"
+        />
+        <button type="submit" className="sf-crosssell-btn" disabled={sending}>
+          {sending ? "Envoi…" : "Recevoir mon analyse et comparer les taux →"}
+        </button>
+      </form>
+      <p className="sf-crosssell-privacy">
+        🔒 Aucun démarchage — nous vous envoyons uniquement votre analyse personnalisée.
+      </p>
+    </div>
+  );
+}
+
 function ResultPage({ v, result, onRestart }) {
   const [chartReady, setChartReady] = useState(false);
+  const [simId, setSimId] = useState(null);
   const savedRef = useRef(false);
 
   useEffect(() => {
@@ -718,7 +794,7 @@ function ResultPage({ v, result, onRestart }) {
         ville_data: v.ville ? { id: v.ville.id, nom: v.ville.nom, prix_m2: v.ville.prix_m2 } : null,
       };
       saveSimulation(payload).then((id) => {
-        if (id) console.log("[FunnelV2] Simulation enregistrée, id:", id);
+        if (id) { setSimId(id); console.log("[FunnelV2] Simulation enregistrée, id:", id); }
       });
     }
 
@@ -891,6 +967,11 @@ function ResultPage({ v, result, onRestart }) {
               : " — dans les limites acceptées par les banques (≤ 35 %)."}
           </p>
         </div>
+      )}
+
+      {/* ── Cross-sell (finançable uniquement) ── */}
+      {taux_endettement > 0 && taux_endettement <= 35 && (
+        <CrossSellBox simId={simId} />
       )}
 
       {/* ── CTAs ── */}
