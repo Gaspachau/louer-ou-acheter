@@ -779,11 +779,6 @@ function Step4({ v, set, onNext }) {
    RESULT PAGE
    ════════════════════════════════════════════════════════════ */
 /* ─── CrossSell ─────────────────────────────────────────────── */
-const CS_TESTIMONIALS = [
-  { name: "Marie · Lyon",    text: "12 000 € économisés grâce à son courtier" },
-  { name: "Thomas · Paris",  text: "Taux obtenu 0,8 % sous le marché" },
-  { name: "Julie · Bordeaux",text: "Accompagnée de A à Z, sans stress" },
-];
 
 function CrossSell({ simId, tauxEndettement, loan, taux, dureeCredit }) {
   const [open, setOpen]       = useState(false);
@@ -896,16 +891,6 @@ function CrossSell({ simId, tauxEndettement, loan, taux, dureeCredit }) {
                     </p>
                   </div>
                 )}
-
-                {/* Testimonials */}
-                <div className="cs-testimonials">
-                  {CS_TESTIMONIALS.map((t) => (
-                    <div key={t.name} className="cs-testimonial">
-                      <span className="cs-testimonial-stars" aria-hidden="true">★★★★★</span>
-                      <span className="cs-testimonial-text"><strong>{t.name}</strong> — {t.text}</span>
-                    </div>
-                  ))}
-                </div>
 
                 {/* Form */}
                 <form onSubmit={handleSubmit} className="cs-form">
