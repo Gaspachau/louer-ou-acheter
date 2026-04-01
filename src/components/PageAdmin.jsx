@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "../lib/supabase";
+import { useSEO } from "../utils/useSEO";
 
 /* ── Helpers ─────────────────────────────────────────────── */
 function fmt(n) {
@@ -282,6 +283,7 @@ function Dashboard({ onLogout }) {
 
 /* ── Main export ─────────────────────────────────────────── */
 export default function PageAdmin() {
+  useSEO({ title: "Admin", path: "/admin", robots: "noindex, nofollow" });
   const [session, setSession] = useState(undefined);
 
   useEffect(() => {

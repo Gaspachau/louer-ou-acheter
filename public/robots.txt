@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
 
+# Exclude admin and private pages
+Disallow: /admin
+
 Sitemap: https://www.louer-acheter.fr/sitemap.xml

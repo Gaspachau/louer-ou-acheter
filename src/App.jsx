@@ -45,6 +45,13 @@ const SimRemboursementAnticipe = lazy(() => import("./components/simulateurs/Sim
 const SimAssurancePret = lazy(() => import("./components/simulateurs/SimAssurancePret"));
 const PageJeu = lazy(() => import("./components/PageJeu"));
 const PageAdmin = lazy(() => import("./components/PageAdmin"));
+const PageVilleSEO = lazy(() => import("./components/seo/PageVilleSEO"));
+const PagePretImmoSEO = lazy(() => import("./components/seo/PagePretImmoSEO"));
+const PageFraisNotaireSEO = lazy(() => import("./components/seo/PageFraisNotaireSEO"));
+const PageCapaciteEmpruntSEO = lazy(() => import("./components/seo/PageCapaciteEmpruntSEO"));
+const PagePTZSEO = lazy(() => import("./components/seo/PagePTZSEO"));
+const PageTauxImmoSEO = lazy(() => import("./components/seo/PageTauxImmoSEO"));
+const PagePlanDuSite = lazy(() => import("./components/seo/PagePlanDuSite"));
 
 function PageLoader() {
   return (
@@ -124,6 +131,15 @@ export default function App() {
         <Route path="/simulateurs/assurance-pret" element={<SimAssurancePret />} />
         <Route path="/villes/:cityId" element={<PageVille />} />
         <Route path="/admin" element={<PageAdmin />} />
+        {/* SEO long-tail city pages */}
+        <Route path="/louer-ou-acheter-:citySlug" element={<PageVilleSEO />} />
+        {/* SEO topic pages */}
+        <Route path="/simulateur-pret-immobilier-gratuit" element={<PagePretImmoSEO />} />
+        <Route path="/calculateur-frais-de-notaire-2026" element={<PageFraisNotaireSEO />} />
+        <Route path="/capacite-emprunt-calcul-gratuit" element={<PageCapaciteEmpruntSEO />} />
+        <Route path="/ptz-2026-conditions-montants" element={<PagePTZSEO />} />
+        <Route path="/taux-immobilier-2026" element={<PageTauxImmoSEO />} />
+        <Route path="/plan-du-site" element={<PagePlanDuSite />} />
       </Routes>
     </Suspense>
     </>
