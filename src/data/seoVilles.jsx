@@ -7,9 +7,9 @@ export const SEO_VILLES = {
     loyer_t2: 1450,
     rentabilite_annees: 28,
     tension: "Très forte",
-    seoTitle: "Louer ou acheter à Paris en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Paris en 2026 : analyse et simulateur",
     seoDesc:
-      "Faut-il louer ou acheter à Paris en 2026 ? Prix au m², loyers, rentabilité… Notre simulateur vous donne la réponse en 2 minutes.",
+      "Louer ou acheter à Paris en 2026 ? Prix moyen 9 500 €/m², loyer T2 à 1 450 €/mois, point d'équilibre à 28 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier parisien en 2026</h2>
@@ -179,9 +179,9 @@ export const SEO_VILLES = {
     loyer_t2: 820,
     rentabilite_annees: 18,
     tension: "Forte",
-    seoTitle: "Louer ou acheter à Lyon en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Lyon en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Lyon en 2026 ? 4 800 €/m², loyers à 820 €/mois… Découvrez le point d'équilibre et les meilleurs quartiers lyonnais.",
+      "Louer ou acheter à Lyon en 2026 ? Prix moyen 5 100 €/m², loyer T2 à 1 000 €/mois, point d'équilibre à 13 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier lyonnais en 2026</h2>
@@ -332,9 +332,9 @@ export const SEO_VILLES = {
     loyer_t2: 680,
     rentabilite_annees: 14,
     tension: "Modérée",
-    seoTitle: "Louer ou acheter à Marseille en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Marseille en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Marseille en 2026 ? Prix à 3 200 €/m², loyers à 680 €/mois. Analyse du marché marseillais et des meilleurs quartiers.",
+      "Louer ou acheter à Marseille en 2026 ? Prix moyen 3 200 €/m², loyer T2 à 680 €/mois, point d'équilibre à 11 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier marseillais en 2026</h2>
@@ -483,9 +483,9 @@ export const SEO_VILLES = {
     loyer_t2: 780,
     rentabilite_annees: 17,
     tension: "Forte",
-    seoTitle: "Louer ou acheter à Bordeaux en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Bordeaux en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Bordeaux en 2026 ? Prix à 4 200 €/m², loyers à 780 €/mois. Analyse du marché bordelais et point d'équilibre à 17 ans.",
+      "Louer ou acheter à Bordeaux en 2026 ? Prix moyen 4 200 €/m², loyer T2 à 900 €/mois, point d'équilibre à 11 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier bordelais en 2026</h2>
@@ -631,9 +631,9 @@ export const SEO_VILLES = {
     loyer_t2: 720,
     rentabilite_annees: 15,
     tension: "Forte",
-    seoTitle: "Louer ou acheter à Toulouse en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Toulouse en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Toulouse en 2026 ? Prix à 3 600 €/m², loyers à 720 €/mois. Marché dynamique, point d'équilibre à 15 ans.",
+      "Louer ou acheter à Toulouse en 2026 ? Prix moyen 3 600 €/m², loyer T2 à 790 €/mois, point d'équilibre à 9 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier toulousain en 2026</h2>
@@ -753,9 +753,9 @@ export const SEO_VILLES = {
     loyer_t2: 740,
     rentabilite_annees: 16,
     tension: "Forte",
-    seoTitle: "Louer ou acheter à Nantes en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Nantes en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Nantes en 2026 ? Prix à 3 800 €/m², loyers à 740 €/mois. Découvrez si l'achat est rentable dans la métropole nantaise.",
+      "Louer ou acheter à Nantes en 2026 ? Prix moyen 3 800 €/m², loyer T2 à 820 €/mois, point d'équilibre à 9 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier nantais en 2026</h2>
@@ -902,9 +902,9 @@ export const SEO_VILLES = {
     loyer_t2: 680,
     rentabilite_annees: 13,
     tension: "Modérée",
-    seoTitle: "Louer ou acheter à Lille en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Lille en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Lille en 2026 ? Prix à 3 000 €/m², loyers à 680 €/mois. Le marché lillois décrypté avec point d'équilibre à 13 ans.",
+      "Louer ou acheter à Lille en 2026 ? Prix moyen 3 200 €/m², loyer T2 à 700 €/mois, point d'équilibre à 8 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier lillois en 2026</h2>
@@ -1018,9 +1018,9 @@ export const SEO_VILLES = {
     loyer_t2: 900,
     rentabilite_annees: 19,
     tension: "Forte",
-    seoTitle: "Louer ou acheter à Nice en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Nice en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Nice en 2026 ? Prix à 5 200 €/m², loyers à 900 €/mois. La Côte d'Azur analysée : point d'équilibre à 19 ans.",
+      "Louer ou acheter à Nice en 2026 ? Prix moyen 5 200 €/m², loyer T2 à 1 050 €/mois, point d'équilibre à 19 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier niçois en 2026</h2>
@@ -1168,9 +1168,9 @@ export const SEO_VILLES = {
     loyer_t2: 720,
     rentabilite_annees: 14,
     tension: "Modérée",
-    seoTitle: "Louer ou acheter à Rennes en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Rennes en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Rennes en 2026 ? Prix à 3 400 €/m², loyers à 720 €/mois. Rennes analysée : point d'équilibre à 14 ans.",
+      "Louer ou acheter à Rennes en 2026 ? Prix moyen 3 800 €/m², loyer T2 à 820 €/mois, point d'équilibre à 9 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier rennais en 2026</h2>
@@ -1286,9 +1286,9 @@ export const SEO_VILLES = {
     loyer_t2: 700,
     rentabilite_annees: 13,
     tension: "Modérée",
-    seoTitle: "Louer ou acheter à Strasbourg en 2026 : notre analyse complète",
+    seoTitle: "Louer ou acheter à Strasbourg en 2026 : analyse et simulateur",
     seoDesc:
-      "Louer ou acheter à Strasbourg en 2026 ? Prix à 3 100 €/m², loyers à 700 €/mois. Capitale européenne : point d'équilibre à 13 ans.",
+      "Louer ou acheter à Strasbourg en 2026 ? Prix moyen 3 100 €/m², loyer T2 à 730 €/mois, point d'équilibre à 13 ans. Simulation gratuite en 2 min.",
     Content: () => (
       <>
         <h2>Le marché immobilier strasbourgeois en 2026</h2>

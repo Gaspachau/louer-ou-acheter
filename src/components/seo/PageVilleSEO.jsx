@@ -37,10 +37,19 @@ export default function PageVilleSEO({ citySlug: citySlugProp }) {
   const citySlug = citySlugProp || citySlugParam;
   const ville = SEO_VILLES[citySlug];
 
+  // Calculs dérivés pour les FAQ
+  const prixT2 = ville ? Math.round(ville.prix_m2 * 45) : 0;
+  const mensualite = ville ? Math.round(prixT2 * 0.80 * (3.7 / 100 / 12) / (1 - Math.pow(1 + 3.7 / 100 / 12, -240))) : 0;
+  const salaireNet = ville ? Math.round(mensualite / 0.35) : 0;
+
   const faqItems = ville ? [
     {
       q: `Faut-il louer ou acheter à ${ville.nom} en 2026 ?`,
       a: `À ${ville.nom}, le point d'équilibre financier entre louer et acheter est estimé à environ ${ville.rentabilite_annees} ans. Si vous envisagez de rester moins longtemps, la location est généralement plus avantageuse. Au-delà, l'achat devient rentable, surtout avec un apport solide et un bon taux. Notre simulateur personnalise cette analyse selon vos revenus et votre situation.`,
+    },
+    {
+      q: `Quel salaire faut-il pour acheter à ${ville.nom} ?`,
+      a: `Pour acheter un T2 de 45 m² à ${ville.nom} (environ ${prixT2.toLocaleString("fr-FR")} €), avec 20 % d'apport et un crédit sur 20 ans à 3,7 %, la mensualité est d'environ ${mensualite.toLocaleString("fr-FR")} €/mois. La règle HCSF 2026 limite l'endettement à 35 % des revenus nets : il faut donc gagner au moins ${salaireNet.toLocaleString("fr-FR")} €/mois net. En couple, chacun peut apporter la moitié de ce montant.`,
     },
     {
       q: `Quel est le prix moyen au m² à ${ville.nom} en 2026 ?`,
@@ -48,7 +57,7 @@ export default function PageVilleSEO({ citySlug: citySlugProp }) {
     },
     {
       q: `Quel apport faut-il pour acheter à ${ville.nom} ?`,
-      a: `Pour un T2 à ${ville.nom} (environ ${Math.round(ville.prix_m2 * 45).toLocaleString("fr-FR")} € pour 45 m²), un apport de 10 % représente ${Math.round(ville.prix_m2 * 45 * 0.10).toLocaleString("fr-FR")} €. Il faut y ajouter les frais de notaire (environ 7-8 % dans l'ancien), soit un apport total recommandé d'au moins ${Math.round(ville.prix_m2 * 45 * 0.18).toLocaleString("fr-FR")} €. Un apport de 20 % permet d'obtenir de meilleures conditions de taux.`,
+      a: `Pour un T2 à ${ville.nom} (environ ${prixT2.toLocaleString("fr-FR")} € pour 45 m²), un apport de 10 % représente ${Math.round(prixT2 * 0.10).toLocaleString("fr-FR")} €. Il faut y ajouter les frais de notaire (environ 7-8 % dans l'ancien), soit un apport total recommandé d'au moins ${Math.round(prixT2 * 0.18).toLocaleString("fr-FR")} €. Un apport de 20 % permet d'obtenir de meilleures conditions de taux.`,
     },
     {
       q: `Quel est le loyer moyen d'un T2 à ${ville.nom} ?`,
@@ -228,13 +237,14 @@ export default function PageVilleSEO({ citySlug: citySlugProp }) {
         {/* ── Related simulators ── */}
         <section style={{ padding: "40px 24px", background: "#f8fafc", borderTop: "1px solid #e2e8f0" }}>
           <div style={{ maxWidth: 840, margin: "0 auto" }}>
-            <p style={{ fontSize: 14, color: "#64748b", marginBottom: 12, fontWeight: 600 }}>Simulateurs utiles :</p>
+            <p style={{ fontSize: 14, color: "#64748b", marginBottom: 12, fontWeight: 600 }}>Simulateurs utiles pour votre projet à {ville.nom} :</p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
               {[
-                { to: "/simulateurs/pret-immobilier", label: "Calculateur de prêt immobilier" },
-                { to: "/simulateurs/frais-notaire", label: "Frais de notaire" },
-                { to: "/simulateurs/endettement", label: "Capacité d'emprunt" },
-                { to: "/simulateurs/budget-maximum", label: "Budget maximum" },
+                { to: "/simulateurs/pret-immobilier", label: `Calculer mon prêt immobilier à ${ville.nom}` },
+                { to: "/simulateurs/frais-notaire", label: "Calculer les frais de notaire" },
+                { to: "/simulateurs/endettement", label: "Ma capacité d'emprunt" },
+                { to: "/simulateurs/budget-maximum", label: "Mon budget maximum d'achat" },
+                { to: "/ptz-2026-conditions-montants", label: "Éligibilité PTZ 2026" },
               ].map((link) => (
                 <Link
                   key={link.to}

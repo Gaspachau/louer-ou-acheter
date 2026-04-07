@@ -1,6 +1,18 @@
 {
   "buildCommand": "npm run build",
   "outputDirectory": "dist",
+  "redirects": [
+    { "source": "/villes/paris",       "destination": "/louer-ou-acheter-paris",      "permanent": true },
+    { "source": "/villes/lyon",        "destination": "/louer-ou-acheter-lyon",       "permanent": true },
+    { "source": "/villes/marseille",   "destination": "/louer-ou-acheter-marseille",  "permanent": true },
+    { "source": "/villes/bordeaux",    "destination": "/louer-ou-acheter-bordeaux",   "permanent": true },
+    { "source": "/villes/toulouse",    "destination": "/louer-ou-acheter-toulouse",   "permanent": true },
+    { "source": "/villes/nantes",      "destination": "/louer-ou-acheter-nantes",     "permanent": true },
+    { "source": "/villes/lille",       "destination": "/louer-ou-acheter-lille",      "permanent": true },
+    { "source": "/villes/nice",        "destination": "/louer-ou-acheter-nice",       "permanent": true },
+    { "source": "/villes/rennes",      "destination": "/louer-ou-acheter-rennes",     "permanent": true },
+    { "source": "/villes/strasbourg",  "destination": "/louer-ou-acheter-strasbourg", "permanent": true }
+  ],
   "rewrites": [
     { "source": "/(.*)", "destination": "/index.html" }
   ],
@@ -8,28 +20,19 @@
     {
       "source": "/assets/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/(.*)\\.woff2",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=31536000, immutable"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }
       ]
     },
     {
       "source": "/",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "public, max-age=0, must-revalidate"
-        }
+        { "key": "Cache-Control", "value": "public, max-age=0, must-revalidate" }
       ]
     }
   ]

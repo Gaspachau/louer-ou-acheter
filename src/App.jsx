@@ -52,6 +52,7 @@ const PageCapaciteEmpruntSEO = lazy(() => import("./components/seo/PageCapaciteE
 const PagePTZSEO = lazy(() => import("./components/seo/PagePTZSEO"));
 const PageTauxImmoSEO = lazy(() => import("./components/seo/PageTauxImmoSEO"));
 const PagePlanDuSite = lazy(() => import("./components/seo/PagePlanDuSite"));
+const PageSimulateurSEO = lazy(() => import("./components/seo/PageSimulateurSEO"));
 
 function PageLoader() {
   return (
@@ -149,6 +150,7 @@ export default function App() {
         <Route path="/ptz-2026-conditions-montants" element={<PagePTZSEO />} />
         <Route path="/taux-immobilier-2026" element={<PageTauxImmoSEO />} />
         <Route path="/plan-du-site" element={<PagePlanDuSite />} />
+        <Route path="/simulateur-louer-ou-acheter" element={<PageSimulateurSEO />} />
       </Routes>
     </Suspense>
     </>
